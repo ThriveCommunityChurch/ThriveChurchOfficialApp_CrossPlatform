@@ -3,7 +3,7 @@
  * Displays RSS feed from MailChimp with card design
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -11,6 +11,7 @@ import * as rssParser from 'react-native-rss-parser';
 import { FlashList } from '@shopify/flash-list';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
+import { setCurrentScreen, logViewAnnouncements } from '../../services/analytics/analyticsService';
 
 const feedURL = 'https://us4.campaign-archive.com/feed?u=1c5116a71792ef373ee131ea0&id=e6caee03a4';
 
@@ -103,6 +104,12 @@ export default function RSSScreen() {
   const [loading, setLoading] = React.useState(true);
   const [items, setItems] = React.useState<RSSItem[]>([]);
   const [error, setError] = React.useState<string | null>(null);
+
+  // Track screen view
+  useEffect(() => {
+    setCurrentScreen('RSSScreen', 'Announcements');
+    logViewAnnouncements();
+  }, []);
 
   React.useEffect(() => {
     fetch(feedURL)

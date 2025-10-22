@@ -3,11 +3,12 @@
  * Generic WebView screen for displaying forms (Serve, Small Group, Prayer Requests)
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, StyleSheet, ActivityIndicator, Linking, Alert } from 'react-native';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { WebView } from 'react-native-webview';
 import { colors } from '../../theme/colors';
+import { setCurrentScreen, logCustomEvent } from '../../services/analytics/analyticsService';
 
 type ConnectStackParamList = {
   ConnectHome: undefined;
@@ -18,9 +19,19 @@ type WebViewRouteProp = RouteProp<ConnectStackParamList, 'WebViewForm'>;
 
 export const WebViewScreen: React.FC = () => {
   const route = useRoute<WebViewRouteProp>();
-  const { url } = route.params;
+  const { url, title } = route.params;
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(false);
+
+  // Track screen view
+  useEffect(() => {
+    setCurrentScreen('WebViewScreen', 'WebView');
+    logCustomEvent('view_webview', {
+      page_title: title,
+      url: url,
+      content_type: 'webview',
+    });
+  }, [title, url]);
 
   const handleShouldStartLoadWithRequest = (request: any): boolean => {
     const { url: requestUrl, navigationType } = request;

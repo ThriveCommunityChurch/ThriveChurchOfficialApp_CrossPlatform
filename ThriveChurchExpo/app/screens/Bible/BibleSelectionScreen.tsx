@@ -3,7 +3,7 @@
  * Main Bible screen with Traditional and Alphabetical order selection cards
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BibleOrderType } from '../../types/bible';
+import { setCurrentScreen } from '../../services/analytics/analyticsService';
 
 type BibleStackParamList = {
   BibleSelection: undefined;
@@ -77,6 +78,11 @@ const SelectionCard: React.FC<SelectionCardProps> = ({ title, description, onPre
 
 export const BibleSelectionScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
+
+  // Track screen view
+  useEffect(() => {
+    setCurrentScreen('BibleSelectionScreen', 'BibleSelection');
+  }, []);
 
   const handleTraditionalPress = () => {
     navigation.navigate('BookList', {
