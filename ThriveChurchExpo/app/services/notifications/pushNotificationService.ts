@@ -2,23 +2,22 @@
  * Push Notification Service
  * Handles Firebase Cloud Messaging and local notifications
  * Matches iOS implementation in AppDelegate.swift
- *
- * NOTE: Firebase Messaging temporarily disabled due to Expo SDK 54 compatibility issues
- * TODO: Re-enable when upgrading to compatible version or downgrading React Native Firebase
  */
 
-// import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
-import notifee, { AndroidImportance, EventType } from '@notifee/react-native';
+import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
+import notifee, { AndroidImportance, EventType, AuthorizationStatus } from '@notifee/react-native';
 import { Platform, Alert } from 'react-native';
-import { logError, logWarning } from '../logging/logger';
+import { logError, logWarning, logInfo } from '../logging/logger';
+import { featureFlags } from '../../config/firebase.config';
 
-// Stub type for FirebaseMessagingTypes.RemoteMessage since Firebase Messaging is disabled
-type RemoteMessage = {
-  notification?: {
-    title?: string;
-    body?: string;
-  };
-  data?: { [key: string]: string };
+// Type alias for convenience
+type RemoteMessage = FirebaseMessagingTypes.RemoteMessage;
+
+/**
+ * Check if push notifications are enabled via feature flag
+ */
+const isPushNotificationsEnabled = (): boolean => {
+  return featureFlags.pushNotifications;
 };
 
 /**
@@ -26,8 +25,31 @@ type RemoteMessage = {
  * Matches iOS: UNUserNotificationCenter.current().requestAuthorization
  */
 export const requestNotificationPermission = async (): Promise<boolean> => {
-  console.log('Push: Notification permission (disabled - Firebase Messaging not available)');
-  return false;
+  if (!isPushNotificationsEnabled()) {
+    console.log('Push: Notification permission (disabled by feature flag)');
+    return false;
+  }
+
+  try {
+    const authStatus = await messaging().requestPermission();
+    const enabled =
+      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+    if (enabled) {
+      console.log('Push: Notification permission granted');
+      await logInfo('Push notification permission granted');
+    } else {
+      console.log('Push: Notification permission denied');
+      await logWarning('Push notification permission denied');
+    }
+
+    return enabled;
+  } catch (error) {
+    console.error('Push: Error requesting notification permission:', error);
+    await logError(`Failed to request notification permission: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    return false;
+  }
 };
 
 /**
@@ -35,8 +57,26 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
  * Matches iOS: Messaging.messaging().token
  */
 export const getFCMToken = async (): Promise<string | null> => {
-  console.log('Push: FCM Token (disabled - Firebase Messaging not available)');
-  return null;
+  if (!isPushNotificationsEnabled()) {
+    console.log('Push: FCM Token (disabled by feature flag)');
+    return null;
+  }
+
+  try {
+    const token = await messaging().getToken();
+    if (token) {
+      console.log('Push: FCM Token obtained:', token.substring(0, 20) + '...');
+      await logInfo('FCM token obtained successfully');
+    } else {
+      console.log('Push: No FCM token available');
+      await logWarning('No FCM token available');
+    }
+    return token;
+  } catch (error) {
+    console.error('Push: Error getting FCM token:', error);
+    await logError(`Failed to get FCM token: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    return null;
+  }
 };
 
 /**
@@ -44,7 +84,34 @@ export const getFCMToken = async (): Promise<string | null> => {
  * Matches iOS: application.registerForRemoteNotifications()
  */
 export const registerForRemoteNotifications = async (): Promise<void> => {
-  console.log('Push: Register for remote notifications (disabled - Firebase Messaging not available)');
+  if (!isPushNotificationsEnabled()) {
+    console.log('Push: Register for remote notifications (disabled by feature flag)');
+    return;
+  }
+
+  try {
+    // Request permission first
+    const hasPermission = await requestNotificationPermission();
+
+    if (hasPermission) {
+      // Get FCM token
+      const token = await getFCMToken();
+
+      if (token) {
+        console.log('Push: Successfully registered for remote notifications');
+        await logInfo('Successfully registered for remote notifications');
+
+        // TODO: Send token to your backend server
+        // await sendTokenToServer(token);
+      }
+    } else {
+      console.log('Push: Cannot register - permission not granted');
+      await logWarning('Cannot register for remote notifications - permission not granted');
+    }
+  } catch (error) {
+    console.error('Push: Error registering for remote notifications:', error);
+    await logError(`Failed to register for remote notifications: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
 };
 
 /**
@@ -90,16 +157,60 @@ export const displayNotification = async (
  * Handle foreground messages
  * Matches iOS: userNotificationCenter(_:willPresent:withCompletionHandler:)
  */
-export const setupForegroundMessageHandler = (): void => {
-  console.log('Push: Foreground message handler (disabled - Firebase Messaging not available)');
+export const setupForegroundMessageHandler = (): (() => void) | undefined => {
+  if (!isPushNotificationsEnabled()) {
+    console.log('Push: Foreground message handler (disabled by feature flag)');
+    return undefined;
+  }
+
+  try {
+    // Handle messages when app is in foreground
+    const unsubscribe = messaging().onMessage(async (remoteMessage) => {
+      console.log('Push: Foreground message received:', remoteMessage);
+
+      // Display notification using Notifee for better UX
+      await displayNotification(remoteMessage);
+
+      // Log to Firebase Analytics (matches iOS behavior)
+      await logInfo(`Foreground notification received: ${remoteMessage.notification?.title || 'No title'}`);
+    });
+
+    console.log('Push: Foreground message handler registered');
+    return unsubscribe;
+  } catch (error) {
+    console.error('Push: Error setting up foreground message handler:', error);
+    logError(`Failed to setup foreground message handler: ${error instanceof Error ? error.message : 'Unknown error'}`).catch(() => {});
+    return undefined;
+  }
 };
 
 /**
  * Handle background messages
  * Matches iOS: userNotificationCenter(_:didReceive:withCompletionHandler:)
+ * NOTE: This must be called at the top level (in index.js) for background messages to work
  */
 export const setupBackgroundMessageHandler = (): void => {
-  console.log('Push: Background message handler (disabled - Firebase Messaging not available)');
+  if (!isPushNotificationsEnabled()) {
+    console.log('Push: Background message handler (disabled by feature flag)');
+    return;
+  }
+
+  try {
+    messaging().setBackgroundMessageHandler(async (remoteMessage) => {
+      console.log('Push: Background message received:', remoteMessage);
+
+      // Display notification using Notifee
+      await displayNotification(remoteMessage);
+
+      // Log to Firebase Analytics (matches iOS behavior)
+      await logInfo(`Background notification received: ${remoteMessage.notification?.title || 'No title'}`);
+    });
+
+    console.log('Push: Background message handler registered');
+  } catch (error) {
+    console.error('Push: Error setting up background message handler:', error);
+    logError(`Failed to setup background message handler: ${error instanceof Error ? error.message : 'Unknown error'}`).catch(() => {});
+  }
 };
 
 /**
@@ -108,18 +219,44 @@ export const setupBackgroundMessageHandler = (): void => {
 export const setupNotificationOpenedHandler = (
   onNotificationOpened: (remoteMessage: RemoteMessage) => void
 ): void => {
-  console.log('Push: Notification opened handler (disabled - Firebase Messaging not available)');
+  if (!isPushNotificationsEnabled()) {
+    console.log('Push: Notification opened handler (disabled by feature flag)');
+    return;
+  }
 
-  // Handle Notifee notification press (still works without Firebase Messaging)
-  notifee.onForegroundEvent(({ type, detail }) => {
-    if (type === EventType.PRESS) {
-      console.log('Push: Notifee notification pressed:', detail);
-      // Handle notification press
-      if (detail.notification?.data) {
-        onNotificationOpened(detail.notification.data as any);
+  try {
+    // Handle notification opened when app was in background or quit
+    messaging().onNotificationOpenedApp((remoteMessage) => {
+      console.log('Push: Notification opened app from background:', remoteMessage);
+      onNotificationOpened(remoteMessage);
+    });
+
+    // Handle notification opened when app was quit
+    messaging()
+      .getInitialNotification()
+      .then((remoteMessage) => {
+        if (remoteMessage) {
+          console.log('Push: Notification opened app from quit state:', remoteMessage);
+          onNotificationOpened(remoteMessage);
+        }
+      });
+
+    // Handle Notifee notification press (for foreground notifications)
+    notifee.onForegroundEvent(({ type, detail }) => {
+      if (type === EventType.PRESS) {
+        console.log('Push: Notifee notification pressed:', detail);
+        // Handle notification press
+        if (detail.notification?.data) {
+          onNotificationOpened(detail.notification.data as any);
+        }
       }
-    }
-  });
+    });
+
+    console.log('Push: Notification opened handler registered');
+  } catch (error) {
+    console.error('Push: Error setting up notification opened handler:', error);
+    logError(`Failed to setup notification opened handler: ${error instanceof Error ? error.message : 'Unknown error'}`).catch(() => {});
+  }
 };
 
 /**
@@ -157,30 +294,41 @@ export const clearAllNotifications = async (): Promise<void> => {
 export const initializePushNotifications = async (
   onNotificationOpened?: (remoteMessage: RemoteMessage) => void
 ): Promise<void> => {
+  if (!isPushNotificationsEnabled()) {
+    console.log('Push: Push notifications disabled by feature flag');
+    return;
+  }
+
   try {
-    console.log('Push: Initializing push notifications (Firebase Messaging disabled)...');
+    console.log('Push: Initializing push notifications...');
 
     // Register for remote notifications
     await registerForRemoteNotifications();
 
-    // Setup message handlers
+    // Setup foreground message handler
     setupForegroundMessageHandler();
-    setupBackgroundMessageHandler();
 
     // Setup notification opened handler
     if (onNotificationOpened) {
       setupNotificationOpenedHandler(onNotificationOpened);
     }
 
+    // Listen for token refresh
+    messaging().onTokenRefresh(async (token) => {
+      console.log('Push: FCM token refreshed:', token.substring(0, 20) + '...');
+      await logInfo('FCM token refreshed');
+      // TODO: Send new token to your backend server
+      // await sendTokenToServer(token);
+    });
+
     // Clear badge on app open (matches iOS behavior)
     await setBadgeCount(0);
 
-    console.log('Push: Push notifications initialized (limited functionality without Firebase Messaging)');
+    console.log('Push: Push notifications initialized successfully');
+    await logInfo('Push notifications initialized successfully');
   } catch (error) {
     console.error('Push: Error initializing push notifications:', error);
-    logError(`Failed to initialize push notifications: ${error instanceof Error ? error.message : 'Unknown error'}`).catch(() => {
-      // Ignore logging errors
-    });
+    await logError(`Failed to initialize push notifications: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 };
 
@@ -188,14 +336,35 @@ export const initializePushNotifications = async (
  * Check if notifications are enabled
  */
 export const checkNotificationPermission = async (): Promise<boolean> => {
-  console.log('Push: Check notification permission (disabled - Firebase Messaging not available)');
-  return false;
+  if (!isPushNotificationsEnabled()) {
+    console.log('Push: Check notification permission (disabled by feature flag)');
+    return false;
+  }
+
+  try {
+    const authStatus = await messaging().hasPermission();
+    const enabled =
+      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+    console.log('Push: Notification permission status:', enabled ? 'Enabled' : 'Disabled');
+    return enabled;
+  } catch (error) {
+    console.error('Push: Error checking notification permission:', error);
+    await logError(`Failed to check notification permission: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    return false;
+  }
 };
 
 /**
  * Prompt user to enable notifications if disabled
  */
 export const promptForNotificationPermission = async (): Promise<void> => {
+  if (!isPushNotificationsEnabled()) {
+    console.log('Push: Prompt for notification permission (disabled by feature flag)');
+    return;
+  }
+
   try {
     const hasPermission = await checkNotificationPermission();
 
@@ -211,7 +380,10 @@ export const promptForNotificationPermission = async (): Promise<void> => {
           {
             text: 'Enable',
             onPress: async () => {
-              await requestNotificationPermission();
+              const granted = await requestNotificationPermission();
+              if (granted) {
+                await logInfo('User enabled push notifications via prompt');
+              }
             },
           },
         ]
@@ -219,6 +391,7 @@ export const promptForNotificationPermission = async (): Promise<void> => {
     }
   } catch (error) {
     console.error('Push: Error prompting for notification permission:', error);
+    await logError(`Failed to prompt for notification permission: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 };
 
