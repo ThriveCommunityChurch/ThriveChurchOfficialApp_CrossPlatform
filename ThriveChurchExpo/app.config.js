@@ -96,8 +96,10 @@ module.exports = {
       ],
       "expo-system-ui",
       "@react-native-firebase/app"
+      // Note: @react-native-firebase/analytics and @react-native-firebase/messaging
+      // do not have Expo config plugins. They are configured via native files
+      // (GoogleService-Info.plist and google-services.json) and work at runtime.
       // "@react-native-firebase/crashlytics", // Temporarily disabled due to Expo SDK 54 compatibility issues
-      // "@react-native-firebase/analytics", // Temporarily disabled due to Expo SDK 54 compatibility issues
     ],
     extra: extra,
     scheme: credentials.app.deepLinkScheme,
