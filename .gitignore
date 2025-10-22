@@ -102,3 +102,37 @@ dist
 
 # TernJS port file
 .tern-port
+
+*.DS_Store
+*._build
+*._*
+# Environment files (old app)
+ThriveChurchOfficialApp/.env.production
+ThriveChurchOfficialApp/.env.development
+
+# Expo App - Credentials and Secrets
+ThriveChurchExpo/credentials.json
+ThriveChurchExpo/google-services.json
+ThriveChurchExpo/GoogleService-Info.plist
+
+# Expo App - Environment files
+ThriveChurchExpo/.env
+ThriveChurchExpo/.env.local
+ThriveChurchExpo/.env.development
+ThriveChurchExpo/.env.production
+ThriveChurchExpo/.env.staging
+
+# iOS specific
+ThriveChurchExpo/ios/.xcode.env.local
+ThriveChurchExpo/ios/Pods/
+ThriveChurchExpo/ios/build/
+
+# Android specific
+ThriveChurchExpo/android/app/google-services.json
+ThriveChurchExpo/android/build/
+ThriveChurchExpo/android/.gradle/
+ThriveChurchExpo/android/app/build/
+
+# Build artifacts
+ThriveChurchExpo/.expo/
+ThriveChurchExpo/.expo-shared/
