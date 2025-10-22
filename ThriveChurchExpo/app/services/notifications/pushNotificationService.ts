@@ -23,6 +23,7 @@ const isPushNotificationsEnabled = (): boolean => {
 /**
  * Request notification permissions
  * Matches iOS: UNUserNotificationCenter.current().requestAuthorization
+ * NOTE: Firebase automatically registers for remote messages, no need to call registerDeviceForRemoteMessages()
  */
 export const requestNotificationPermission = async (): Promise<boolean> => {
   if (!isPushNotificationsEnabled()) {
@@ -39,12 +40,6 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
     if (enabled) {
       console.log('Push: Notification permission granted');
       await logInfo('Push notification permission granted');
-
-      // iOS requires explicit registration for remote messages
-      if (Platform.OS === 'ios') {
-        await messaging().registerDeviceForRemoteMessages();
-        console.log('Push: iOS device registered for remote messages');
-      }
     } else {
       console.log('Push: Notification permission denied');
       await logWarning('Push notification permission denied');
@@ -61,7 +56,8 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
 /**
  * Get FCM token
  * Matches iOS: Messaging.messaging().token
- * NOTE: On iOS, must call registerDeviceForRemoteMessages() first
+ * NOTE: Firebase automatically handles device registration
+ * WARNING: FCM tokens are not available on iOS Simulator - requires physical device
  */
 export const getFCMToken = async (): Promise<string | null> => {
   if (!isPushNotificationsEnabled()) {
@@ -70,27 +66,26 @@ export const getFCMToken = async (): Promise<string | null> => {
   }
 
   try {
-    // On iOS, ensure device is registered before getting token
-    if (Platform.OS === 'ios') {
-      const isRegistered = messaging().isDeviceRegisteredForRemoteMessages;
-      if (!isRegistered) {
-        console.log('Push: iOS device not registered, registering now...');
-        await messaging().registerDeviceForRemoteMessages();
-      }
-    }
-
     const token = await messaging().getToken();
     if (token) {
       console.log('Push: FCM Token obtained:', token.substring(0, 20) + '...');
       await logInfo('FCM token obtained successfully');
     } else {
-      console.log('Push: No FCM token available');
+      console.log('Push: No FCM token available (this is expected on iOS Simulator)');
       await logWarning('No FCM token available');
     }
     return token;
   } catch (error) {
-    console.error('Push: Error getting FCM token:', error);
-    await logError(`Failed to get FCM token: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+    // Check if this is a simulator-related error
+    if (errorMessage.includes('unregistered') || errorMessage.includes('simulator')) {
+      console.log('Push: FCM token not available on simulator - this is expected. Use a physical device for push notifications.');
+      await logWarning('FCM token not available on simulator');
+    } else {
+      console.error('Push: Error getting FCM token:', error);
+      await logError(`Failed to get FCM token: ${errorMessage}`);
+    }
     return null;
   }
 };
