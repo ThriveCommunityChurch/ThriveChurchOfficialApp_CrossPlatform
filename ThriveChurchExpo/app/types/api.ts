@@ -22,6 +22,7 @@ export interface SermonMessage {
   PassageRef?: string;
   Speaker: string;
   Title: string;
+  Summary?: string;
   Date: string;
   MessageId: string;
   WeekNum?: number;
@@ -30,6 +31,7 @@ export interface SermonMessage {
   seriesArt?: string; // base64 or URI
   previouslyPlayed?: number;
   seriesTitle?: string;
+  Tags?: string[];
 }
 
 export interface SermonSeries {
@@ -42,4 +44,6 @@ export interface SermonSeries {
   Thumbnail: string;
   ArtUrl: string;
   LastUpdated?: string;
+  Tags?: string[];
+  Summary?: string;
 }

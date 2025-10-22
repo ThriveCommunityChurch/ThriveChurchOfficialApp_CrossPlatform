@@ -417,17 +417,38 @@ export const SermonDetailScreen: React.FC = () => {
             </View>
           </View>
 
-          {/* Right Main Content - Future Sections */}
+          {/* Right Main Content - Summary and Topics */}
           <View style={styles.tabletMainContent}>
-            {/* Future: Tags Section */}
+            {/* Summary Section */}
+            {message.Summary && (
+              <View style={styles.tabletSection}>
+                <Text style={styles.tabletSectionTitle}>About This Message</Text>
+                <View style={styles.tabletSummaryCard}>
+                  <Text style={styles.tabletSummaryText}>{message.Summary}</Text>
+                </View>
+              </View>
+            )}
+
+            {/* Tags Section */}
             <View style={styles.tabletSection}>
               <Text style={styles.tabletSectionTitle}>Topics</Text>
-              <View style={styles.tabletEmptyState}>
-                <Ionicons name="pricetags-outline" size={32} color={colors.lighterBlueGray} />
-                <Text style={styles.tabletEmptyStateText}>
-                  Topics will be available soon
-                </Text>
-              </View>
+              {message.Tags && message.Tags.length > 0 ? (
+                <View style={styles.tabletTagsContainer}>
+                  {message.Tags.map((tag, index) => (
+                    <View key={index} style={styles.tabletTag}>
+                      <Ionicons name="pricetag" size={14} color={colors.mainBlue} />
+                      <Text style={styles.tabletTagText}>{tag}</Text>
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <View style={styles.tabletEmptyState}>
+                  <Ionicons name="pricetags-outline" size={32} color={colors.lighterBlueGray} />
+                  <Text style={styles.tabletEmptyStateText}>
+                    No topics tagged
+                  </Text>
+                </View>
+              )}
             </View>
 
             {/* Future: Related Series Section */}
@@ -523,6 +544,34 @@ export const SermonDetailScreen: React.FC = () => {
               </View>
               <Ionicons name="chevron-forward" size={20} color={colors.lightGray} />
             </TouchableOpacity>
+          )}
+
+          {/* Summary Section */}
+          {message.Summary && (
+            <View style={styles.summaryCard}>
+              <Text style={styles.summaryLabel}>About This Message</Text>
+              <Text style={styles.summaryText}>{message.Summary}</Text>
+            </View>
+          )}
+
+          {/* Tags Section - Limited to 4 tags on mobile */}
+          {message.Tags && message.Tags.length > 0 && (
+            <View style={styles.tagsSection}>
+              <Text style={styles.tagsLabel}>Topics</Text>
+              <View style={styles.tagsContainer}>
+                {message.Tags.slice(0, 4).map((tag, index) => (
+                  <View key={index} style={styles.tag}>
+                    <Ionicons name="pricetag" size={12} color={colors.mainBlue} />
+                    <Text style={styles.tagText}>{tag}</Text>
+                  </View>
+                ))}
+                {message.Tags.length > 4 && (
+                  <View style={styles.tagMore}>
+                    <Text style={styles.tagMoreText}>+{message.Tags.length - 4} more</Text>
+                  </View>
+                )}
+              </View>
+            </View>
           )}
 
           {/* Download Status */}
@@ -698,6 +747,75 @@ const styles = StyleSheet.create({
     ...typography.h3,
     fontSize: 16,
     color: colors.white,
+  },
+  summaryCard: {
+    backgroundColor: colors.bgDarkBlue,
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: colors.lighterBlueGray,
+  },
+  summaryLabel: {
+    ...typography.caption,
+    fontSize: 12,
+    color: colors.lightGray,
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  summaryText: {
+    ...typography.body,
+    fontSize: 15,
+    lineHeight: 22,
+    color: colors.white,
+  },
+  tagsSection: {
+    marginBottom: 16,
+  },
+  tagsLabel: {
+    ...typography.caption,
+    fontSize: 12,
+    color: colors.lightGray,
+    marginBottom: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  tagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  tag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.bgDarkBlue,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: colors.lighterBlueGray,
+  },
+  tagText: {
+    ...typography.caption,
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.white,
+  },
+  tagMore: {
+    backgroundColor: colors.darkGrey,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  tagMoreText: {
+    ...typography.caption,
+    fontSize: 13,
+    fontWeight: '500',
+    color: colors.lightGray,
   },
   downloadedBadge: {
     flexDirection: 'row',
@@ -1026,6 +1144,45 @@ const styles = StyleSheet.create({
     color: colors.lightGray,
     marginTop: 12,
     textAlign: 'center',
+  },
+
+  // Summary Card
+  tabletSummaryCard: {
+    backgroundColor: colors.bgDarkBlue,
+    padding: 20,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.lighterBlueGray,
+  },
+  tabletSummaryText: {
+    ...typography.body,
+    fontSize: 16,
+    lineHeight: 24,
+    color: colors.white,
+  },
+
+  // Tags Container
+  tabletTagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  tabletTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.bgDarkBlue,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: colors.lighterBlueGray,
+  },
+  tabletTagText: {
+    ...typography.body,
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.white,
   },
 });
 

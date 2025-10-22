@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { View, ActivityIndicator, Dimensions, TouchableOpacity, Text } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { View, ActivityIndicator, TouchableOpacity, Text, useWindowDimensions } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import FastImage from 'react-native-fast-image';
 import { useInfiniteQuery } from '@tanstack/react-query';
@@ -11,16 +11,33 @@ import { SermonSeriesSummary, SermonsSummaryPagedResponse } from '../../types/ap
 
 const CARD_ASPECT = 9 / 16; // 16:9
 const PRELOAD_THRESHOLD = 0.8; // Load next page when 80% scrolled
+const HORIZONTAL_PADDING = 16;
+const CARD_GAP = 16;
 
 interface ListenScreenProps {
   onSeriesPress: (seriesId: string, artUrl: string) => void;
 }
 
+// Helper function to chunk array into rows
+function chunkArray<T>(array: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
+  }
+  return chunks;
+}
+
 export default function ListenScreen({ onSeriesPress }: ListenScreenProps) {
-  const { width, height } = Dimensions.get('window');
+  const { width, height } = useWindowDimensions();
   const isTablet = Math.min(width, height) >= 768;
   const isLandscape = width > height;
-  const columns = isTablet ? (isLandscape && width > 1200 ? 3 : 2) : 1;
+
+  // Determine number of columns based on device and orientation
+  const columns = useMemo(() => {
+    if (!isTablet) return 1; // Mobile: always 1 column
+    if (isLandscape) return 3; // Tablet landscape: 3 columns
+    return 2; // Tablet portrait: 2 columns
+  }, [isTablet, isLandscape]);
 
   const {
     data,
@@ -29,7 +46,6 @@ export default function ListenScreen({ onSeriesPress }: ListenScreenProps) {
     isFetchingNextPage,
     isLoading,
     isError,
-    error,
   } = useInfiniteQuery({
     queryKey: ['sermons'],
     queryFn: async ({ pageParam = 1 }): Promise<SermonsSummaryPagedResponse> => {
@@ -45,6 +61,18 @@ export default function ListenScreen({ onSeriesPress }: ListenScreenProps) {
 
   const allSeries = data?.pages.flatMap(page => page.Summaries) ?? [];
 
+  // Group series into rows based on column count
+  const rows = useMemo(() => chunkArray(allSeries, columns), [allSeries, columns]);
+
+  // Calculate card dimensions
+  const cardDimensions = useMemo(() => {
+    const totalGaps = (columns - 1) * CARD_GAP;
+    const availableWidth = width - (HORIZONTAL_PADDING * 2) - totalGaps;
+    const cardWidth = availableWidth / columns;
+    const cardHeight = cardWidth * CARD_ASPECT;
+    return { cardWidth, cardHeight };
+  }, [width, columns]);
+
   const handleLoadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
@@ -55,42 +83,47 @@ export default function ListenScreen({ onSeriesPress }: ListenScreenProps) {
     handleLoadMore();
   }, [handleLoadMore]);
 
-  const renderSeriesCard = useCallback(({ item }: { item: SermonSeriesSummary }) => {
-    const totalInterItem = (columns - 1) * 16;
-    const avail = width - 16 - 16 - totalInterItem;
-    const cardWidth = Math.min(avail / columns, 600);
-    const cardHeight = cardWidth * CARD_ASPECT;
-
+  const renderRow = useCallback(({ item: row }: { item: SermonSeriesSummary[] }) => {
     return (
-      <TouchableOpacity
+      <View
         style={{
-          width: cardWidth,
-          height: cardHeight,
-          marginRight: columns > 1 ? 16 : 0,
-          backgroundColor: 'transparent',
-          // Add shadow for iOS parity
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.4,
-          shadowRadius: 8,
-          elevation: 8, // Android shadow
+          flexDirection: 'row',
+          justifyContent: 'flex-start',
+          gap: CARD_GAP,
+          marginBottom: CARD_GAP,
         }}
-        onPress={() => onSeriesPress(item.Id, item.ArtUrl)}
-        activeOpacity={0.8}
       >
-        <FastImage
-          source={{ uri: item.ArtUrl }}
-          style={{
-            width: '100%',
-            height: '100%',
-            backgroundColor: colors.darkGrey,
-            borderRadius: 12,
-          }}
-          resizeMode={FastImage.resizeMode.cover}
-        />
-      </TouchableOpacity>
+        {row.map((series) => (
+          <TouchableOpacity
+            key={series.Id}
+            style={{
+              width: cardDimensions.cardWidth,
+              height: cardDimensions.cardHeight,
+              backgroundColor: 'transparent',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.4,
+              shadowRadius: 8,
+              elevation: 8,
+            }}
+            onPress={() => onSeriesPress(series.Id, series.ArtUrl)}
+            activeOpacity={0.8}
+          >
+            <FastImage
+              source={{ uri: series.ArtUrl }}
+              style={{
+                width: '100%',
+                height: '100%',
+                backgroundColor: colors.darkGrey,
+                borderRadius: 12,
+              }}
+              resizeMode={FastImage.resizeMode.cover}
+            />
+          </TouchableOpacity>
+        ))}
+      </View>
     );
-  }, [columns, width, onSeriesPress]);
+  }, [cardDimensions, onSeriesPress]);
 
   const renderFooter = useCallback(() => {
     if (!isFetchingNextPage) return null;
@@ -128,15 +161,14 @@ export default function ListenScreen({ onSeriesPress }: ListenScreenProps) {
     <View style={{ flex: 1, backgroundColor: colors.almostBlack }}>
       <OfflineBanner />
       <FlashList
-        data={allSeries}
-        numColumns={columns}
-        key={columns}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 }}
-        ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
-        renderItem={renderSeriesCard}
+        data={rows}
+        renderItem={renderRow}
+        estimatedItemSize={cardDimensions.cardHeight + CARD_GAP}
+        contentContainerStyle={{ paddingHorizontal: HORIZONTAL_PADDING, paddingTop: 8, paddingBottom: 8 }}
         onEndReached={onEndReached}
-        onEndReachedThreshold={1 - PRELOAD_THRESHOLD} // Trigger at 80% scroll
+        onEndReachedThreshold={1 - PRELOAD_THRESHOLD}
         ListFooterComponent={renderFooter}
+        keyExtractor={(_item, index) => `row-${index}`}
       />
     </View>
   );

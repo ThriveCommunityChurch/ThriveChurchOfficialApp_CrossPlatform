@@ -168,23 +168,14 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
                       </View>
                     )}
 
-                    {/* Message Count */}
-                    <View style={styles.tabletMetadataItem}>
-                      <Ionicons name="list" size={16} color={colors.lightGray} />
-                      <Text style={styles.tabletMetadataText}>
-                        {series.Messages.length} {series.Messages.length === 1 ? 'Message' : 'Messages'}
+                    {/* Series Summary */}
+                    {series.Summary && (
+                      <Text style={[
+                        styles.tabletHeroSummary,
+                        !isLandscape && styles.tabletHeroSummaryPortrait
+                      ]}>
+                        {series.Summary}
                       </Text>
-                    </View>
-
-                    {/* Date Range */}
-                    {series.StartDate && (
-                      <View style={styles.tabletMetadataItem}>
-                        <Ionicons name="calendar-outline" size={16} color={colors.lightGray} />
-                        <Text style={styles.tabletMetadataText}>
-                          {formatDate(series.StartDate)}
-                          {series.EndDate && ` - ${formatDate(series.EndDate)}`}
-                        </Text>
-                      </View>
                     )}
                   </View>
                 </View>
@@ -227,27 +218,22 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
             <View style={styles.tabletSidebarSection}>
               <Text style={styles.tabletSidebarTitle}>Topics</Text>
 
-              {/* Placeholder topics - will be populated when API provides tags */}
-              <View style={styles.tabletTopicsContainer}>
-                <View style={styles.tabletTopicTag}>
-                  <Ionicons name="pricetag" size={14} color={colors.mainBlue} />
-                  <Text style={styles.tabletTopicText}>Faith</Text>
+              {/* Display actual tags from API */}
+              {series.Tags && series.Tags.length > 0 ? (
+                <View style={styles.tabletTopicsContainer}>
+                  {series.Tags.map((tag, index) => (
+                    <View key={index} style={styles.tabletTopicTag}>
+                      <Ionicons name="pricetag" size={14} color={colors.mainBlue} />
+                      <Text style={styles.tabletTopicText}>{tag}</Text>
+                    </View>
+                  ))}
                 </View>
-                <View style={styles.tabletTopicTag}>
-                  <Ionicons name="pricetag" size={14} color={colors.mainBlue} />
-                  <Text style={styles.tabletTopicText}>Prayer</Text>
+              ) : (
+                <View style={styles.tabletEmptyState}>
+                  <Ionicons name="pricetags-outline" size={32} color={colors.lighterBlueGray} />
+                  <Text style={styles.tabletEmptyStateText}>No topics tagged</Text>
                 </View>
-                <View style={styles.tabletTopicTag}>
-                  <Ionicons name="pricetag" size={14} color={colors.mainBlue} />
-                  <Text style={styles.tabletTopicText}>Community</Text>
-                </View>
-              </View>
-
-              {/* Empty state for when no topics */}
-              {/* <View style={styles.tabletEmptyState}>
-                <Ionicons name="pricetags-outline" size={32} color={colors.lighterBlueGray} />
-                <Text style={styles.tabletEmptyStateText}>No topics tagged</Text>
-              </View> */}
+              )}
             </View>
           </View>
 
@@ -312,8 +298,36 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
           </Text>
         )}
 
+        {/* Summary Section */}
+        {series.Summary && (
+          <View style={styles.phoneSummarySection}>
+            <Text style={styles.phoneSummaryLabel}>About This Series</Text>
+            <Text style={styles.phoneSummaryText}>{series.Summary}</Text>
+          </View>
+        )}
+
+        {/* Tags Section - Limited to 4 tags on mobile */}
+        {series.Tags && series.Tags.length > 0 && (
+          <View style={styles.phoneTagsSection}>
+            <Text style={styles.phoneTagsLabel}>Topics</Text>
+            <View style={styles.phoneTagsContainer}>
+              {series.Tags.slice(0, 4).map((tag, index) => (
+                <View key={index} style={styles.phoneTag}>
+                  <Ionicons name="pricetag" size={12} color={colors.mainBlue} />
+                  <Text style={styles.phoneTagText}>{tag}</Text>
+                </View>
+              ))}
+              {series.Tags.length > 4 && (
+                <View style={styles.phoneTagMore}>
+                  <Text style={styles.phoneTagMoreText}>+{series.Tags.length - 4} more</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
+
         {/* Messages List */}
-        <View style={[styles.phoneMessagesList, { marginTop: isCurrentSeries ? 0 : 16 }]}>
+        <View style={[styles.phoneMessagesList, { marginTop: (series.Summary || (series.Tags && series.Tags.length > 0)) ? 8 : (isCurrentSeries ? 0 : 16) }]}>
           {series.Messages.map((message, index) => {
             const downloaded = downloadedMessages.has(message.MessageId);
             const downloading = false;
@@ -409,10 +423,8 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   tabletHeroMetadata: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    gap: 20,
+    flexDirection: 'column',
+    gap: 12,
   },
   tabletCurrentBadge: {
     flexDirection: 'row',
@@ -422,12 +434,24 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 20,
     gap: 6,
+    alignSelf: 'flex-start',
   },
   tabletCurrentBadgeText: {
     ...typography.body,
     fontSize: 14,
     fontWeight: '600',
     color: colors.bgGreen,
+  },
+  tabletHeroSummary: {
+    ...typography.body,
+    fontSize: 16,
+    lineHeight: 24,
+    color: colors.lessLightLightGray,
+  },
+  tabletHeroSummaryPortrait: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '500',
   },
   tabletMetadataItem: {
     flexDirection: 'row',
@@ -523,6 +547,21 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
 
+  // Summary
+  tabletSummaryCard: {
+    backgroundColor: colors.darkGrey,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.lighterBlueGray,
+  },
+  tabletSummaryText: {
+    ...typography.body,
+    fontSize: 14,
+    lineHeight: 22,
+    color: colors.lessLightLightGray,
+  },
+
   // Empty State
   tabletEmptyState: {
     alignItems: 'center',
@@ -583,6 +622,75 @@ const styles = StyleSheet.create({
     marginHorizontal: 18,
     marginTop: 16,
     marginBottom: 0,
+  },
+  phoneSummarySection: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    backgroundColor: colors.darkGrey,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.lighterBlueGray,
+  },
+  phoneSummaryLabel: {
+    ...typography.caption,
+    fontSize: 12,
+    color: colors.lightGray,
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  phoneSummaryText: {
+    ...typography.body,
+    fontSize: 14,
+    lineHeight: 20,
+    color: colors.lessLightLightGray,
+  },
+  phoneTagsSection: {
+    marginHorizontal: 16,
+    marginTop: 16,
+  },
+  phoneTagsLabel: {
+    ...typography.caption,
+    fontSize: 12,
+    color: colors.lightGray,
+    marginBottom: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  phoneTagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  phoneTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.darkGrey,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    gap: 6,
+  },
+  phoneTagText: {
+    ...typography.caption,
+    fontSize: 13,
+    fontWeight: '500',
+    color: colors.white,
+  },
+  phoneTagMore: {
+    backgroundColor: colors.bgDarkBlue,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  phoneTagMoreText: {
+    ...typography.caption,
+    fontSize: 13,
+    fontWeight: '500',
+    color: colors.lightGray,
   },
   phoneMessagesList: {
     // marginTop is set dynamically based on isCurrentSeries

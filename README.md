@@ -3,8 +3,7 @@
 A modern cross-platform mobile application for Thrive Community Church in Estero, FL, designed to help members and visitors stay connected with sermons, take notes, and engage with the church community.
 
 ## 📱 Download
-
-[![Download on the App Store](https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg)](https://itunes.apple.com/us/app/thrive-church-official-app/id1138008288?mt=8)
+Cross-platform app for iOS and Android coming soon!
 
 Search for **"Thrive Church Official App"** in the Apple App Store or Google Play Store.
 
@@ -25,7 +24,7 @@ Search for **"Thrive Church Official App"** in the Apple App Store or Google Pla
 - **Language**: TypeScript with React Hooks
 - **Architecture**: Component-based architecture with custom hooks and context providers
 - **State Management**: Zustand for global state, React Query for server state
-- **Navigation**: React Navigation (Stack & Bottom Tabs)
+- **Navigation**: React Navigation (Stack & Bottom Tabs) with custom header and footer components
 - **Storage**: AsyncStorage for local data persistence
 - **Audio**: react-native-track-player for professional audio playback
 - **Design**: Modern card-based UI with responsive layouts for phones and tablets
@@ -345,20 +344,6 @@ Contributions are welcome! Please follow these guidelines:
 - Test all affected features
 - Follow the existing code style and patterns
 - Update documentation as needed
-
-## 📚 Documentation
-
-### Project Documentation
-- **[Quick Start Guide](docs/QUICK_START.md)** - Get up and running quickly
-- **[Development Guide](docs/DEVELOPMENT.md)** - Detailed development information
-- **[Build & Deployment](docs/BUILD_AND_DEPLOYMENT.md)** - Production build instructions
-
-### External Documentation
-- **[Expo Documentation](https://docs.expo.dev/)** - Official Expo documentation
-- **[React Native](https://reactnative.dev/)** - React Native documentation
-- **[React Navigation](https://reactnavigation.org/)** - Navigation library docs
-- **[React Native Track Player](https://react-native-track-player.js.org/)** - Audio player documentation
-- **[EAS Build](https://docs.expo.dev/build/introduction/)** - Cloud build service
 
 ## 🆘 Troubleshooting
 
