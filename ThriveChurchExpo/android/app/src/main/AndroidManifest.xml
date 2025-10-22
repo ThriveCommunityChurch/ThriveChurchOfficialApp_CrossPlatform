@@ -28,6 +28,7 @@
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="thrivechurch"/>
+        <data android:scheme="exp+thrivechurchexpo"/>
       </intent-filter>
     </activity>
   </application>
