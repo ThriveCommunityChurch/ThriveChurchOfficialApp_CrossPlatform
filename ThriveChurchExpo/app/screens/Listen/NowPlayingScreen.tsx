@@ -15,6 +15,7 @@ import { usePlayer } from '../../hooks/usePlayer';
 import { AudioWaveform } from '../../components/AudioWaveform';
 import { ProgressSlider } from '../../components/ProgressSlider';
 import { waveformService } from '../../services/audio/waveformService';
+import { setCurrentScreen } from '../../services/analytics/analyticsService';
 
 const { width, height } = Dimensions.get('window');
 const isTablet = (Platform.OS === 'ios' && Platform.isPad) || Math.min(width, height) >= 768;
@@ -62,6 +63,11 @@ export default function NowPlayingScreen() {
   const [seekPosition, setSeekPosition] = useState(0);
   const [waveformData, setWaveformData] = useState<number[]>([]);
   const [isLoadingWaveform, setIsLoadingWaveform] = useState(false);
+
+  // Track screen view
+  useEffect(() => {
+    setCurrentScreen('NowPlayingScreen', 'NowPlaying');
+  }, []);
 
   useEffect(() => {
     if (!isSeeking) {

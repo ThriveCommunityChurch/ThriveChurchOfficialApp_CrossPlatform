@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useEffect } from 'react';
 import { View, ActivityIndicator, TouchableOpacity, Text, useWindowDimensions } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import FastImage from 'react-native-fast-image';
@@ -8,6 +8,7 @@ import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import OfflineBanner from '../../components/OfflineBanner';
 import { SermonSeriesSummary, SermonsSummaryPagedResponse } from '../../types/api';
+import { setCurrentScreen } from '../../services/analytics/analyticsService';
 
 const CARD_ASPECT = 9 / 16; // 16:9
 const PRELOAD_THRESHOLD = 0.8; // Load next page when 80% scrolled
@@ -31,6 +32,11 @@ export default function ListenScreen({ onSeriesPress }: ListenScreenProps) {
   const { width, height } = useWindowDimensions();
   const isTablet = Math.min(width, height) >= 768;
   const isLandscape = width > height;
+
+  // Track screen view
+  useEffect(() => {
+    setCurrentScreen('ListenScreen', 'Listen');
+  }, []);
 
   // Determine number of columns based on device and orientation
   const columns = useMemo(() => {

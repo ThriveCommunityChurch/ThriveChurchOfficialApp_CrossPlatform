@@ -15,6 +15,7 @@ import { SermonMessage } from '../../types/api';
 import { getRecentlyPlayed, clearRecentlyPlayed } from '../../services/storage/storage';
 import { getDownloadedMessage } from '../../services/storage/storage';
 import { usePlayer } from '../../hooks/usePlayer';
+import { setCurrentScreen } from '../../services/analytics/analyticsService';
 
 export default function RecentlyPlayedScreen() {
   const navigation = useNavigation();
@@ -22,6 +23,11 @@ export default function RecentlyPlayedScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const player = usePlayer();
+
+  // Track screen view
+  useEffect(() => {
+    setCurrentScreen('RecentlyPlayedScreen', 'RecentlyPlayed');
+  }, []);
 
   const loadRecentlyPlayed = useCallback(async () => {
     try {

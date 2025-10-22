@@ -21,6 +21,7 @@ import { SermonMessage } from '../../types/api';
 import { usePlayer } from '../../hooks/usePlayer';
 import { downloadSermon, deleteDownload, getDownloadSize } from '../../services/downloads/downloadManager';
 import { isMessageDownloaded } from '../../services/storage/storage';
+import { setCurrentScreen, logCustomEvent, logPlaySermon, logDownloadSermon } from '../../services/analytics/analyticsService';
 
 type SermonDetailScreenRouteProp = RouteProp<{
   SermonDetailScreen: {
@@ -45,6 +46,17 @@ export const SermonDetailScreen: React.FC = () => {
   // Calculate orientation and responsive dimensions
   const isLandscape = windowWidth > windowHeight;
   const isTabletDevice = (Platform.OS === 'ios' && Platform.isPad) || Math.min(windowWidth, windowHeight) >= 768;
+
+  // Track screen view with sermon info
+  useEffect(() => {
+    setCurrentScreen('SermonDetailScreen', 'SermonDetail');
+    logCustomEvent('view_sermon', {
+      sermon_id: message.MessageId,
+      sermon_title: message.Title,
+      series_title: seriesTitle,
+      content_type: 'sermon',
+    });
+  }, [message.MessageId, message.Title, seriesTitle]);
 
   useEffect(() => {
     const checkDownloadStatus = async () => {
@@ -97,6 +109,9 @@ export const SermonDetailScreen: React.FC = () => {
 
   const handlePlayAudio = useCallback(async () => {
     try {
+      // Track sermon play event
+      await logPlaySermon(message.MessageId, message.Title);
+
       await player.play({
         message,
         seriesTitle,
@@ -157,6 +172,9 @@ export const SermonDetailScreen: React.FC = () => {
       // Get and update the file size
       const size = await getDownloadSize(message.MessageId);
       setFileSize(size);
+
+      // Track sermon download event
+      await logDownloadSermon(message.MessageId, message.Title);
 
       Alert.alert('Success', 'Sermon downloaded successfully');
     } catch (error) {

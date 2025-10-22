@@ -15,6 +15,7 @@ import VideoPlayer from '../../components/VideoPlayer';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { SermonMessage } from '../../types/api';
+import { setCurrentScreen, logCustomEvent } from '../../services/analytics/analyticsService';
 
 type VideoPlayerScreenParams = {
   VideoPlayerScreen: {
@@ -33,14 +34,23 @@ const VideoPlayerScreen: React.FC = () => {
   const { message, seriesTitle } = route.params;
 
   useEffect(() => {
+    // Track screen view with video info
+    setCurrentScreen('VideoPlayerScreen', 'VideoPlayer');
+    logCustomEvent('play_video', {
+      sermon_id: message.MessageId,
+      sermon_title: message.Title,
+      series_title: seriesTitle || '',
+      content_type: 'video',
+    });
+
     // Hide status bar for immersive video experience
     StatusBar.setHidden(true);
-    
+
     return () => {
       // Restore status bar when leaving
       StatusBar.setHidden(false);
     };
-  }, []);
+  }, [message.MessageId, message.Title, seriesTitle]);
 
   const handleClose = useCallback(() => {
     navigation.goBack();
