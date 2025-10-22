@@ -87,7 +87,11 @@ module.exports = {
         "expo-build-properties",
         {
           ios: {
-            useFrameworks: "static"
+            useFrameworks: "static",
+            // Workaround for React Native Firebase + Expo SDK 54 build errors
+            // See: https://github.com/invertase/react-native-firebase/issues/8657#issuecomment-3236409106
+            // Force static linking for Firebase pods to avoid modular header issues
+            forceStaticLinking: ["RNFBApp", "RNFBAnalytics", "RNFBMessaging"]
           },
           android: {
             ndkVersion: "26.1.10909125"

@@ -6,7 +6,11 @@
     "start": "expo start --dev-client",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "prebuild": "npx expo prebuild --clean",
+    "prebuild:ios": "npx expo prebuild --clean --platform ios && node scripts/patch-podfile-properties.js && cd ios && pod install",
+    "prebuild:android": "npx expo prebuild --clean --platform android",
+    "patch-podfile": "node scripts/patch-podfile-properties.js"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
@@ -14,7 +18,7 @@
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-community/netinfo": "^11.4.1",
     "@react-native-firebase/analytics": "^23.4.1",
-    "@react-native-firebase/app": "^23.4.0",
+    "@react-native-firebase/app": "^23.4.1",
     "@react-native-firebase/messaging": "^23.4.1",
     "@react-navigation/bottom-tabs": "^7.4.8",
     "@react-navigation/native": "^7.1.18",
