@@ -7,11 +7,30 @@
 import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import notifee, { AndroidImportance, EventType, AuthorizationStatus } from '@notifee/react-native';
 import { Platform, Alert } from 'react-native';
+import Constants from 'expo-constants';
 import { logError, logWarning, logInfo } from '../logging/logger';
 import { featureFlags } from '../../config/firebase.config';
 
 // Type alias for convenience
 type RemoteMessage = FirebaseMessagingTypes.RemoteMessage;
+
+/**
+ * Check if running on a simulator/emulator
+ * Push notifications don't work on simulators
+ */
+const isRunningOnSimulator = (): boolean => {
+  // Check if running on iOS Simulator
+  if (Platform.OS === 'ios') {
+    return Constants.platform?.ios?.simulator ?? false;
+  }
+
+  // Check if running on Android Emulator
+  if (Platform.OS === 'android') {
+    return Constants.platform?.android?.isDevice === false;
+  }
+
+  return false;
+};
 
 /**
  * Check if push notifications are enabled via feature flag
@@ -301,10 +320,18 @@ export const clearAllNotifications = async (): Promise<void> => {
 /**
  * Initialize push notifications
  * Call this on app startup
+ * NOTE: Skips initialization on simulators/emulators (push notifications don't work there)
  */
 export const initializePushNotifications = async (
   onNotificationOpened?: (remoteMessage: RemoteMessage) => void
 ): Promise<void> => {
+  // Check if running on simulator/emulator
+  if (isRunningOnSimulator()) {
+    console.log('Push: Skipping push notification initialization (running on simulator/emulator)');
+    console.log('Push: Push notifications require a physical device with valid APNS/FCM configuration');
+    return;
+  }
+
   if (!isPushNotificationsEnabled()) {
     console.log('Push: Push notifications disabled by feature flag');
     return;
