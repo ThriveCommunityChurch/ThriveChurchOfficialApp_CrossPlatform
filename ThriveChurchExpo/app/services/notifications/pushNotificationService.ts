@@ -39,6 +39,12 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
     if (enabled) {
       console.log('Push: Notification permission granted');
       await logInfo('Push notification permission granted');
+
+      // iOS requires explicit registration for remote messages
+      if (Platform.OS === 'ios') {
+        await messaging().registerDeviceForRemoteMessages();
+        console.log('Push: iOS device registered for remote messages');
+      }
     } else {
       console.log('Push: Notification permission denied');
       await logWarning('Push notification permission denied');
@@ -55,6 +61,7 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
 /**
  * Get FCM token
  * Matches iOS: Messaging.messaging().token
+ * NOTE: On iOS, must call registerDeviceForRemoteMessages() first
  */
 export const getFCMToken = async (): Promise<string | null> => {
   if (!isPushNotificationsEnabled()) {
@@ -63,6 +70,15 @@ export const getFCMToken = async (): Promise<string | null> => {
   }
 
   try {
+    // On iOS, ensure device is registered before getting token
+    if (Platform.OS === 'ios') {
+      const isRegistered = messaging().isDeviceRegisteredForRemoteMessages;
+      if (!isRegistered) {
+        console.log('Push: iOS device not registered, registering now...');
+        await messaging().registerDeviceForRemoteMessages();
+      }
+    }
+
     const token = await messaging().getToken();
     if (token) {
       console.log('Push: FCM Token obtained:', token.substring(0, 20) + '...');
