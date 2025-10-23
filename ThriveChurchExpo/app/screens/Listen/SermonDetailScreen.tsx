@@ -22,6 +22,7 @@ import { usePlayer } from '../../hooks/usePlayer';
 import { downloadSermon, deleteDownload, getDownloadSize } from '../../services/downloads/downloadManager';
 import { isMessageDownloaded } from '../../services/storage/storage';
 import { setCurrentScreen, logCustomEvent, logPlaySermon, logDownloadSermon } from '../../services/analytics/analyticsService';
+import { getTagDisplayLabel } from '../../types/messageTag';
 
 type SermonDetailScreenRouteProp = RouteProp<{
   SermonDetailScreen: {
@@ -455,7 +456,7 @@ export const SermonDetailScreen: React.FC = () => {
                   {message.Tags.map((tag, index) => (
                     <View key={index} style={styles.tabletTag}>
                       <Ionicons name="pricetag" size={14} color={colors.mainBlue} />
-                      <Text style={styles.tabletTagText}>{tag}</Text>
+                      <Text style={styles.tabletTagText}>{getTagDisplayLabel(tag)}</Text>
                     </View>
                   ))}
                 </View>
@@ -580,7 +581,7 @@ export const SermonDetailScreen: React.FC = () => {
                 {message.Tags.slice(0, 4).map((tag, index) => (
                   <View key={index} style={styles.tag}>
                     <Ionicons name="pricetag" size={12} color={colors.mainBlue} />
-                    <Text style={styles.tagText}>{tag}</Text>
+                    <Text style={styles.tagText}>{getTagDisplayLabel(tag)}</Text>
                   </View>
                 ))}
                 {message.Tags.length > 4 && (
