@@ -87,7 +87,8 @@ export const getFCMToken = async (): Promise<string | null> => {
   try {
     const token = await messaging().getToken();
     if (token) {
-      console.log('Push: FCM Token obtained:', token.substring(0, 20) + '...');
+      console.log('Push: ✅ FCM Token obtained:', token.substring(0, 20) + '...');
+      console.log('Push: Full FCM Token:', token);
       await logInfo('FCM token obtained successfully');
     } else {
       console.log('Push: No FCM token available (this is expected on iOS Simulator)');
@@ -97,10 +98,13 @@ export const getFCMToken = async (): Promise<string | null> => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
-    // Check if this is a simulator-related error
+    console.log('Push: getToken() threw error:', errorMessage);
+
+    // Check if this is a simulator/development build error
     if (errorMessage.includes('unregistered') || errorMessage.includes('simulator')) {
-      console.log('Push: FCM token not available on simulator - this is expected. Use a physical device for push notifications.');
-      await logWarning('FCM token not available on simulator');
+      console.log('Push: ⚠️ FCM token not available in development build - this is expected.');
+      console.log('Push: To get FCM token, build a release version or check Firebase Console for registered devices.');
+      await logWarning('FCM token not available in development build');
     } else {
       console.error('Push: Error getting FCM token:', error);
       await logError(`Failed to get FCM token: ${errorMessage}`);
