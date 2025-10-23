@@ -26,10 +26,6 @@ module.exports = {
       supportsTablet: true,
       bundleIdentifier: credentials.app.bundleIdIos,
       googleServicesFile: "./GoogleService-Info.plist",
-      // iOS Entitlements - automatically applied during prebuild
-      entitlements: {
-        "aps-environment": "development"
-      },
       infoPlist: {
         // Firebase URL Schemes
         CFBundleURLTypes: [
@@ -108,7 +104,9 @@ module.exports = {
         }
       ],
       "expo-system-ui",
-      "@react-native-firebase/app"
+      "@react-native-firebase/app",
+      // Custom plugin to configure push notifications (entitlements + Xcode capabilities)
+      "./plugins/withPushNotifications.js"
       // Note: @react-native-firebase/analytics and @react-native-firebase/messaging
       // do not have Expo config plugins. They are configured via native files
       // (GoogleService-Info.plist and google-services.json) and work at runtime.
