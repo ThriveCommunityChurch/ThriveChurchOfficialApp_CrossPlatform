@@ -1,5 +1,6 @@
 import Expo
 import FirebaseCore
+import FirebaseMessaging
 import React
 import ReactAppDependencyProvider
 
@@ -63,7 +64,15 @@ FirebaseApp.configure()
     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
   ) {
     print("✅ APNS device token registered successfully")
-    // This will trigger Firebase to generate the FCM token
+
+    // Explicitly set the APNS token on Firebase Messaging
+    // This is required for FCM to generate the FCM token
+    Messaging.messaging().apnsToken = deviceToken
+    Messaging.messaging().setAPNSToken(deviceToken, type: .prod)
+
+    print("✅ APNS token set on Firebase Messaging")
+
+    // Call super to ensure React Native Firebase also receives the token
     super.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken)
   }
 

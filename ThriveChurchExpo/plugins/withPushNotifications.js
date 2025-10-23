@@ -87,6 +87,35 @@ const withRemoteNotificationBackgroundMode = (config) => {
 };
 
 /**
+ * Add FirebaseMessaging import to AppDelegate
+ */
+const withFirebaseMessagingImport = (config) => {
+  return withAppDelegate(config, (config) => {
+    let { contents } = config.modResults;
+
+    // Check if FirebaseMessaging is already imported
+    if (contents.includes('import FirebaseMessaging')) {
+      console.log('✅ FirebaseMessaging import already present in AppDelegate');
+      return config;
+    }
+
+    // Add FirebaseMessaging import after FirebaseCore
+    if (contents.includes('import FirebaseCore')) {
+      contents = contents.replace(
+        'import FirebaseCore',
+        'import FirebaseCore\nimport FirebaseMessaging'
+      );
+      config.modResults.contents = contents;
+      console.log('✅ Added FirebaseMessaging import to AppDelegate');
+    } else {
+      console.warn('⚠️ Could not find FirebaseCore import in AppDelegate');
+    }
+
+    return config;
+  });
+};
+
+/**
  * Add APNS delegate methods to AppDelegate
  */
 const withAPNSDelegateMethod = (config) => {
@@ -108,7 +137,7 @@ const withAPNSDelegateMethod = (config) => {
       return config;
     }
 
-    // APNS delegate methods to add
+    // APNS delegate methods to add (matching old iOS project implementation)
     const apnsMethods = `
   // MARK: - Push Notifications (APNS)
 
@@ -118,7 +147,15 @@ const withAPNSDelegateMethod = (config) => {
     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
   ) {
     print("✅ APNS device token registered successfully")
-    // This will trigger Firebase to generate the FCM token
+
+    // Explicitly set the APNS token on Firebase Messaging
+    // This is required for FCM to generate the FCM token
+    Messaging.messaging().apnsToken = deviceToken
+    Messaging.messaging().setAPNSToken(deviceToken, type: .prod)
+
+    print("✅ APNS token set on Firebase Messaging")
+
+    // Call super to ensure React Native Firebase also receives the token
     super.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken)
   }
 
@@ -152,6 +189,7 @@ const withPushNotifications = (config) => {
   config = withAPNSEntitlement(config);
   config = withPushNotificationsCapability(config);
   config = withRemoteNotificationBackgroundMode(config);
+  config = withFirebaseMessagingImport(config);
   config = withAPNSDelegateMethod(config);
   return config;
 };
