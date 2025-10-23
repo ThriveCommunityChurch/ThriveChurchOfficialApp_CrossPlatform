@@ -3,7 +3,7 @@
  * Main Connect screen with dynamic config-driven menu
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -24,6 +24,7 @@ import { colors } from '../../theme/colors';
 import { ConnectMenuItem, ConfigKeys } from '../../types/config';
 import { getConfigSetting } from '../../services/storage/storage';
 import { useConfigContext } from '../../providers/ConfigProvider';
+import { setCurrentScreen, logContactChurch, logCustomEvent } from '../../services/analytics/analyticsService';
 
 type ConnectStackParamList = {
   ConnectHome: undefined;
@@ -94,6 +95,11 @@ export const ConnectScreen: React.FC = () => {
   const [menuItems, setMenuItems] = useState<ConnectMenuItem[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const { isLoading, hasConfigs: configsExist, refetchConfigs } = useConfigContext();
+
+  // Track screen view
+  useEffect(() => {
+    setCurrentScreen('ConnectScreen', 'Connect');
+  }, []);
 
   const loadMenuItems = useCallback(async () => {
     const items: ConnectMenuItem[] = [];

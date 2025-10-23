@@ -3,7 +3,7 @@
  * Displays list of Bible books in traditional or alphabetical order
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import { useRoute, RouteProp } from '@react-navigation/native';
 import { BibleOrderType, BibleBook } from '../../types/bible';
 import { getTraditionalBooks, getAlphabeticalBooks } from '../../data/bibleBooks';
 import { openBibleBook } from '../../utils/bibleLinks';
+import { setCurrentScreen, logCustomEvent } from '../../services/analytics/analyticsService';
 
 type BookListRouteParams = {
   BookList: {
@@ -50,6 +51,15 @@ export const BookListScreen: React.FC = () => {
   const { orderType } = route.params;
   const [loading, setLoading] = React.useState(false);
 
+  // Track screen view
+  useEffect(() => {
+    setCurrentScreen('BookListScreen', 'BookList');
+    logCustomEvent('view_book_list', {
+      order_type: orderType,
+      content_type: 'bible',
+    });
+  }, [orderType]);
+
   // Get books based on order type
   const books = React.useMemo(() => {
     return orderType === 'traditional'
@@ -60,6 +70,14 @@ export const BookListScreen: React.FC = () => {
   const handleBookPress = async (book: BibleBook) => {
     setLoading(true);
     try {
+      // Track book selection
+      await logCustomEvent('select_bible_book', {
+        book_name: book.name,
+        book_slug: book.slug,
+        order_type: orderType,
+        content_type: 'bible',
+      });
+
       await openBibleBook(book.slug, book.name);
     } finally {
       // Small delay to show loading state

@@ -20,6 +20,7 @@ import { getConfigSetting } from '../../services/storage/storage';
 import { ConfigKeys } from '../../types/config';
 import type { ConfigSetting } from '../../types/config';
 import { exportLogsToFile, logError, logInfo } from '../../services/logging/logger';
+import { setCurrentScreen, logOpenSocial, logCustomEvent } from '../../services/analytics/analyticsService';
 
 const colors = {
   almostBlack: 'rgb(25, 25, 25)',
@@ -39,6 +40,11 @@ interface MoreMenuItem {
 export const MoreScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<any>>();
   const [menuItems, setMenuItems] = useState<MoreMenuItem[]>([]);
+
+  // Track screen view
+  useEffect(() => {
+    setCurrentScreen('MoreScreen', 'More');
+  }, []);
 
   const loadMenuItems = useCallback(async () => {
     const items: MoreMenuItem[] = [];

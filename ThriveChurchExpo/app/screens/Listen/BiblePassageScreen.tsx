@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -13,6 +13,7 @@ import BiblePassageReader from '../../components/BiblePassageReader';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { SermonMessage } from '../../types/api';
+import { setCurrentScreen, logViewBible } from '../../services/analytics/analyticsService';
 
 type BiblePassageScreenParams = {
   BiblePassageScreen: {
@@ -27,8 +28,16 @@ type BiblePassageScreenNavigationProp = StackNavigationProp<BiblePassageScreenPa
 const BiblePassageScreen: React.FC = () => {
   const navigation = useNavigation<BiblePassageScreenNavigationProp>();
   const route = useRoute<BiblePassageScreenRouteProp>();
-  
+
   const { message, seriesTitle } = route.params;
+
+  // Track screen view with passage info
+  useEffect(() => {
+    setCurrentScreen('BiblePassageScreen', 'BiblePassage');
+    if (message.PassageRef) {
+      logViewBible(message.PassageRef);
+    }
+  }, [message.PassageRef]);
 
   const handleClose = useCallback(() => {
     navigation.goBack();

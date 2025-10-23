@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useEffect, useRef } from 'react';
 import { View, ActivityIndicator, TouchableOpacity, Text, useWindowDimensions } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import FastImage from 'react-native-fast-image';
@@ -8,6 +8,7 @@ import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import OfflineBanner from '../../components/OfflineBanner';
 import { SermonSeriesSummary, SermonsSummaryPagedResponse } from '../../types/api';
+import { setCurrentScreen } from '../../services/analytics/analyticsService';
 
 const CARD_ASPECT = 9 / 16; // 16:9
 const PRELOAD_THRESHOLD = 0.8; // Load next page when 80% scrolled
@@ -27,10 +28,66 @@ function chunkArray<T>(array: T[], size: number): T[][] {
   return chunks;
 }
 
+// Memoized row component to prevent unnecessary re-renders
+interface SeriesRowProps {
+  row: SermonSeriesSummary[];
+  cardWidth: number;
+  cardHeight: number;
+  onSeriesPress: (seriesId: string, artUrl: string) => void;
+}
+
+const SeriesRow = React.memo<SeriesRowProps>(({ row, cardWidth, cardHeight, onSeriesPress }) => {
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        justifyContent: 'flex-start',
+        gap: CARD_GAP,
+        marginBottom: CARD_GAP,
+      }}
+    >
+      {row.map((series) => (
+        <View
+          key={series.Id}
+          style={{
+            width: cardWidth,
+            height: cardHeight,
+          }}
+        >
+          <TouchableOpacity
+            onPress={() => onSeriesPress(series.Id, series.ArtUrl)}
+            style={{
+              flex: 1,
+              borderRadius: 8,
+              overflow: 'hidden',
+              backgroundColor: colors.lightGray,
+            }}
+          >
+            <FastImage
+              source={{ uri: series.ArtUrl, priority: FastImage.priority.normal }}
+              style={{ width: '100%', height: '100%' }}
+              resizeMode={FastImage.resizeMode.cover}
+            />
+          </TouchableOpacity>
+        </View>
+      ))}
+    </View>
+  );
+});
+
 export default function ListenScreen({ onSeriesPress }: ListenScreenProps) {
   const { width, height } = useWindowDimensions();
   const isTablet = Math.min(width, height) >= 768;
   const isLandscape = width > height;
+
+  // Cache for maintaining stable row references
+  const rowCacheRef = useRef<Map<string, SermonSeriesSummary[]>>(new Map());
+  const lastColumnsRef = useRef<number>(0);
+
+  // Track screen view
+  useEffect(() => {
+    setCurrentScreen('ListenScreen', 'Listen');
+  }, []);
 
   // Determine number of columns based on device and orientation
   const columns = useMemo(() => {
@@ -61,17 +118,44 @@ export default function ListenScreen({ onSeriesPress }: ListenScreenProps) {
 
   const allSeries = data?.pages.flatMap(page => page.Summaries) ?? [];
 
-  // Group series into rows based on column count
-  const rows = useMemo(() => chunkArray(allSeries, columns), [allSeries, columns]);
+  // Group series into rows based on column count with stable references
+  const rows = useMemo(() => {
+    // If columns changed (rotation), clear the cache since rows will be different
+    if (lastColumnsRef.current !== columns) {
+      rowCacheRef.current.clear();
+      lastColumnsRef.current = columns;
+    }
 
-  // Calculate card dimensions
-  const cardDimensions = useMemo(() => {
+    const chunked = chunkArray(allSeries, columns);
+    const stableRows: SermonSeriesSummary[][] = [];
+
+    // For each row, check if we already have this exact row cached
+    for (const row of chunked) {
+      const rowKey = row.map(s => s.Id).join('-');
+
+      if (rowCacheRef.current.has(rowKey)) {
+        // Reuse the existing array reference - this prevents React.memo from re-rendering
+        stableRows.push(rowCacheRef.current.get(rowKey)!);
+      } else {
+        // New row, cache it for future use
+        rowCacheRef.current.set(rowKey, row);
+        stableRows.push(row);
+      }
+    }
+
+    return stableRows;
+  }, [allSeries, columns]);
+
+  // Calculate card dimensions as separate primitive values to avoid object reference changes
+  const cardWidth = useMemo(() => {
     const totalGaps = (columns - 1) * CARD_GAP;
     const availableWidth = width - (HORIZONTAL_PADDING * 2) - totalGaps;
-    const cardWidth = availableWidth / columns;
-    const cardHeight = cardWidth * CARD_ASPECT;
-    return { cardWidth, cardHeight };
+    return availableWidth / columns;
   }, [width, columns]);
+
+  const cardHeight = useMemo(() => {
+    return cardWidth * CARD_ASPECT;
+  }, [cardWidth]);
 
   const handleLoadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) {
@@ -83,47 +167,17 @@ export default function ListenScreen({ onSeriesPress }: ListenScreenProps) {
     handleLoadMore();
   }, [handleLoadMore]);
 
+  // Simplified renderRow that uses the memoized SeriesRow component
   const renderRow = useCallback(({ item: row }: { item: SermonSeriesSummary[] }) => {
     return (
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'flex-start',
-          gap: CARD_GAP,
-          marginBottom: CARD_GAP,
-        }}
-      >
-        {row.map((series) => (
-          <TouchableOpacity
-            key={series.Id}
-            style={{
-              width: cardDimensions.cardWidth,
-              height: cardDimensions.cardHeight,
-              backgroundColor: 'transparent',
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.4,
-              shadowRadius: 8,
-              elevation: 8,
-            }}
-            onPress={() => onSeriesPress(series.Id, series.ArtUrl)}
-            activeOpacity={0.8}
-          >
-            <FastImage
-              source={{ uri: series.ArtUrl }}
-              style={{
-                width: '100%',
-                height: '100%',
-                backgroundColor: colors.darkGrey,
-                borderRadius: 12,
-              }}
-              resizeMode={FastImage.resizeMode.cover}
-            />
-          </TouchableOpacity>
-        ))}
-      </View>
+      <SeriesRow
+        row={row}
+        cardWidth={cardWidth}
+        cardHeight={cardHeight}
+        onSeriesPress={onSeriesPress}
+      />
     );
-  }, [cardDimensions, onSeriesPress]);
+  }, [cardWidth, cardHeight, onSeriesPress]);
 
   const renderFooter = useCallback(() => {
     if (!isFetchingNextPage) return null;
@@ -161,14 +215,21 @@ export default function ListenScreen({ onSeriesPress }: ListenScreenProps) {
     <View style={{ flex: 1, backgroundColor: colors.almostBlack }}>
       <OfflineBanner />
       <FlashList
+        key={`flashlist-${columns}`}
         data={rows}
         renderItem={renderRow}
-        estimatedItemSize={cardDimensions.cardHeight + CARD_GAP}
+        estimatedItemSize={cardHeight + CARD_GAP}
+        drawDistance={800}
         contentContainerStyle={{ paddingHorizontal: HORIZONTAL_PADDING, paddingTop: 8, paddingBottom: 8 }}
         onEndReached={onEndReached}
         onEndReachedThreshold={1 - PRELOAD_THRESHOLD}
         ListFooterComponent={renderFooter}
-        keyExtractor={(_item, index) => `row-${index}`}
+        keyExtractor={(item) => item.map(series => series.Id).join('-')}
+        getItemType={(item) => `row-${item.length}`}
+        overrideItemLayout={(layout) => {
+          layout.size = cardHeight + CARD_GAP;
+        }}
+        removeClippedSubviews={false}
       />
     </View>
   );

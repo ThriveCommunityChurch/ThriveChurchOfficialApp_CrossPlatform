@@ -3,11 +3,12 @@
  * Displays RSS announcement content in WebView
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, StyleSheet, ActivityIndicator, Linking, Alert } from 'react-native';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { WebView } from 'react-native-webview';
 import { colors } from '../../theme/colors';
+import { setCurrentScreen, logCustomEvent } from '../../services/analytics/analyticsService';
 
 type ConnectStackParamList = {
   RSSAnnouncements: undefined;
@@ -18,8 +19,17 @@ type RSSDetailRouteProp = RouteProp<ConnectStackParamList, 'RSSDetail'>;
 
 export const RSSDetailScreen: React.FC = () => {
   const route = useRoute<RSSDetailRouteProp>();
-  const { content } = route.params;
+  const { content, title } = route.params;
   const [loading, setLoading] = React.useState(true);
+
+  // Track screen view
+  useEffect(() => {
+    setCurrentScreen('RSSDetailScreen', 'AnnouncementDetail');
+    logCustomEvent('view_announcement', {
+      announcement_title: title,
+      content_type: 'announcement',
+    });
+  }, [title]);
 
   const handleShouldStartLoadWithRequest = (request: any): boolean => {
     const { url, navigationType } = request;

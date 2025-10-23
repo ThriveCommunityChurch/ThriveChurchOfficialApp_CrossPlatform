@@ -17,6 +17,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Note } from '../../types/notes';
 import { getNotes, createNote, deleteNote } from '../../services/storage/storage';
+import { setCurrentScreen, logCreateNote } from '../../services/analytics/analyticsService';
 
 type NotesStackParamList = {
   NotesList: undefined;
@@ -126,10 +127,15 @@ export const NotesListScreen: React.FC = () => {
   const [notes, setNotes] = useState<Note[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
 
+  // Track screen view
+  useEffect(() => {
+    setCurrentScreen('NotesListScreen', 'NotesList');
+  }, []);
+
   const loadNotes = useCallback(async () => {
     const loadedNotes = await getNotes();
     setNotes(loadedNotes);
-    
+
     // Auto-create first note if empty
     if (loadedNotes.length === 0) {
       const newNote = await createNote('');
@@ -171,6 +177,10 @@ export const NotesListScreen: React.FC = () => {
   const handleAddNote = async () => {
     const newNote = await createNote('');
     setNotes([newNote, ...notes]);
+
+    // Track note creation
+    await logCreateNote(newNote.id);
+
     navigation.navigate('NoteDetail', { noteId: newNote.id });
   };
 

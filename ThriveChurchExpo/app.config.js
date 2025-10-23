@@ -19,11 +19,6 @@ module.exports = {
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
-    splash: {
-      image: "./assets/splash.png",
-      resizeMode: "contain",
-      backgroundColor: "#ffffff"
-    },
     assetBundlePatterns: [
       "**/*"
     ],
@@ -87,17 +82,37 @@ module.exports = {
         "expo-build-properties",
         {
           ios: {
-            useFrameworks: "static"
+            useFrameworks: "static",
+            // Workaround for React Native Firebase + Expo SDK 54 build errors
+            // See: https://github.com/invertase/react-native-firebase/issues/8657#issuecomment-3236409106
+            // Force static linking for Firebase pods to avoid modular header issues
+            forceStaticLinking: ["RNFBApp", "RNFBAnalytics", "RNFBMessaging"]
           },
           android: {
             ndkVersion: "26.1.10909125"
           }
         }
       ],
+      [
+        "expo-splash-screen",
+        {
+          // Enable full-screen image support (legacy mode for full-screen splash images)
+          enableFullScreenImage_legacy: true,
+          image: "./assets/splash.png",
+          resizeMode: "cover",
+          backgroundColor: "#ffffff"
+        }
+      ],
       "expo-system-ui",
-      "@react-native-firebase/app"
+      "@react-native-firebase/app",
+      // Custom plugin to configure push notifications (entitlements + Xcode capabilities)
+      "./plugins/withPushNotifications.js",
+      // Custom plugin to add copyright text to splash screen (runs after expo-splash-screen)
+      "./plugins/withSplashScreenCopyright.js"
+      // Note: @react-native-firebase/analytics and @react-native-firebase/messaging
+      // do not have Expo config plugins. They are configured via native files
+      // (GoogleService-Info.plist and google-services.json) and work at runtime.
       // "@react-native-firebase/crashlytics", // Temporarily disabled due to Expo SDK 54 compatibility issues
-      // "@react-native-firebase/analytics", // Temporarily disabled due to Expo SDK 54 compatibility issues
     ],
     extra: extra,
     scheme: credentials.app.deepLinkScheme,

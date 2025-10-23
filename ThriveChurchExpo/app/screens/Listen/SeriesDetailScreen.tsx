@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -20,6 +20,8 @@ import OfflineBanner from '../../components/OfflineBanner';
 import { SermonSeries, SermonMessage } from '../../types/api';
 import { isMessageDownloaded } from '../../services/storage/storage';
 import { SermonMessageCard } from '../../components/SermonMessageCard';
+import { setCurrentScreen, logCustomEvent } from '../../services/analytics/analyticsService';
+import { getTagDisplayLabel } from '../../types/messageTag';
 
 interface SeriesDetailScreenProps {
   seriesId: string;
@@ -43,6 +45,18 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
       return res.data;
     },
   });
+
+  // Track screen view with series info
+  useEffect(() => {
+    if (series) {
+      setCurrentScreen('SeriesDetailScreen', 'SeriesDetail');
+      logCustomEvent('view_series', {
+        series_id: seriesId,
+        series_name: series.Name,
+        content_type: 'series',
+      });
+    }
+  }, [series, seriesId]);
 
   // Load downloaded messages status
   React.useEffect(() => {
@@ -224,7 +238,7 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
                   {series.Tags.map((tag, index) => (
                     <View key={index} style={styles.tabletTopicTag}>
                       <Ionicons name="pricetag" size={14} color={colors.mainBlue} />
-                      <Text style={styles.tabletTopicText}>{tag}</Text>
+                      <Text style={styles.tabletTopicText}>{getTagDisplayLabel(tag)}</Text>
                     </View>
                   ))}
                 </View>
@@ -314,7 +328,7 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
               {series.Tags.slice(0, 4).map((tag, index) => (
                 <View key={index} style={styles.phoneTag}>
                   <Ionicons name="pricetag" size={12} color={colors.mainBlue} />
-                  <Text style={styles.phoneTagText}>{tag}</Text>
+                  <Text style={styles.phoneTagText}>{getTagDisplayLabel(tag)}</Text>
                 </View>
               ))}
               {series.Tags.length > 4 && (

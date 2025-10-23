@@ -14,6 +14,7 @@ import { SermonMessage } from '../../types/api';
 import { getAllDownloadedMessages } from '../../services/storage/storage';
 import { deleteDownload, getDownloadSize, formatBytes } from '../../services/downloads/downloadManager';
 import { usePlayer } from '../../hooks/usePlayer';
+import { setCurrentScreen } from '../../services/analytics/analyticsService';
 
 // Separate component for download item to properly use hooks
 interface DownloadItemProps {
@@ -98,6 +99,11 @@ export default function DownloadsScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const player = usePlayer();
+
+  // Track screen view
+  useEffect(() => {
+    setCurrentScreen('DownloadsScreen', 'Downloads');
+  }, []);
 
   const loadDownloads = useCallback(async () => {
     try {

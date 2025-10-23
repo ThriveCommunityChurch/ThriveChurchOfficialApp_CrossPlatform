@@ -18,6 +18,7 @@ import {
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { getNote, updateNote } from '../../services/storage/storage';
+import { setCurrentScreen, logShareNote, logCustomEvent } from '../../services/analytics/analyticsService';
 
 type NotesStackParamList = {
   NotesList: undefined;
@@ -31,10 +32,19 @@ export const NoteDetailScreen: React.FC = () => {
   const route = useRoute<NoteDetailRouteProp>();
   const navigation = useNavigation<NavigationProp>();
   const { noteId } = route.params;
-  
+
   const [content, setContent] = useState('');
   const textInputRef = useRef<TextInput>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Track screen view
+  useEffect(() => {
+    setCurrentScreen('NoteDetailScreen', 'NoteDetail');
+    logCustomEvent('view_note', {
+      note_id: noteId,
+      content_type: 'note',
+    });
+  }, [noteId]);
 
   useEffect(() => {
     // Load note content
@@ -99,6 +109,9 @@ export const NoteDetailScreen: React.FC = () => {
       await Share.share({
         message: content,
       });
+
+      // Track note share event
+      await logShareNote(noteId);
     } catch (error) {
       console.error('Error sharing note:', error);
       Alert.alert('Error', 'Unable to share note. Please try again.');

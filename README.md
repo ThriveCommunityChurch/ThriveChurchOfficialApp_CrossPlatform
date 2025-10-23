@@ -309,7 +309,16 @@ eas submit --platform android
 - **Both**: Privacy policy, support URL, app screenshots
 - **Both**: Proper app icons and splash screens
 
-## Support
+## � Team
+
+### Development Team
+- **[Wyatt Baggett](https://github.com/ksigWyatt)** - Lead Designer and Developer
+
+### Quality Assurance
+- **Phil Klopke** - Testing
+- **[Joel Butcher](https://github.com/joelbutcher)** - QA
+
+## 📞 Support
 
 ### Bug Reports & Feature Requests
 - **GitHub Issues**: Submit issues directly to this repository
