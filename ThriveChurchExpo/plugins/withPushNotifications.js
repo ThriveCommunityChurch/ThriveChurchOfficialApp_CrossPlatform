@@ -1,15 +1,17 @@
 /**
  * Expo Config Plugin for Push Notifications
- * 
+ *
  * This plugin ensures that:
  * 1. iOS entitlements include aps-environment
  * 2. Push Notifications capability is enabled in Xcode project
  * 3. Background modes include remote-notification
- * 
+ * 4. AppDelegate includes APNS delegate methods
+ *
  * These settings persist across `expo prebuild --clean`
  */
 
-const { withEntitlementsPlist, withXcodeProject, withInfoPlist } = require('@expo/config-plugins');
+const { withEntitlementsPlist, withXcodeProject, withInfoPlist, withAppDelegate } = require('@expo/config-plugins');
+const fs = require('fs');
 
 /**
  * Add aps-environment to iOS entitlements
@@ -75,11 +77,70 @@ const withRemoteNotificationBackgroundMode = (config) => {
     if (!config.modResults.UIBackgroundModes) {
       config.modResults.UIBackgroundModes = [];
     }
-    
+
     if (!config.modResults.UIBackgroundModes.includes('remote-notification')) {
       config.modResults.UIBackgroundModes.push('remote-notification');
     }
-    
+
+    return config;
+  });
+};
+
+/**
+ * Add APNS delegate methods to AppDelegate
+ */
+const withAPNSDelegateMethod = (config) => {
+  return withAppDelegate(config, (config) => {
+    const { contents } = config.modResults;
+
+    // Check if APNS methods are already added
+    if (contents.includes('didRegisterForRemoteNotificationsWithDeviceToken')) {
+      console.log('✅ APNS delegate methods already present in AppDelegate');
+      return config;
+    }
+
+    // Find the closing brace of the AppDelegate class
+    const appDelegateClassEndPattern = /^}(\s*)$/m;
+    const match = contents.match(appDelegateClassEndPattern);
+
+    if (!match) {
+      console.warn('⚠️ Could not find AppDelegate class closing brace');
+      return config;
+    }
+
+    // APNS delegate methods to add
+    const apnsMethods = `
+  // MARK: - Push Notifications (APNS)
+
+  // Called when APNS successfully registers the device
+  public override func application(
+    _ application: UIApplication,
+    didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
+  ) {
+    print("✅ APNS device token registered successfully")
+    // This will trigger Firebase to generate the FCM token
+    super.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken)
+  }
+
+  // Called when APNS registration fails
+  public override func application(
+    _ application: UIApplication,
+    didFailToRegisterForRemoteNotificationsWithError error: Error
+  ) {
+    print("❌ Failed to register for remote notifications: \\(error.localizedDescription)")
+    super.application(application, didFailToRegisterForRemoteNotificationsWithError: error)
+  }
+`;
+
+    // Insert the methods before the closing brace
+    const insertIndex = match.index;
+    config.modResults.contents =
+      contents.slice(0, insertIndex) +
+      apnsMethods +
+      contents.slice(insertIndex);
+
+    console.log('✅ Added APNS delegate methods to AppDelegate');
+
     return config;
   });
 };
@@ -91,6 +152,7 @@ const withPushNotifications = (config) => {
   config = withAPNSEntitlement(config);
   config = withPushNotificationsCapability(config);
   config = withRemoteNotificationBackgroundMode(config);
+  config = withAPNSDelegateMethod(config);
   return config;
 };
 
