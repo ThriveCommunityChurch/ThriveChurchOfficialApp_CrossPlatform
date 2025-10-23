@@ -75,7 +75,7 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
 /**
  * Get FCM token
  * Matches iOS: Messaging.messaging().token
- * NOTE: Firebase automatically handles device registration
+ * NOTE: On iOS, APNS token must be registered first before FCM token is available
  * WARNING: FCM tokens are not available on iOS Simulator - requires physical device
  */
 export const getFCMToken = async (): Promise<string | null> => {
@@ -91,7 +91,7 @@ export const getFCMToken = async (): Promise<string | null> => {
       console.log('Push: Full FCM Token:', token);
       await logInfo('FCM token obtained successfully');
     } else {
-      console.log('Push: No FCM token available (this is expected on iOS Simulator)');
+      console.log('Push: No FCM token available yet (waiting for APNS token)');
       await logWarning('No FCM token available');
     }
     return token;
@@ -100,8 +100,11 @@ export const getFCMToken = async (): Promise<string | null> => {
 
     console.log('Push: getToken() threw error:', errorMessage);
 
-    // Check if this is a simulator/development build error
-    if (errorMessage.includes('unregistered') || errorMessage.includes('simulator')) {
+    // Check if this is an APNS token not ready error
+    if (errorMessage.includes('No APNS token') || errorMessage.includes('APNS device token not set')) {
+      console.log('Push: ⚠️ Waiting for APNS token registration. FCM token will be available via onTokenRefresh listener.');
+      await logWarning('Waiting for APNS token registration');
+    } else if (errorMessage.includes('unregistered') || errorMessage.includes('simulator')) {
       console.log('Push: ⚠️ FCM token not available in development build - this is expected.');
       console.log('Push: To get FCM token, build a release version or check Firebase Console for registered devices.');
       await logWarning('FCM token not available in development build');
@@ -355,9 +358,11 @@ export const initializePushNotifications = async (
       setupNotificationOpenedHandler(onNotificationOpened);
     }
 
-    // Listen for token refresh
+    // Listen for token refresh (this will fire when APNS token is registered)
     messaging().onTokenRefresh(async (token) => {
-      console.log('Push: FCM token refreshed:', token.substring(0, 20) + '...');
+      console.log('Push: ✅ FCM Token received via onTokenRefresh!');
+      console.log('Push: FCM Token (first 20 chars):', token.substring(0, 20) + '...');
+      console.log('Push: Full FCM Token:', token);
       await logInfo('FCM token refreshed');
       // TODO: Send new token to your backend server
       // await sendTokenToServer(token);
