@@ -31,6 +31,10 @@ module.exports = {
       supportsTablet: true,
       bundleIdentifier: credentials.app.bundleIdIos,
       googleServicesFile: "./GoogleService-Info.plist",
+      // iOS Entitlements - automatically applied during prebuild
+      entitlements: {
+        "aps-environment": "development"
+      },
       infoPlist: {
         // Firebase URL Schemes
         CFBundleURLTypes: [
