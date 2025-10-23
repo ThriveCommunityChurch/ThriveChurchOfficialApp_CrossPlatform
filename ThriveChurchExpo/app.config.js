@@ -19,11 +19,6 @@ module.exports = {
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
-    splash: {
-      image: "./assets/splash.png",
-      resizeMode: "contain",
-      backgroundColor: "#ffffff"
-    },
     assetBundlePatterns: [
       "**/*"
     ],
@@ -100,6 +95,16 @@ module.exports = {
           android: {
             ndkVersion: "26.1.10909125"
           }
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          // Enable full-screen image support (legacy mode for full-screen splash images)
+          enableFullScreenImage_legacy: true,
+          image: "./assets/splash.png",
+          resizeMode: "cover",
+          backgroundColor: "#ffffff"
         }
       ],
       "expo-system-ui",
