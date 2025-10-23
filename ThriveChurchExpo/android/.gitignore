@@ -1,12 +1,12 @@
-# Note: Most Android ignores are now in the root .gitignore
-# This file is kept minimal to survive expo prebuild regeneration
-
-# Gradle
-.gradle/
-build/
+# OSX
+#
+.DS_Store
 
 # Android/IntelliJ
+#
+build/
 .idea
+.gradle
 local.properties
 *.iml
 *.hprof
@@ -14,6 +14,3 @@ local.properties
 
 # Bundle artifacts
 *.jsbundle
-
-# CMake
-cmake-build-*/
