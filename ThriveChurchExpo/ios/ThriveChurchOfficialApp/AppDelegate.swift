@@ -54,6 +54,27 @@ FirebaseApp.configure()
     let result = RCTLinkingManager.application(application, continue: userActivity, restorationHandler: restorationHandler)
     return super.application(application, continue: userActivity, restorationHandler: restorationHandler) || result
   }
+
+  // MARK: - Push Notifications (APNS)
+
+  // Called when APNS successfully registers the device
+  public override func application(
+    _ application: UIApplication,
+    didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
+  ) {
+    print("✅ APNS device token registered successfully")
+    // This will trigger Firebase to generate the FCM token
+    super.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken)
+  }
+
+  // Called when APNS registration fails
+  public override func application(
+    _ application: UIApplication,
+    didFailToRegisterForRemoteNotificationsWithError error: Error
+  ) {
+    print("❌ Failed to register for remote notifications: \(error.localizedDescription)")
+    super.application(application, didFailToRegisterForRemoteNotificationsWithError: error)
+  }
 }
 
 class ReactNativeDelegate: ExpoReactNativeFactoryDelegate {
