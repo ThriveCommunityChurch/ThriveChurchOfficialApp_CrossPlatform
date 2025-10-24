@@ -83,8 +83,9 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
       message,
       seriesTitle: series?.Name,
       seriesArtUrl,
+      seriesId,
     });
-  }, [navigation, series, seriesArtUrl]);
+  }, [navigation, series, seriesArtUrl, seriesId]);
 
   const isCurrentSeries = series?.EndDate == null;
 

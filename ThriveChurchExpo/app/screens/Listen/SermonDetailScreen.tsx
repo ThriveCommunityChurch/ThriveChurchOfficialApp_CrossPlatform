@@ -23,19 +23,21 @@ import { downloadSermon, deleteDownload, getDownloadSize } from '../../services/
 import { isMessageDownloaded } from '../../services/storage/storage';
 import { setCurrentScreen, logCustomEvent, logPlaySermon, logDownloadSermon } from '../../services/analytics/analyticsService';
 import { getTagDisplayLabel } from '../../types/messageTag';
+import { RelatedSeriesSection } from '../../components/RelatedSeriesSection';
 
 type SermonDetailScreenRouteProp = RouteProp<{
   SermonDetailScreen: {
     message: SermonMessage;
     seriesTitle: string;
     seriesArtUrl: string;
+    seriesId: string;
   };
 }, 'SermonDetailScreen'>;
 
 export const SermonDetailScreen: React.FC = () => {
   const route = useRoute<SermonDetailScreenRouteProp>();
   const navigation = useNavigation<StackNavigationProp<any>>();
-  const { message, seriesTitle, seriesArtUrl } = route.params;
+  const { message, seriesTitle, seriesArtUrl, seriesId } = route.params;
   const player = usePlayer();
   const { theme } = useTheme();
   const styles = createStyles(theme);
@@ -472,16 +474,11 @@ export const SermonDetailScreen: React.FC = () => {
               )}
             </View>
 
-            {/* Future: Related Series Section */}
-            <View style={styles.tabletSection}>
-              <Text style={styles.tabletSectionTitle}>Related Series</Text>
-              <View style={styles.tabletEmptyState}>
-                <Ionicons name="albums-outline" size={32} color={theme.colors.textTertiary} />
-                <Text style={styles.tabletEmptyStateText}>
-                  Related series will be available soon
-                </Text>
-              </View>
-            </View>
+            {/* Related Series Section */}
+            <RelatedSeriesSection
+              currentMessageTags={message.Tags || []}
+              currentSeriesId={seriesId}
+            />
           </View>
         </View>
       </ScrollView>

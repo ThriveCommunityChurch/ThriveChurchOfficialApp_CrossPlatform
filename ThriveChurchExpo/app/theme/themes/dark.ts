@@ -27,7 +27,7 @@ export const darkColors: ThemeColors = {
   text: '#FFFFFF', // white
   textSecondary: '#D3D3D3', // lightGray
   textTertiary: 'rgb(200,200,200)', // lessLightLightGray
-  textInverse: '#000000', // black
+  textInverse: '#FFFFFF', // White text for dark backgrounds
 
   // ===== Borders & Dividers =====
   border: 'rgb(63,63,63)', // darkGrey
