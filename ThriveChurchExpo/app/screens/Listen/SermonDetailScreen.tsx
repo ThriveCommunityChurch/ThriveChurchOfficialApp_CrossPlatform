@@ -15,8 +15,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { colors } from '../../theme/colors';
-import { typography } from '../../theme/typography';
+import { useTheme } from '../../hooks/useTheme';
+import type { Theme } from '../../theme/types';
 import { SermonMessage } from '../../types/api';
 import { usePlayer } from '../../hooks/usePlayer';
 import { downloadSermon, deleteDownload, getDownloadSize } from '../../services/downloads/downloadManager';
@@ -37,6 +37,8 @@ export const SermonDetailScreen: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<any>>();
   const { message, seriesTitle, seriesArtUrl } = route.params;
   const player = usePlayer();
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
   const [downloaded, setDownloaded] = useState(false);
@@ -265,7 +267,7 @@ export const SermonDetailScreen: React.FC = () => {
                             onPress={handlePlayAudio}
                             activeOpacity={0.8}
                           >
-                            <Ionicons name="play" size={20} color={colors.white} />
+                            <Ionicons name="play" size={20} color={theme.colors.textInverse} />
                             <Text style={styles.tabletHeroPrimaryButtonText}>Play Audio</Text>
                           </TouchableOpacity>
                         )}
@@ -276,7 +278,7 @@ export const SermonDetailScreen: React.FC = () => {
                             onPress={handlePlayVideo}
                             activeOpacity={0.8}
                           >
-                            <Ionicons name="videocam" size={20} color={colors.white} />
+                            <Ionicons name="videocam" size={20} color={theme.colors.textInverse} />
                             <Text style={styles.tabletHeroSecondaryButtonText}>Watch Video</Text>
                           </TouchableOpacity>
                         )}
@@ -294,7 +296,7 @@ export const SermonDetailScreen: React.FC = () => {
                         onPress={handlePlayAudio}
                         activeOpacity={0.8}
                       >
-                        <Ionicons name="play" size={20} color={colors.white} />
+                        <Ionicons name="play" size={20} color={theme.colors.textInverse} />
                         <Text style={styles.tabletHeroPrimaryButtonText}>Play Audio</Text>
                       </TouchableOpacity>
                     )}
@@ -305,7 +307,7 @@ export const SermonDetailScreen: React.FC = () => {
                         onPress={handlePlayVideo}
                         activeOpacity={0.8}
                       >
-                        <Ionicons name="videocam" size={20} color={colors.white} />
+                        <Ionicons name="videocam" size={20} color={theme.colors.textInverse} />
                         <Text style={styles.tabletHeroSecondaryButtonText}>Watch Video</Text>
                       </TouchableOpacity>
                     )}
@@ -325,7 +327,7 @@ export const SermonDetailScreen: React.FC = () => {
 
               {/* Week Card */}
               <View style={styles.tabletMetadataCard}>
-                <Ionicons name="calendar-outline" size={20} color={colors.mainBlue} />
+                <Ionicons name="calendar-outline" size={20} color={theme.colors.primary} />
                 <View style={styles.tabletMetadataCardContent}>
                   <Text style={styles.tabletMetadataLabel}>Week</Text>
                   <Text style={styles.tabletMetadataValue}>{message.WeekNum ?? '—'}</Text>
@@ -335,7 +337,7 @@ export const SermonDetailScreen: React.FC = () => {
               {/* Speaker Card */}
               {message.Speaker && (
                 <View style={styles.tabletMetadataCard}>
-                  <Ionicons name="person" size={20} color={colors.mainBlue} />
+                  <Ionicons name="person" size={20} color={theme.colors.primary} />
                   <View style={styles.tabletMetadataCardContent}>
                     <Text style={styles.tabletMetadataLabel}>Speaker</Text>
                     <Text style={styles.tabletMetadataValue}>{message.Speaker}</Text>
@@ -346,7 +348,7 @@ export const SermonDetailScreen: React.FC = () => {
               {/* Date Card */}
               {message.Date && (
                 <View style={styles.tabletMetadataCard}>
-                  <Ionicons name="calendar" size={20} color={colors.mainBlue} />
+                  <Ionicons name="calendar" size={20} color={theme.colors.primary} />
                   <View style={styles.tabletMetadataCardContent}>
                     <Text style={styles.tabletMetadataLabel}>Date</Text>
                     <Text style={styles.tabletMetadataValue}>{formatDate(message.Date)}</Text>
@@ -357,7 +359,7 @@ export const SermonDetailScreen: React.FC = () => {
               {/* Duration Card */}
               {message.AudioDuration && message.AudioDuration > 0 && (
                 <View style={styles.tabletMetadataCard}>
-                  <Ionicons name="time" size={20} color={colors.mainBlue} />
+                  <Ionicons name="time" size={20} color={theme.colors.primary} />
                   <View style={styles.tabletMetadataCardContent}>
                     <Text style={styles.tabletMetadataLabel}>Duration</Text>
                     <Text style={styles.tabletMetadataValue}>{formatDuration(message.AudioDuration)}</Text>
@@ -368,7 +370,7 @@ export const SermonDetailScreen: React.FC = () => {
               {/* File Size Card - only show if downloaded and size > 0 */}
               {downloaded && fileSize > 0 && (
                 <View style={styles.tabletMetadataCard}>
-                  <Ionicons name="document" size={20} color={colors.mainBlue} />
+                  <Ionicons name="document" size={20} color={theme.colors.primary} />
                   <View style={styles.tabletMetadataCardContent}>
                     <Text style={styles.tabletMetadataLabel}>File Size</Text>
                     <Text style={styles.tabletMetadataValue}>{formatFileSize(fileSize)}</Text>
@@ -384,12 +386,12 @@ export const SermonDetailScreen: React.FC = () => {
                 onPress={handleReadPassage}
                 activeOpacity={0.7}
               >
-                <Ionicons name="book" size={24} color={colors.mainBlue} />
+                <Ionicons name="book" size={24} color={theme.colors.primary} />
                 <View style={styles.tabletSidebarPassageContent}>
                   <Text style={styles.tabletSidebarPassageLabel}>Scripture</Text>
                   <Text style={styles.tabletSidebarPassageText}>{message.PassageRef}</Text>
                 </View>
-                <Ionicons name="chevron-forward" size={20} color={colors.lightGray} />
+                <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
               </TouchableOpacity>
             )}
 
@@ -397,7 +399,7 @@ export const SermonDetailScreen: React.FC = () => {
             <View style={styles.tabletDownloadSection}>
               {downloaded && (
                 <View style={styles.tabletDownloadedBadge}>
-                  <Ionicons name="checkmark-circle" size={20} color={colors.bgGreen} />
+                  <Ionicons name="checkmark-circle" size={20} color={theme.colors.success} />
                   <Text style={styles.tabletDownloadedText}>Downloaded</Text>
                 </View>
               )}
@@ -414,7 +416,7 @@ export const SermonDetailScreen: React.FC = () => {
                 >
                   {downloading ? (
                     <>
-                      <ActivityIndicator size="small" color={colors.white} />
+                      <ActivityIndicator size="small" color={theme.colors.text} />
                       <Text style={styles.tabletDownloadButtonText}>
                         {Math.round(downloadProgress * 100)}%
                       </Text>
@@ -424,7 +426,7 @@ export const SermonDetailScreen: React.FC = () => {
                       <Ionicons
                         name={downloaded ? 'trash' : 'download'}
                         size={20}
-                        color={colors.white}
+                        color={theme.colors.text}
                       />
                       <Text style={styles.tabletDownloadButtonText}>
                         {downloaded ? 'Remove Download' : 'Download'}
@@ -455,14 +457,14 @@ export const SermonDetailScreen: React.FC = () => {
                 <View style={styles.tabletTagsContainer}>
                   {message.Tags.map((tag, index) => (
                     <View key={index} style={styles.tabletTag}>
-                      <Ionicons name="pricetag" size={14} color={colors.mainBlue} />
+                      <Ionicons name="pricetag" size={14} color={theme.colors.primary} />
                       <Text style={styles.tabletTagText}>{getTagDisplayLabel(tag)}</Text>
                     </View>
                   ))}
                 </View>
               ) : (
                 <View style={styles.tabletEmptyState}>
-                  <Ionicons name="pricetags-outline" size={32} color={colors.lighterBlueGray} />
+                  <Ionicons name="pricetags-outline" size={32} color={theme.colors.textTertiary} />
                   <Text style={styles.tabletEmptyStateText}>
                     No topics tagged
                   </Text>
@@ -474,7 +476,7 @@ export const SermonDetailScreen: React.FC = () => {
             <View style={styles.tabletSection}>
               <Text style={styles.tabletSectionTitle}>Related Series</Text>
               <View style={styles.tabletEmptyState}>
-                <Ionicons name="albums-outline" size={32} color={colors.lighterBlueGray} />
+                <Ionicons name="albums-outline" size={32} color={theme.colors.textTertiary} />
                 <Text style={styles.tabletEmptyStateText}>
                   Related series will be available soon
                 </Text>
@@ -519,7 +521,7 @@ export const SermonDetailScreen: React.FC = () => {
             {/* Speaker */}
             {message.Speaker && (
               <View style={styles.metadataRow}>
-                <Ionicons name="person" size={18} color={colors.mainBlue} />
+                <Ionicons name="person" size={18} color={theme.colors.primary} />
                 <Text style={styles.metadataText}>{message.Speaker}</Text>
               </View>
             )}
@@ -527,7 +529,7 @@ export const SermonDetailScreen: React.FC = () => {
             {/* Date */}
             {message.Date && (
               <View style={styles.metadataRow}>
-                <Ionicons name="calendar" size={18} color={colors.mainBlue} />
+                <Ionicons name="calendar" size={18} color={theme.colors.primary} />
                 <Text style={styles.metadataText}>{formatDate(message.Date)}</Text>
               </View>
             )}
@@ -535,7 +537,7 @@ export const SermonDetailScreen: React.FC = () => {
             {/* Duration - only show if > 0 */}
             {message.AudioDuration && message.AudioDuration > 0 && (
               <View style={styles.metadataRow}>
-                <Ionicons name="time" size={18} color={colors.mainBlue} />
+                <Ionicons name="time" size={18} color={theme.colors.primary} />
                 <Text style={styles.metadataText}>{formatDuration(message.AudioDuration)}</Text>
               </View>
             )}
@@ -543,7 +545,7 @@ export const SermonDetailScreen: React.FC = () => {
             {/* File Size - only show if downloaded and size > 0 */}
             {downloaded && fileSize > 0 && (
               <View style={styles.metadataRow}>
-                <Ionicons name="document" size={18} color={colors.mainBlue} />
+                <Ionicons name="document" size={18} color={theme.colors.primary} />
                 <Text style={styles.metadataText}>{formatFileSize(fileSize)}</Text>
               </View>
             )}
@@ -556,12 +558,12 @@ export const SermonDetailScreen: React.FC = () => {
               onPress={handleReadPassage}
               activeOpacity={0.7}
             >
-              <Ionicons name="book" size={24} color={colors.mainBlue} />
+              <Ionicons name="book" size={24} color={theme.colors.primary} />
               <View style={styles.passageContent}>
                 <Text style={styles.passageLabel}>Scripture Reference</Text>
                 <Text style={styles.passageText}>{message.PassageRef}</Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.lightGray} />
+              <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
             </TouchableOpacity>
           )}
 
@@ -580,7 +582,7 @@ export const SermonDetailScreen: React.FC = () => {
               <View style={styles.tagsContainer}>
                 {message.Tags.slice(0, 4).map((tag, index) => (
                   <View key={index} style={styles.tag}>
-                    <Ionicons name="pricetag" size={12} color={colors.mainBlue} />
+                    <Ionicons name="pricetag" size={12} color={theme.colors.primary} />
                     <Text style={styles.tagText}>{getTagDisplayLabel(tag)}</Text>
                   </View>
                 ))}
@@ -596,7 +598,7 @@ export const SermonDetailScreen: React.FC = () => {
           {/* Download Status */}
           {downloaded && (
             <View style={styles.downloadedBadge}>
-              <Ionicons name="checkmark-circle" size={18} color={colors.bgGreen} />
+              <Ionicons name="checkmark-circle" size={18} color={theme.colors.success} />
               <Text style={styles.downloadedText}>Downloaded</Text>
             </View>
           )}
@@ -610,7 +612,7 @@ export const SermonDetailScreen: React.FC = () => {
                 onPress={handlePlayAudio}
                 activeOpacity={0.8}
               >
-                <Ionicons name="play" size={24} color={colors.white} />
+                <Ionicons name="play" size={24} color={theme.colors.textInverse} />
                 <Text style={styles.primaryButtonText}>Play Audio</Text>
               </TouchableOpacity>
             )}
@@ -624,7 +626,7 @@ export const SermonDetailScreen: React.FC = () => {
                   onPress={handlePlayVideo}
                   activeOpacity={0.8}
                 >
-                  <Ionicons name="videocam" size={20} color={colors.white} />
+                  <Ionicons name="videocam" size={20} color={theme.colors.text} />
                   <Text style={styles.secondaryButtonText}>Watch Video</Text>
                 </TouchableOpacity>
               )}
@@ -642,7 +644,7 @@ export const SermonDetailScreen: React.FC = () => {
                 >
                   {downloading ? (
                     <>
-                      <ActivityIndicator size="small" color={colors.white} />
+                      <ActivityIndicator size="small" color={theme.colors.text} />
                       <Text style={styles.secondaryButtonText}>
                         {Math.round(downloadProgress * 100)}%
                       </Text>
@@ -652,7 +654,7 @@ export const SermonDetailScreen: React.FC = () => {
                       <Ionicons
                         name={downloaded ? 'trash' : 'download'}
                         size={20}
-                        color={colors.white}
+                        color={theme.colors.text}
                       />
                       <Text style={styles.secondaryButtonText}>
                         {downloaded ? 'Remove' : 'Download'}
@@ -672,10 +674,10 @@ export const SermonDetailScreen: React.FC = () => {
   return isTabletDevice ? renderTabletLayout() : renderPhoneLayout();
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.almostBlack,
+    backgroundColor: theme.colors.background, // ← ONLY COLOR CHANGED
   },
   scrollView: {
     flex: 1,
@@ -683,7 +685,7 @@ const styles = StyleSheet.create({
   artwork: {
     width: '100%',
     aspectRatio: 16 / 9,
-    backgroundColor: colors.bgDarkBlue,
+    backgroundColor: theme.colors.backgroundSecondary, // ← ONLY COLOR CHANGED
   },
   content: {
     padding: 20,
@@ -692,40 +694,40 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: colors.bgDarkBlue,
+    backgroundColor: theme.colors.backgroundSecondary, // ← ONLY COLOR CHANGED
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
     borderWidth: 2,
-    borderColor: colors.mainBlue,
+    borderColor: theme.colors.primary, // ← ONLY COLOR CHANGED
     gap: 0, // Remove any gap between number and label
   },
   weekNumber: {
-    ...typography.h2,
+    ...theme.typography.h2,
     fontSize: 22,
-    color: colors.white,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
     lineHeight: 24, // Tighter line height
     marginBottom: -2, // Reduce space between number and label
   },
   weekLabel: {
-    ...typography.caption,
+    ...theme.typography.caption,
     fontSize: 10,
-    color: colors.lightGray,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     textTransform: 'uppercase',
     lineHeight: 12, // Tighter line height
     marginTop: -2, // Reduce space between number and label
   },
   title: {
-    ...typography.h1,
+    ...theme.typography.h1,
     fontSize: 28,
     lineHeight: 34, // Add proper line height to prevent cutoff
     marginBottom: 8,
-    color: colors.white,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
   },
   seriesTitle: {
-    ...typography.h3,
+    ...theme.typography.h3,
     fontSize: 16,
-    color: colors.lightGray,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     marginBottom: 24,
   },
   metadataSection: {
@@ -737,65 +739,65 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   metadataText: {
-    ...typography.body,
+    ...theme.typography.body,
     fontSize: 15,
-    color: colors.white,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
     marginLeft: 12,
   },
   passageCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.bgDarkBlue,
+    backgroundColor: theme.colors.backgroundSecondary, // ← ONLY COLOR CHANGED
     padding: 16,
     borderRadius: 12,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: colors.lighterBlueGray,
+    borderColor: theme.colors.border, // ← ONLY COLOR CHANGED
   },
   passageContent: {
     flex: 1,
     marginLeft: 12,
   },
   passageLabel: {
-    ...typography.caption,
+    ...theme.typography.caption,
     fontSize: 12,
-    color: colors.lightGray,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     marginBottom: 4,
   },
   passageText: {
-    ...typography.h3,
+    ...theme.typography.h3,
     fontSize: 16,
-    color: colors.white,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
   },
   summaryCard: {
-    backgroundColor: colors.bgDarkBlue,
+    backgroundColor: theme.colors.backgroundSecondary, // ← ONLY COLOR CHANGED
     padding: 16,
     borderRadius: 12,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: colors.lighterBlueGray,
+    borderColor: theme.colors.border, // ← ONLY COLOR CHANGED
   },
   summaryLabel: {
-    ...typography.caption,
+    ...theme.typography.caption,
     fontSize: 12,
-    color: colors.lightGray,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     marginBottom: 8,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   summaryText: {
-    ...typography.body,
+    ...theme.typography.body,
     fontSize: 15,
     lineHeight: 22,
-    color: colors.white,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
   },
   tagsSection: {
     marginBottom: 16,
   },
   tagsLabel: {
-    ...typography.caption,
+    ...theme.typography.caption,
     fontSize: 12,
-    color: colors.lightGray,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     marginBottom: 12,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -808,22 +810,22 @@ const styles = StyleSheet.create({
   tag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.bgDarkBlue,
+    backgroundColor: theme.colors.backgroundSecondary, // ← ONLY COLOR CHANGED
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 16,
     gap: 6,
     borderWidth: 1,
-    borderColor: colors.lighterBlueGray,
+    borderColor: theme.colors.border, // ← ONLY COLOR CHANGED
   },
   tagText: {
-    ...typography.caption,
+    ...theme.typography.caption,
     fontSize: 13,
     fontWeight: '600',
-    color: colors.white,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
   },
   tagMore: {
-    backgroundColor: colors.darkGrey,
+    backgroundColor: theme.colors.card, // ← ONLY COLOR CHANGED
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 16,
@@ -831,15 +833,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   tagMoreText: {
-    ...typography.caption,
+    ...theme.typography.caption,
     fontSize: 13,
     fontWeight: '500',
-    color: colors.lightGray,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
   },
   downloadedBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.bgDarkBlue,
+    backgroundColor: theme.colors.backgroundSecondary, // ← ONLY COLOR CHANGED
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
@@ -847,9 +849,9 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   downloadedText: {
-    ...typography.label,
+    ...theme.typography.label,
     fontSize: 13,
-    color: colors.bgGreen,
+    color: theme.colors.success, // ← ONLY COLOR CHANGED
     marginLeft: 6,
   },
   actionsSection: {
@@ -859,21 +861,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.mainBlue,
+    backgroundColor: theme.colors.primary, // ← ONLY COLOR CHANGED
     paddingVertical: 16,
     paddingHorizontal: 24,
     borderRadius: 12,
     marginBottom: 12,
-    shadowColor: colors.mainBlue,
+    shadowColor: theme.colors.primary, // ← ONLY COLOR CHANGED
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
   primaryButtonText: {
-    ...typography.button,
+    ...theme.typography.button,
     fontSize: 18,
-    color: colors.white,
+    color: theme.colors.textInverse, // ← ONLY COLOR CHANGED
     marginLeft: 8,
   },
   secondaryActionsRow: {
@@ -885,20 +887,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.bgDarkBlue,
+    backgroundColor: theme.colors.backgroundSecondary, // ← ONLY COLOR CHANGED
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.lighterBlueGray,
+    borderColor: theme.colors.border, // ← ONLY COLOR CHANGED
   },
   secondaryButtonDisabled: {
     opacity: 0.6,
   },
   secondaryButtonText: {
-    ...typography.button,
+    ...theme.typography.button,
     fontSize: 14,
-    color: colors.white,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
     marginLeft: 6,
   },
   // Tablet-specific styles - New iPad Design
@@ -933,7 +935,7 @@ const styles = StyleSheet.create({
     aspectRatio: 16 / 9,
     borderRadius: 12,
     overflow: 'hidden',
-    shadowColor: colors.black,
+    shadowColor: theme.colors.shadowDark, // ← ONLY COLOR CHANGED
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.4,
     shadowRadius: 16,
@@ -948,20 +950,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   tabletHeroSeriesTitle: {
-    ...typography.h3,
+    ...theme.typography.h3,
     fontSize: 18,
-    color: colors.mainBlue,
+    color: theme.colors.textInverse, // ← White text for readability on all blurred backgrounds
     marginBottom: 12,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
   tabletHeroTitle: {
-    ...typography.h1,
+    ...theme.typography.h1,
     fontSize: 48,
     lineHeight: 56,
     marginBottom: 0,
-    color: colors.white,
+    color: theme.colors.textInverse, // ← ONLY COLOR CHANGED (white text on dark overlay)
     fontWeight: '700',
   },
   tabletHeroActions: {
@@ -981,20 +983,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.mainBlue,
+    backgroundColor: theme.colors.primary, // ← ONLY COLOR CHANGED
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,
-    shadowColor: colors.mainBlue,
+    shadowColor: theme.colors.primary, // ← ONLY COLOR CHANGED
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
   tabletHeroPrimaryButtonText: {
-    ...typography.button,
+    ...theme.typography.button,
     fontSize: 15,
-    color: colors.white,
+    color: theme.colors.textInverse, // ← ONLY COLOR CHANGED
     marginLeft: 8,
     fontWeight: '600',
   },
@@ -1007,12 +1009,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 8,
     borderWidth: 1.5,
-    borderColor: colors.lighterBlueGray,
+    borderColor: theme.colors.border, // ← ONLY COLOR CHANGED
   },
   tabletHeroSecondaryButtonText: {
-    ...typography.button,
+    ...theme.typography.button,
     fontSize: 15,
-    color: colors.white,
+    color: theme.colors.textInverse, // ← ONLY COLOR CHANGED
     marginLeft: 8,
     fontWeight: '600',
   },
@@ -1034,9 +1036,9 @@ const styles = StyleSheet.create({
     maxWidth: 350,
   },
   tabletSectionTitle: {
-    ...typography.h3,
+    ...theme.typography.h3,
     fontSize: 20,
-    color: colors.white,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
     marginBottom: 16,
     fontWeight: '700',
   },
@@ -1046,57 +1048,57 @@ const styles = StyleSheet.create({
   tabletMetadataCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.bgDarkBlue,
+    backgroundColor: theme.colors.backgroundSecondary, // ← ONLY COLOR CHANGED
     padding: 16,
     borderRadius: 12,
     marginTop: 12,
     borderWidth: 1,
-    borderColor: colors.lighterBlueGray,
+    borderColor: theme.colors.border, // ← ONLY COLOR CHANGED
   },
   tabletMetadataCardContent: {
     marginLeft: 12,
     flex: 1,
   },
   tabletMetadataLabel: {
-    ...typography.caption,
+    ...theme.typography.caption,
     fontSize: 12,
-    color: colors.lightGray,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     marginBottom: 4,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   tabletMetadataValue: {
-    ...typography.body,
+    ...theme.typography.body,
     fontSize: 16,
-    color: colors.white,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
     fontWeight: '600',
   },
   tabletSidebarPassageCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.bgDarkBlue,
+    backgroundColor: theme.colors.backgroundSecondary, // ← ONLY COLOR CHANGED
     padding: 18,
     borderRadius: 12,
     marginBottom: 32,
     borderWidth: 1,
-    borderColor: colors.mainBlue,
+    borderColor: theme.colors.primary, // ← ONLY COLOR CHANGED
   },
   tabletSidebarPassageContent: {
     flex: 1,
     marginLeft: 12,
   },
   tabletSidebarPassageLabel: {
-    ...typography.caption,
+    ...theme.typography.caption,
     fontSize: 12,
-    color: colors.lightGray,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     marginBottom: 4,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   tabletSidebarPassageText: {
-    ...typography.h3,
+    ...theme.typography.h3,
     fontSize: 16,
-    color: colors.white,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
     fontWeight: '600',
   },
   tabletDownloadSection: {
@@ -1105,16 +1107,16 @@ const styles = StyleSheet.create({
   tabletDownloadedBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.bgDarkBlue,
+    backgroundColor: theme.colors.backgroundSecondary, // ← ONLY COLOR CHANGED
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
     alignSelf: 'flex-start',
   },
   tabletDownloadedText: {
-    ...typography.label,
+    ...theme.typography.label,
     fontSize: 14,
-    color: colors.bgGreen,
+    color: theme.colors.success, // ← ONLY COLOR CHANGED
     marginLeft: 6,
     fontWeight: '600',
   },
@@ -1122,20 +1124,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.bgDarkBlue,
+    backgroundColor: theme.colors.backgroundSecondary, // ← ONLY COLOR CHANGED
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.lighterBlueGray,
+    borderColor: theme.colors.border, // ← ONLY COLOR CHANGED
   },
   tabletDownloadButtonDisabled: {
     opacity: 0.6,
   },
   tabletDownloadButtonText: {
-    ...typography.button,
+    ...theme.typography.button,
     fontSize: 14,
-    color: colors.white,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
     marginLeft: 8,
     fontWeight: '600',
   },
@@ -1148,36 +1150,36 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   tabletEmptyState: {
-    backgroundColor: colors.bgDarkBlue,
+    backgroundColor: theme.colors.backgroundSecondary, // ← ONLY COLOR CHANGED
     padding: 32,
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: colors.lighterBlueGray,
+    borderColor: theme.colors.border, // ← ONLY COLOR CHANGED
     borderStyle: 'dashed',
   },
   tabletEmptyStateText: {
-    ...typography.body,
+    ...theme.typography.body,
     fontSize: 16,
-    color: colors.lightGray,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     marginTop: 12,
     textAlign: 'center',
   },
 
   // Summary Card
   tabletSummaryCard: {
-    backgroundColor: colors.bgDarkBlue,
+    backgroundColor: theme.colors.backgroundSecondary, // ← ONLY COLOR CHANGED
     padding: 20,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.lighterBlueGray,
+    borderColor: theme.colors.border, // ← ONLY COLOR CHANGED
   },
   tabletSummaryText: {
-    ...typography.body,
+    ...theme.typography.body,
     fontSize: 16,
     lineHeight: 24,
-    color: colors.white,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
   },
 
   // Tags Container
@@ -1189,19 +1191,19 @@ const styles = StyleSheet.create({
   tabletTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.bgDarkBlue,
+    backgroundColor: theme.colors.backgroundSecondary, // ← ONLY COLOR CHANGED
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 20,
     gap: 8,
     borderWidth: 1,
-    borderColor: colors.lighterBlueGray,
+    borderColor: theme.colors.border, // ← ONLY COLOR CHANGED
   },
   tabletTagText: {
-    ...typography.body,
+    ...theme.typography.body,
     fontSize: 14,
     fontWeight: '600',
-    color: colors.white,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
   },
 });
 

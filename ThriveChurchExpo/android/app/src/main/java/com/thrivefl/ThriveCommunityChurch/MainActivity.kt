@@ -1,6 +1,8 @@
 package com.thrivefl.ThriveCommunityChurch
 import expo.modules.splashscreen.SplashScreenManager
 
+import android.content.Intent
+import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 
@@ -42,6 +44,17 @@ class MainActivity : ReactActivity() {
               mainComponentName,
               fabricEnabled
           ){})
+  }
+
+  /**
+   * Handle configuration changes (including theme changes)
+   * This ensures React Native is notified when the system theme changes
+   */
+  override fun onConfigurationChanged(newConfig: Configuration) {
+      super.onConfigurationChanged(newConfig)
+      val intent = Intent("onConfigurationChanged")
+      intent.putExtra("newConfig", newConfig)
+      sendBroadcast(intent)
   }
 
   /**

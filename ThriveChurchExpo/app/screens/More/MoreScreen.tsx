@@ -21,14 +21,8 @@ import { ConfigKeys } from '../../types/config';
 import type { ConfigSetting } from '../../types/config';
 import { exportLogsToFile, logError, logInfo } from '../../services/logging/logger';
 import { setCurrentScreen, logOpenSocial, logCustomEvent } from '../../services/analytics/analyticsService';
-
-const colors = {
-  almostBlack: 'rgb(25, 25, 25)',
-  darkGrey: 'rgb(63, 63, 63)',
-  mainBlue: 'rgb(0, 122, 255)',
-  white: '#FFFFFF',
-  lightGray: '#D3D3D3',
-};
+import { useTheme } from '../../hooks/useTheme';
+import type { Theme } from '../../theme/types';
 
 interface MoreMenuItem {
   id: string;
@@ -39,6 +33,8 @@ interface MoreMenuItem {
 
 export const MoreScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<any>>();
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const [menuItems, setMenuItems] = useState<MoreMenuItem[]>([]);
 
   // Track screen view
@@ -510,7 +506,7 @@ export const MoreScreen: React.FC = () => {
   };
 
   const renderItem = ({ item }: { item: MoreMenuItem }) => (
-    <MoreMenuCard item={item} />
+    <MoreMenuCard item={item} theme={theme} />
   );
 
   const keyExtractor = (item: MoreMenuItem) => item.id;
@@ -528,8 +524,9 @@ export const MoreScreen: React.FC = () => {
 };
 
 // Card Component
-const MoreMenuCard: React.FC<{ item: MoreMenuItem }> = ({ item }) => {
+const MoreMenuCard: React.FC<{ item: MoreMenuItem; theme: Theme }> = ({ item, theme }) => {
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
+  const styles = createStyles(theme);
 
   const handlePressIn = () => {
     Animated.spring(scaleAnim, {
@@ -565,20 +562,20 @@ const MoreMenuCard: React.FC<{ item: MoreMenuItem }> = ({ item }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.almostBlack,
+    backgroundColor: theme.colors.background, // ← ONLY COLOR CHANGED
   },
   listContent: {
     paddingVertical: 8,
   },
   card: {
-    backgroundColor: colors.darkGrey,
+    backgroundColor: theme.colors.card, // ← ONLY COLOR CHANGED
     marginHorizontal: 16,
     marginVertical: 4,
     borderRadius: 12,
-    shadowColor: '#000',
+    shadowColor: theme.colors.shadowDark, // ← ONLY COLOR CHANGED
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 8,
@@ -597,18 +594,18 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: 'Avenir-Medium',
     fontSize: 16,
-    color: colors.white,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
     marginBottom: 4,
   },
   subtitle: {
     fontFamily: 'Avenir-Book',
     fontSize: 14,
-    color: colors.lightGray,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     lineHeight: 18,
   },
   chevron: {
     fontSize: 24,
-    color: colors.lightGray,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     marginLeft: 12,
   },
 });

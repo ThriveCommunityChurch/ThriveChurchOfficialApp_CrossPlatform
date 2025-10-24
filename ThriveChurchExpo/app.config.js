@@ -18,7 +18,7 @@ module.exports = {
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/icon.png",
-    userInterfaceStyle: "light",
+    userInterfaceStyle: "automatic",
     assetBundlePatterns: [
       "**/*"
     ],
@@ -108,7 +108,9 @@ module.exports = {
       // Custom plugin to configure push notifications (entitlements + Xcode capabilities)
       "./plugins/withPushNotifications.js",
       // Custom plugin to add copyright text to splash screen (runs after expo-splash-screen)
-      "./plugins/withSplashScreenCopyright.js"
+      "./plugins/withSplashScreenCopyright.js",
+      // Custom plugin to configure dynamic theme support (iOS + Android)
+      "./plugins/withThemeConfiguration.js"
       // Note: @react-native-firebase/analytics and @react-native-firebase/messaging
       // do not have Expo config plugins. They are configured via native files
       // (GoogleService-Info.plist and google-services.json) and work at runtime.

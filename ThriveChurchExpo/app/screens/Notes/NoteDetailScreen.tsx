@@ -19,6 +19,8 @@ import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { getNote, updateNote } from '../../services/storage/storage';
 import { setCurrentScreen, logShareNote, logCustomEvent } from '../../services/analytics/analyticsService';
+import { useTheme } from '../../hooks/useTheme';
+import type { Theme } from '../../theme/types';
 
 type NotesStackParamList = {
   NotesList: undefined;
@@ -32,6 +34,8 @@ export const NoteDetailScreen: React.FC = () => {
   const route = useRoute<NoteDetailRouteProp>();
   const navigation = useNavigation<NavigationProp>();
   const { noteId } = route.params;
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
 
   const [content, setContent] = useState('');
   const textInputRef = useRef<TextInput>(null);
@@ -154,10 +158,10 @@ export const NoteDetailScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.card, // ← ONLY COLOR CHANGED
   },
   editorContainer: {
     flex: 1,
@@ -166,7 +170,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 17,
     fontFamily: 'AvenirNext-Regular',
-    color: '#000000',
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
     padding: 16,
     textAlignVertical: 'top',
   },
@@ -176,7 +180,7 @@ const styles = StyleSheet.create({
   },
   shareIcon: {
     fontSize: 22,
-    color: '#FFFFFF',
+    color: theme.colors.card, // ← ONLY COLOR CHANGED (icon on header button)
   },
 });
 

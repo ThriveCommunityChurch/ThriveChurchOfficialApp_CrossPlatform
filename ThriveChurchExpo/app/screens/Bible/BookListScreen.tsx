@@ -17,6 +17,8 @@ import { BibleOrderType, BibleBook } from '../../types/bible';
 import { getTraditionalBooks, getAlphabeticalBooks } from '../../data/bibleBooks';
 import { openBibleBook } from '../../utils/bibleLinks';
 import { setCurrentScreen, logCustomEvent } from '../../services/analytics/analyticsService';
+import { useTheme } from '../../hooks/useTheme';
+import type { Theme } from '../../theme/types';
 
 type BookListRouteParams = {
   BookList: {
@@ -30,9 +32,11 @@ type BookListRouteProp = RouteProp<BookListRouteParams, 'BookList'>;
 interface BookItemProps {
   book: BibleBook;
   onPress: (book: BibleBook) => void;
+  theme: Theme;
 }
 
-const BookItem: React.FC<BookItemProps> = ({ book, onPress }) => {
+const BookItem: React.FC<BookItemProps> = ({ book, onPress, theme }) => {
+  const styles = createStyles(theme);
   return (
     <TouchableOpacity
       style={styles.bookItem}
@@ -44,11 +48,16 @@ const BookItem: React.FC<BookItemProps> = ({ book, onPress }) => {
   );
 };
 
-const ItemSeparator = () => <View style={styles.separator} />;
+const ItemSeparator: React.FC<{ theme: Theme }> = ({ theme }) => {
+  const styles = createStyles(theme);
+  return <View style={styles.separator} />;
+};
 
 export const BookListScreen: React.FC = () => {
   const route = useRoute<BookListRouteProp>();
   const { orderType } = route.params;
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const [loading, setLoading] = React.useState(false);
 
   // Track screen view
@@ -86,7 +95,7 @@ export const BookListScreen: React.FC = () => {
   };
 
   const renderBook = ({ item }: { item: BibleBook }) => (
-    <BookItem book={item} onPress={handleBookPress} />
+    <BookItem book={item} onPress={handleBookPress} theme={theme} />
   );
 
   const keyExtractor = (item: BibleBook) => item.slug;
@@ -97,25 +106,25 @@ export const BookListScreen: React.FC = () => {
         data={books}
         renderItem={renderBook}
         keyExtractor={keyExtractor}
-        ItemSeparatorComponent={ItemSeparator}
+        ItemSeparatorComponent={() => <ItemSeparator theme={theme} />}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={true}
-        indicatorStyle="white"
+        indicatorStyle={theme.isDark ? "white" : "black"}
       />
-      
+
       {loading && (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#FFFFFF" />
+          <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
       )}
     </View>
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'rgb(27, 27, 27)', // #1B1B1B
+    backgroundColor: theme.colors.background, // ← ONLY COLOR CHANGED
   },
   listContent: {
     paddingVertical: 0,
@@ -123,16 +132,16 @@ const styles = StyleSheet.create({
   bookItem: {
     paddingVertical: 16,
     paddingHorizontal: 20,
-    backgroundColor: 'rgb(27, 27, 27)',
+    backgroundColor: theme.colors.background, // ← ONLY COLOR CHANGED
   },
   bookName: {
     fontSize: 16,
     fontFamily: 'Avenir-Medium',
-    color: '#FFFFFF',
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
   },
   separator: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: theme.colors.separator, // ← ONLY COLOR CHANGED
     marginLeft: 20,
   },
   loadingOverlay: {
@@ -141,7 +150,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: theme.colors.overlayMedium, // ← ONLY COLOR CHANGED
     justifyContent: 'center',
     alignItems: 'center',
   },

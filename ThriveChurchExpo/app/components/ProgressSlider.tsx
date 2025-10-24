@@ -6,7 +6,8 @@ import {
   GestureResponderEvent,
   PanResponderGestureState,
 } from 'react-native';
-import { colors } from '../theme/colors';
+import { useTheme } from '../hooks/useTheme';
+import type { Theme } from '../theme/types';
 
 interface ProgressSliderProps {
   value: number; // Current position in seconds
@@ -25,12 +26,19 @@ export const ProgressSlider: React.FC<ProgressSliderProps> = ({
   onSlidingStart,
   onValueChange,
   onSlidingComplete,
-  minimumTrackTintColor = colors.mainBlue,
-  maximumTrackTintColor = colors.darkGrey,
-  thumbTintColor = colors.mainBlue,
+  minimumTrackTintColor,
+  maximumTrackTintColor,
+  thumbTintColor,
 }) => {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const [sliderWidth, setSliderWidth] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+
+  // Use theme colors as defaults if not provided
+  const minTrackColor = minimumTrackTintColor || theme.colors.primary;
+  const maxTrackColor = maximumTrackTintColor || theme.colors.card;
+  const thumbColor = thumbTintColor || theme.colors.primary;
 
   const progress = maximumValue > 0 ? value / maximumValue : 0;
 
@@ -70,8 +78,8 @@ export const ProgressSlider: React.FC<ProgressSliderProps> = ({
       {...panResponder.panHandlers}
     >
       {/* Track background */}
-      <View style={[styles.track, { backgroundColor: maximumTrackTintColor }]} />
-      
+      <View style={[styles.track, { backgroundColor: maxTrackColor }]} />
+
       {/* Progress track */}
       <View
         style={[
@@ -79,18 +87,18 @@ export const ProgressSlider: React.FC<ProgressSliderProps> = ({
           styles.progressTrack,
           {
             width: `${progress * 100}%`,
-            backgroundColor: minimumTrackTintColor,
+            backgroundColor: minTrackColor,
           },
         ]}
       />
-      
+
       {/* Thumb */}
       <View
         style={[
           styles.thumb,
           {
             left: `${progress * 100}%`,
-            backgroundColor: thumbTintColor,
+            backgroundColor: thumbColor,
             transform: [{ scale: isDragging ? 1.2 : 1 }],
           },
         ]}
@@ -99,7 +107,7 @@ export const ProgressSlider: React.FC<ProgressSliderProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     height: 40,
     justifyContent: 'center',
@@ -122,7 +130,7 @@ const styles = StyleSheet.create({
     height: 16,
     borderRadius: 8,
     marginLeft: -8,
-    shadowColor: '#000',
+    shadowColor: theme.colors.shadowDark, // ← ONLY COLOR CHANGED
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 2,

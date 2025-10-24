@@ -7,7 +7,8 @@ import React, { useEffect } from 'react';
 import { View, StyleSheet, ActivityIndicator, Linking, Alert } from 'react-native';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { WebView } from 'react-native-webview';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../hooks/useTheme';
+import type { Theme } from '../../theme/types';
 import { setCurrentScreen, logCustomEvent } from '../../services/analytics/analyticsService';
 
 type ConnectStackParamList = {
@@ -18,6 +19,8 @@ type ConnectStackParamList = {
 type WebViewRouteProp = RouteProp<ConnectStackParamList, 'WebViewForm'>;
 
 export const WebViewScreen: React.FC = () => {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const route = useRoute<WebViewRouteProp>();
   const { url, title } = route.params;
   const [loading, setLoading] = React.useState(true);
@@ -99,7 +102,7 @@ export const WebViewScreen: React.FC = () => {
         startInLoadingState={true}
         renderLoading={() => (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={colors.white} />
+            <ActivityIndicator size="large" color={theme.colors.primary} />
           </View>
         )}
         javaScriptEnabled={true}
@@ -110,14 +113,14 @@ export const WebViewScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: theme.colors.surface, // ← ONLY COLOR CHANGED (white background for content)
   },
   webview: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: theme.colors.surface, // ← ONLY COLOR CHANGED
   },
   loadingContainer: {
     position: 'absolute',
@@ -127,7 +130,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: theme.colors.surface, // ← ONLY COLOR CHANGED
   },
 });
 

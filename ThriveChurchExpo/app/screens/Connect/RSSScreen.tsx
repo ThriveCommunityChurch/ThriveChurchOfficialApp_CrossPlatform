@@ -9,8 +9,8 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as rssParser from 'react-native-rss-parser';
 import { FlashList } from '@shopify/flash-list';
-import { colors } from '../../theme/colors';
-import { typography } from '../../theme/typography';
+import { useTheme } from '../../hooks/useTheme';
+import type { Theme } from '../../theme/types';
 import { setCurrentScreen, logViewAnnouncements } from '../../services/analytics/analyticsService';
 
 const feedURL = 'https://us4.campaign-archive.com/feed?u=1c5116a71792ef373ee131ea0&id=e6caee03a4';
@@ -33,9 +33,11 @@ interface RSSItem {
 interface RSSCardProps {
   item: RSSItem;
   onPress: (item: RSSItem) => void;
+  theme: Theme;
 }
 
-const RSSCard: React.FC<RSSCardProps> = ({ item, onPress }) => {
+const RSSCard: React.FC<RSSCardProps> = ({ item, onPress, theme }) => {
+  const styles = createStyles(theme);
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
@@ -100,6 +102,8 @@ const RSSCard: React.FC<RSSCardProps> = ({ item, onPress }) => {
 };
 
 export default function RSSScreen() {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const navigation = useNavigation<NavigationProp>();
   const [loading, setLoading] = React.useState(true);
   const [items, setItems] = React.useState<RSSItem[]>([]);
@@ -149,7 +153,7 @@ export default function RSSScreen() {
   };
 
   const renderItem = ({ item }: { item: RSSItem }) => (
-    <RSSCard item={item} onPress={handleItemPress} />
+    <RSSCard item={item} onPress={handleItemPress} theme={theme} />
   );
 
   const keyExtractor = (item: RSSItem, index: number) =>
@@ -158,7 +162,7 @@ export default function RSSScreen() {
   return (
     <View style={styles.container}>
       {loading ? (
-        <ActivityIndicator style={styles.loading} color={colors.white} size="large" />
+        <ActivityIndicator style={styles.loading} color={theme.colors.text} size="large" />
       ) : error ? (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{error}</Text>
@@ -170,17 +174,17 @@ export default function RSSScreen() {
           keyExtractor={keyExtractor}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={true}
-          indicatorStyle="white"
+          indicatorStyle={theme.isDark ? 'white' : 'black'}
         />
       )}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.almostBlack,
+    backgroundColor: theme.colors.background, // ← ONLY COLOR CHANGED
   },
   loading: {
     marginTop: 24,
@@ -192,18 +196,18 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   errorText: {
-    ...typography.body,
-    color: colors.lessLightLightGray,
+    ...theme.typography.body,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     textAlign: 'center',
   },
   listContent: {
     padding: 8,
   },
   card: {
-    backgroundColor: colors.darkGrey,
+    backgroundColor: theme.colors.card, // ← ONLY COLOR CHANGED
     borderRadius: 12,
     marginBottom: 8,
-    shadowColor: '#000',
+    shadowColor: theme.colors.shadowDark, // ← ONLY COLOR CHANGED
     shadowOffset: {
       width: 0,
       height: 4,
@@ -224,17 +228,17 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 14,
     fontFamily: 'Avenir-Book',
-    color: colors.white,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
     marginBottom: 4,
   },
   date: {
     fontSize: 12,
     fontFamily: 'Avenir-Medium',
-    color: colors.lessLightLightGray,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
   },
   chevron: {
     fontSize: 32,
-    color: colors.lessLightLightGray,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     marginLeft: 12,
     fontWeight: '300',
   },

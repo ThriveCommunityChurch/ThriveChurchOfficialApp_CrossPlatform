@@ -9,8 +9,8 @@ import {
   Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../../theme/colors';
-import { typography } from '../../theme/typography';
+import { useTheme } from '../../hooks/useTheme';
+import type { Theme } from '../../theme/types';
 import { usePlayer } from '../../hooks/usePlayer';
 import { AudioWaveform } from '../../components/AudioWaveform';
 import { ProgressSlider } from '../../components/ProgressSlider';
@@ -59,6 +59,8 @@ const SCALE = {
 
 export default function NowPlayingScreen() {
   const player = usePlayer();
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const [isSeeking, setIsSeeking] = useState(false);
   const [seekPosition, setSeekPosition] = useState(0);
   const [waveformData, setWaveformData] = useState<number[]>([]);
@@ -141,10 +143,10 @@ export default function NowPlayingScreen() {
     return (
       <View style={styles.container}>
         <View style={styles.emptyState}>
-          <Text style={[typography.h2, { textAlign: 'center', marginBottom: 16 }]}>
+          <Text style={[theme.typography.h2 as any, { textAlign: 'center', marginBottom: 16 }]}>
             No Audio Playing
           </Text>
-          <Text style={[typography.body, { textAlign: 'center', color: colors.lessLightLightGray }]}>
+          <Text style={[theme.typography.body as any, { textAlign: 'center', color: theme.colors.textTertiary }]}>
             Select a sermon to start listening
           </Text>
         </View>
@@ -206,7 +208,7 @@ export default function NowPlayingScreen() {
               <Ionicons
                 name="musical-notes"
                 size={isTablet ? SCALE.iconSizeXLargeTablet : SCALE.iconSizeXLargePhone}
-                color={colors.lightGray}
+                color={theme.colors.textSecondary}
               />
             </View>
           )}
@@ -216,7 +218,7 @@ export default function NowPlayingScreen() {
         <View style={[styles.trackInfo, { marginBottom: marginBottom }]}>
           <Text
             style={[
-              isTablet ? typography.h1 : typography.h2,
+              isTablet ? theme.typography.h1 as any : theme.typography.h2 as any,
               { textAlign: 'center', marginBottom: isTablet ? 12 : 8 }
             ]}
             numberOfLines={2}
@@ -225,8 +227,8 @@ export default function NowPlayingScreen() {
           </Text>
           <Text
             style={[
-              isTablet ? typography.h3 : typography.body,
-              { textAlign: 'center', color: colors.lessLightLightGray, marginBottom: isTablet ? 6 : 4 }
+              isTablet ? theme.typography.h3 as any : theme.typography.body as any,
+              { textAlign: 'center', color: theme.colors.textTertiary, marginBottom: isTablet ? 6 : 4 }
             ]}
           >
             {player.currentTrack.artist}
@@ -234,8 +236,8 @@ export default function NowPlayingScreen() {
           {seriesTitle && (
             <Text
               style={[
-                isTablet ? typography.body : typography.caption,
-                { textAlign: 'center', color: colors.lightGray }
+                isTablet ? theme.typography.body as any : theme.typography.caption as any,
+                { textAlign: 'center', color: theme.colors.textSecondary }
               ]}
             >
               {seriesTitle}
@@ -264,20 +266,20 @@ export default function NowPlayingScreen() {
             onSlidingStart={handleSeekStart}
             onValueChange={handleSeekChange}
             onSlidingComplete={handleSeekComplete}
-            minimumTrackTintColor={colors.mainBlue}
-            maximumTrackTintColor={colors.darkGrey}
-            thumbTintColor={colors.mainBlue}
+            minimumTrackTintColor={theme.colors.primary}
+            maximumTrackTintColor={theme.colors.border}
+            thumbTintColor={theme.colors.primary}
           />
           <View style={styles.timeContainer}>
             <Text style={[
-              isTablet ? typography.body : typography.caption,
-              { color: colors.lightGray }
+              isTablet ? theme.typography.body as any : theme.typography.caption as any,
+              { color: theme.colors.textSecondary }
             ]}>
               {formatTime(isSeeking ? seekPosition : player.position)}
             </Text>
             <Text style={[
-              isTablet ? typography.body : typography.caption,
-              { color: colors.lightGray }
+              isTablet ? theme.typography.body as any : theme.typography.caption as any,
+              { color: theme.colors.textSecondary }
             ]}>
               {formatTime(player.duration)}
             </Text>
@@ -295,13 +297,13 @@ export default function NowPlayingScreen() {
             <Ionicons
               name="refresh-outline"
               size={iconSizeLarge}
-              color={colors.white}
+              color={theme.colors.text}
               style={{ transform: [{ scaleX: -1 }] }}
             />
             <Text style={[
-              typography.caption,
+              theme.typography.caption as any,
               {
-                color: colors.lightGray,
+                color: theme.colors.textSecondary,
                 marginTop: isTablet ? 6 : 4,
                 fontSize: isTablet ? 14 : 11
               }
@@ -316,7 +318,7 @@ export default function NowPlayingScreen() {
             onPress={handleStop}
             activeOpacity={0.7}
           >
-            <Ionicons name="stop" size={iconSizeSmall} color={colors.white} />
+            <Ionicons name="stop" size={iconSizeSmall} color={theme.colors.text} />
           </TouchableOpacity>
 
           {/* Play/Pause */}
@@ -327,11 +329,11 @@ export default function NowPlayingScreen() {
             disabled={player.isLoading}
           >
             {player.isLoading ? (
-              <Ionicons name="hourglass" size={iconSizeMedium} color={colors.white} />
+              <Ionicons name="hourglass" size={iconSizeMedium} color={theme.colors.text} />
             ) : player.isPlaying ? (
-              <Ionicons name="pause" size={iconSizeMedium} color={colors.white} />
+              <Ionicons name="pause" size={iconSizeMedium} color={theme.colors.text} />
             ) : (
-              <Ionicons name="play" size={iconSizeMedium} color={colors.white} />
+              <Ionicons name="play" size={iconSizeMedium} color={theme.colors.text} />
             )}
           </TouchableOpacity>
 
@@ -341,11 +343,11 @@ export default function NowPlayingScreen() {
             onPress={handleForward}
             activeOpacity={0.7}
           >
-            <Ionicons name="refresh-outline" size={iconSizeLarge} color={colors.white} />
+            <Ionicons name="refresh-outline" size={iconSizeLarge} color={theme.colors.text} />
             <Text style={[
-              typography.caption,
+              theme.typography.caption as any,
               {
-                color: colors.lightGray,
+                color: theme.colors.textSecondary,
                 marginTop: isTablet ? 6 : 4,
                 fontSize: isTablet ? 14 : 11
               }
@@ -358,8 +360,8 @@ export default function NowPlayingScreen() {
         {/* Status Indicator */}
         {player.isLoading && (
           <Text style={[
-            isTablet ? typography.body : typography.caption,
-            { textAlign: 'center', color: colors.lightGray, marginTop: isTablet ? 24 : 16 }
+            isTablet ? theme.typography.body as any : theme.typography.caption as any,
+            { textAlign: 'center', color: theme.colors.textSecondary, marginTop: isTablet ? 24 : 16 }
           ]}>
             Buffering...
           </Text>
@@ -369,10 +371,10 @@ export default function NowPlayingScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.bgDarkBlue,
+    backgroundColor: theme.colors.backgroundSecondary, // ← ONLY COLOR CHANGED
   },
   content: {
     flex: 1,
@@ -389,7 +391,7 @@ const styles = StyleSheet.create({
   artworkContainer: {
     // marginBottom is now dynamic
     borderRadius: isTablet ? 16 : 12,
-    shadowColor: '#000',
+    shadowColor: theme.colors.shadowDark, // ← ONLY COLOR CHANGED
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 8,
@@ -399,7 +401,7 @@ const styles = StyleSheet.create({
   artwork: {
     width: '100%',
     height: '100%',
-    backgroundColor: colors.darkGrey,
+    backgroundColor: theme.colors.card, // ← ONLY COLOR CHANGED
   },
   placeholderArtwork: {
     alignItems: 'center',

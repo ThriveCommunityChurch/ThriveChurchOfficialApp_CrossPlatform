@@ -16,6 +16,8 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BibleOrderType } from '../../types/bible';
 import { setCurrentScreen } from '../../services/analytics/analyticsService';
+import { useTheme } from '../../hooks/useTheme';
+import type { Theme } from '../../theme/types';
 
 type BibleStackParamList = {
   BibleSelection: undefined;
@@ -28,10 +30,12 @@ interface SelectionCardProps {
   title: string;
   description: string;
   onPress: () => void;
+  theme: Theme;
 }
 
-const SelectionCard: React.FC<SelectionCardProps> = ({ title, description, onPress }) => {
+const SelectionCard: React.FC<SelectionCardProps> = ({ title, description, onPress, theme }) => {
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
+  const styles = createStyles(theme);
 
   const handlePressIn = () => {
     Animated.timing(scaleAnim, {
@@ -78,6 +82,8 @@ const SelectionCard: React.FC<SelectionCardProps> = ({ title, description, onPre
 
 export const BibleSelectionScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
 
   // Track screen view
   useEffect(() => {
@@ -111,22 +117,24 @@ export const BibleSelectionScreen: React.FC = () => {
           title="Traditional Order"
           description={'Browse books in biblical order\nGenesis → Malachi → Matthew → Revelation'}
           onPress={handleTraditionalPress}
+          theme={theme}
         />
 
         <SelectionCard
           title="Alphabetical Order"
           description={'Browse books from A to Z\nActs → Amos → Colossians → Daniel'}
           onPress={handleAlphabeticalPress}
+          theme={theme}
         />
       </ScrollView>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'rgb(27, 27, 27)', // #1B1B1B
+    backgroundColor: theme.colors.background, // ← ONLY COLOR CHANGED
   },
   scrollView: {
     flex: 1,
@@ -138,14 +146,14 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     fontFamily: 'Avenir-Book',
-    color: '#D3D3D3',
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     marginBottom: 24,
   },
   card: {
-    backgroundColor: 'rgb(40, 40, 40)',
+    backgroundColor: theme.colors.cardTertiary, // ← ONLY COLOR CHANGED
     borderRadius: 12,
     marginBottom: 16,
-    shadowColor: '#000',
+    shadowColor: theme.colors.shadowDark, // ← ONLY COLOR CHANGED
     shadowOffset: {
       width: 0,
       height: 4,
@@ -165,18 +173,18 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontFamily: 'Avenir-Medium',
-    color: '#FFFFFF',
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
     marginBottom: 8,
   },
   cardDescription: {
     fontSize: 14,
     fontFamily: 'Avenir-Book',
-    color: '#D3D3D3',
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     lineHeight: 20,
   },
   chevron: {
     fontSize: 32,
-    color: '#D3D3D3',
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     marginLeft: 12,
     fontWeight: '300',
   },

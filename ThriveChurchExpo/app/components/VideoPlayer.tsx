@@ -9,8 +9,8 @@ import {
   Dimensions,
 } from 'react-native';
 import YoutubePlayer, { YoutubeIframeRef } from 'react-native-youtube-iframe';
-import { colors } from '../theme/colors';
-import { typography } from '../theme/typography';
+import { useTheme } from '../hooks/useTheme';
+import type { Theme } from '../theme/types';
 
 interface VideoPlayerProps {
   videoUrl: string;
@@ -60,6 +60,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   onStateChange,
   style,
 }) => {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -166,7 +168,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       <View style={styles.playerContainer}>
         {isLoading && (
           <View style={styles.loadingOverlay}>
-            <ActivityIndicator size="large" color={colors.primary} />
+            <ActivityIndicator size="large" color={theme.colors.primary} />
             <Text style={styles.loadingText}>Loading video...</Text>
           </View>
         )}
@@ -190,25 +192,25 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
-    backgroundColor: colors.almostBlack,
+    backgroundColor: theme.colors.background, // ← ONLY COLOR CHANGED
   },
   titleContainer: {
     padding: 16,
     paddingBottom: 8,
   },
   title: {
-    ...typography.h3,
-    color: colors.white,
+    ...theme.typography.h3,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
     textAlign: 'center',
   },
   playerContainer: {
     position: 'relative',
-    backgroundColor: colors.black,
+    backgroundColor: theme.colors.backgroundDark, // ← ONLY COLOR CHANGED
   },
   webView: {
-    backgroundColor: colors.black,
+    backgroundColor: theme.colors.backgroundDark, // ← ONLY COLOR CHANGED
   },
   loadingOverlay: {
     position: 'absolute',
@@ -216,14 +218,14 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: colors.almostBlack,
+    backgroundColor: theme.colors.background, // ← ONLY COLOR CHANGED
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1,
   },
   loadingText: {
-    ...typography.body,
-    color: colors.lightGrey,
+    ...theme.typography.body,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     marginTop: 12,
   },
   errorContainer: {
@@ -233,26 +235,26 @@ const styles = StyleSheet.create({
     minHeight: 200,
   },
   errorText: {
-    ...typography.h3,
-    color: colors.white,
+    ...theme.typography.h3,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
     textAlign: 'center',
     marginBottom: 8,
   },
   errorSubtext: {
-    ...typography.body,
-    color: colors.lightGrey,
+    ...theme.typography.body,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     textAlign: 'center',
     marginBottom: 16,
   },
   retryButton: {
-    backgroundColor: colors.primary,
+    backgroundColor: theme.colors.primary, // ← ONLY COLOR CHANGED
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
   },
   retryButtonText: {
-    ...typography.button,
-    color: colors.white,
+    ...theme.typography.button,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
   },
 });
 

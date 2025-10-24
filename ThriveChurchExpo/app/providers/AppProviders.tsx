@@ -1,6 +1,7 @@
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ConfigProvider } from './ConfigProvider';
+import { ThemeProvider } from './ThemeProvider';
 
 const client = new QueryClient({
   defaultOptions: {
@@ -16,7 +17,9 @@ export const AppProviders: React.FC<React.PropsWithChildren> = ({ children }) =>
   return (
     <QueryClientProvider client={client}>
       <ConfigProvider>
-        {children}
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
       </ConfigProvider>
     </QueryClientProvider>
   );

@@ -8,8 +8,8 @@ import {
   ActivityIndicator,
   Image,
 } from 'react-native';
-import { colors } from '../../theme/colors';
-import { typography } from '../../theme/typography';
+import { useTheme } from '../../hooks/useTheme';
+import type { Theme } from '../../theme/types';
 import { SermonMessage } from '../../types/api';
 import { getAllDownloadedMessages } from '../../services/storage/storage';
 import { deleteDownload, getDownloadSize, formatBytes } from '../../services/downloads/downloadManager';
@@ -20,9 +20,10 @@ import { setCurrentScreen } from '../../services/analytics/analyticsService';
 interface DownloadItemProps {
   item: SermonMessage;
   onPress: (message: SermonMessage) => void;
+  theme: Theme;
 }
 
-const DownloadItem: React.FC<DownloadItemProps> = ({ item, onPress }) => {
+const DownloadItem: React.FC<DownloadItemProps> = ({ item, onPress, theme }) => {
   const [fileSize, setFileSize] = useState<string>('');
 
   useEffect(() => {
@@ -36,11 +37,11 @@ const DownloadItem: React.FC<DownloadItemProps> = ({ item, onPress }) => {
   return (
     <TouchableOpacity
       style={{
-        backgroundColor: colors.almostBlack,
+        backgroundColor: theme.colors.background,
         paddingHorizontal: 16,
         paddingVertical: 16,
         borderBottomWidth: 0.5,
-        borderBottomColor: colors.darkGrey,
+        borderBottomColor: theme.colors.border,
         flexDirection: 'row',
         alignItems: 'center',
       }}
@@ -55,7 +56,7 @@ const DownloadItem: React.FC<DownloadItemProps> = ({ item, onPress }) => {
             width: 106,
             height: 60,
             borderRadius: 8,
-            backgroundColor: colors.darkGrey,
+            backgroundColor: theme.colors.card,
             marginRight: 12,
           }}
           resizeMode="cover"
@@ -66,13 +67,13 @@ const DownloadItem: React.FC<DownloadItemProps> = ({ item, onPress }) => {
             width: 106,
             height: 60,
             borderRadius: 8,
-            backgroundColor: colors.darkGrey,
+            backgroundColor: theme.colors.card,
             marginRight: 12,
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <Text style={[typography.label, { color: colors.lightGray }]}>
+          <Text style={[theme.typography.label as any, { color: theme.colors.textSecondary }]}>
             {item.WeekNum || '?'}
           </Text>
         </View>
@@ -80,13 +81,13 @@ const DownloadItem: React.FC<DownloadItemProps> = ({ item, onPress }) => {
 
       {/* Message Info */}
       <View style={{ flex: 1 }}>
-        <Text style={[typography.h3, { marginBottom: 4 }]} numberOfLines={2}>
+        <Text style={[theme.typography.h3 as any, { marginBottom: 4 }]} numberOfLines={2}>
           {item.Title}
         </Text>
-        <Text style={[typography.body, { color: colors.lessLightLightGray, marginBottom: 2 }]}>
+        <Text style={[theme.typography.body as any, { color: theme.colors.textTertiary, marginBottom: 2 }]}>
           {item.seriesTitle || 'Sermon'}
         </Text>
-        <Text style={[typography.caption, { color: colors.lightGray }]}>
+        <Text style={[theme.typography.caption as any, { color: theme.colors.textSecondary }]}>
           {item.Speaker} • {fileSize}
         </Text>
       </View>
@@ -95,6 +96,7 @@ const DownloadItem: React.FC<DownloadItemProps> = ({ item, onPress }) => {
 };
 
 export default function DownloadsScreen() {
+  const { theme } = useTheme();
   const [downloads, setDownloads] = useState<SermonMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -189,30 +191,30 @@ export default function DownloadsScreen() {
   }, [loadDownloads]);
 
   const renderDownloadItem = useCallback(({ item }: { item: SermonMessage }) => {
-    return <DownloadItem item={item} onPress={handleMessagePress} />;
-  }, [handleMessagePress]);
+    return <DownloadItem item={item} onPress={handleMessagePress} theme={theme} />;
+  }, [handleMessagePress, theme]);
 
   const renderEmptyState = useCallback(() => (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}>
-      <Text style={[typography.h2, { textAlign: 'center', marginBottom: 16 }]}>
+      <Text style={[theme.typography.h2 as any, { textAlign: 'center', marginBottom: 16 }]}>
         No Downloads
       </Text>
-      <Text style={[typography.body, { textAlign: 'center', color: colors.lessLightLightGray }]}>
+      <Text style={[theme.typography.body as any, { textAlign: 'center', color: theme.colors.textTertiary }]}>
         Downloaded sermons will appear here for offline listening
       </Text>
     </View>
-  ), []);
+  ), [theme]);
 
   if (loading) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.bgDarkBlue, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator color={colors.white} size="large" />
+      <View style={{ flex: 1, backgroundColor: theme.colors.backgroundSecondary, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator color={theme.colors.primary} size="large" />
       </View>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.bgDarkBlue }}>
+    <View style={{ flex: 1, backgroundColor: theme.colors.backgroundSecondary }}>
       <FlatList
         data={downloads}
         renderItem={renderDownloadItem}

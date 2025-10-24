@@ -1,13 +1,18 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
+import { NavigationContainer, DefaultTheme, DarkTheme, Theme as NavigationTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { View, Text, TouchableOpacity, AppState, AppStateStatus } from 'react-native';
+import { View, Text, TouchableOpacity, AppState, AppStateStatus, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
-import { typography } from '../theme/typography';
+import { useTheme } from '../hooks/useTheme';
+import type { Theme } from '../theme/types';
 import OfflineBanner from '../components/OfflineBanner';
 import { linking } from './linking';
+
+// Platform-specific font families for navigation headers
+const ios = Platform.OS === 'ios';
+const HEADER_FONT_FAMILY = ios ? 'Avenir-Heavy' : 'Lato-Bold';
+const TAB_LABEL_FONT_FAMILY = ios ? 'Avenir-Book' : 'Lato-Regular';
 import { logAppOpen, logAppInBackground } from '../services/analytics/analyticsService';
 import { initializePushNotifications, clearAllNotifications } from '../services/notifications/pushNotificationService';
 import { logAppConfig } from '../config/app.config';
@@ -36,20 +41,68 @@ const NotesStack = createNativeStackNavigator();
 const ConnectStack = createNativeStackNavigator();
 const MoreStack = createNativeStackNavigator();
 
-const Placeholder = ({ title }: { title: string }) => (
-  <View style={{ flex: 1, backgroundColor: colors.almostBlack, alignItems: 'center', justifyContent: 'center' }}>
-    <OfflineBanner />
-    <Text style={[typography.h1]}>{title}</Text>
-  </View>
-);
+/**
+ * Convert our theme to React Navigation theme format
+ */
+const createNavigationTheme = (theme: Theme): NavigationTheme => {
+  return {
+    dark: theme.isDark,
+    colors: {
+      primary: theme.colors.primary,
+      background: theme.colors.background,
+      card: theme.colors.surface, // Use surface for headers/tab bars (white in light mode)
+      text: theme.colors.text,
+      border: theme.colors.border,
+      notification: theme.colors.error,
+    },
+    fonts: Platform.select({
+      ios: {
+        regular: {
+          fontFamily: 'Avenir-Book',
+          fontWeight: '400',
+        },
+        medium: {
+          fontFamily: 'Avenir-Medium',
+          fontWeight: '500',
+        },
+        bold: {
+          fontFamily: 'Avenir-Heavy',
+          fontWeight: '600',
+        },
+        heavy: {
+          fontFamily: 'Avenir-Heavy',
+          fontWeight: '700',
+        },
+      },
+      default: {
+        regular: {
+          fontFamily: 'Lato-Regular',
+          fontWeight: 'normal',
+        },
+        medium: {
+          fontFamily: 'Lato-Semibold',
+          fontWeight: 'normal',
+        },
+        bold: {
+          fontFamily: 'Lato-Bold',
+          fontWeight: '600',
+        },
+        heavy: {
+          fontFamily: 'Lato-Bold',
+          fontWeight: '700',
+        },
+      },
+    }),
+  };
+};
 
-function ListenStackNavigator() {
+function ListenStackNavigator({ theme }: { theme: Theme }) {
   return (
     <ListenStack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: colors.almostBlack },
-        headerTintColor: colors.white,
-        headerTitleStyle: { fontFamily: typography.families.heading },
+        headerStyle: { backgroundColor: theme.colors.surface },
+        headerTintColor: theme.colors.text,
+        headerTitleStyle: { fontFamily: HEADER_FONT_FAMILY },
       }}
     >
       <ListenStack.Screen
@@ -64,7 +117,7 @@ function ListenStackNavigator() {
                 accessibilityLabel="Now Playing"
                 accessibilityRole="button"
               >
-                <Ionicons name="play-circle" size={24} color={colors.white} />
+                <Ionicons name="play-circle" size={24} color={theme.colors.text} />
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => navigation.navigate('RecentlyPlayed')}
@@ -72,14 +125,14 @@ function ListenStackNavigator() {
                 accessibilityLabel="Recently Played"
                 accessibilityRole="button"
               >
-                <Ionicons name="time-outline" size={24} color={colors.white} />
+                <Ionicons name="time-outline" size={24} color={theme.colors.text} />
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => navigation.navigate('Downloads')}
                 accessibilityLabel="Downloads"
                 accessibilityRole="button"
               >
-                <Ionicons name="download-outline" size={24} color={colors.white} />
+                <Ionicons name="download-outline" size={24} color={theme.colors.text} />
               </TouchableOpacity>
             </View>
           ),
@@ -164,13 +217,13 @@ function ListenStackNavigator() {
   );
 }
 
-function BibleStackNavigator() {
+function BibleStackNavigator({ theme }: { theme: Theme }) {
   return (
     <BibleStack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: colors.almostBlack },
-        headerTintColor: colors.white,
-        headerTitleStyle: { fontFamily: typography.families.heading },
+        headerStyle: { backgroundColor: theme.colors.surface },
+        headerTintColor: theme.colors.text,
+        headerTitleStyle: { fontFamily: HEADER_FONT_FAMILY },
       }}
     >
       <BibleStack.Screen
@@ -192,13 +245,13 @@ function BibleStackNavigator() {
   );
 }
 
-function NotesStackNavigator() {
+function NotesStackNavigator({ theme }: { theme: Theme }) {
   return (
     <NotesStack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: colors.almostBlack },
-        headerTintColor: colors.white,
-        headerTitleStyle: { fontFamily: typography.families.heading },
+        headerStyle: { backgroundColor: theme.colors.surface },
+        headerTintColor: theme.colors.text,
+        headerTitleStyle: { fontFamily: HEADER_FONT_FAMILY },
       }}
     >
       <NotesStack.Screen
@@ -220,13 +273,13 @@ function NotesStackNavigator() {
   );
 }
 
-function ConnectStackNavigator() {
+function ConnectStackNavigator({ theme }: { theme: Theme }) {
   return (
     <ConnectStack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: colors.almostBlack },
-        headerTintColor: colors.white,
-        headerTitleStyle: { fontFamily: typography.families.heading },
+        headerStyle: { backgroundColor: theme.colors.surface },
+        headerTintColor: theme.colors.text,
+        headerTitleStyle: { fontFamily: HEADER_FONT_FAMILY },
       }}
     >
       <ConnectStack.Screen
@@ -264,13 +317,13 @@ function ConnectStackNavigator() {
   );
 }
 
-function MoreStackNavigator() {
+function MoreStackNavigator({ theme }: { theme: Theme }) {
   return (
     <MoreStack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: colors.almostBlack },
-        headerTintColor: colors.white,
-        headerTitleStyle: { fontFamily: typography.families.heading },
+        headerStyle: { backgroundColor: theme.colors.surface },
+        headerTintColor: theme.colors.text,
+        headerTitleStyle: { fontFamily: HEADER_FONT_FAMILY },
       }}
     >
       <MoreStack.Screen
@@ -293,10 +346,14 @@ function MoreStackNavigator() {
 }
 
 export function RootNavigator() {
+  const { theme } = useTheme();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [isCheckingOnboarding, setIsCheckingOnboarding] = useState(true);
   const navigationRef = useRef<any>(null);
   const appState = useRef(AppState.currentState);
+
+  // Create navigation theme from our theme
+  const navigationTheme = useMemo(() => createNavigationTheme(theme), [theme]);
 
   useEffect(() => {
     const checkOnboarding = async () => {
@@ -372,8 +429,8 @@ export function RootNavigator() {
 
   if (isCheckingOnboarding) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.almostBlack, alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={[typography.h2, { color: colors.white }]}>Loading...</Text>
+      <View style={{ flex: 1, backgroundColor: theme.colors.background, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={[theme.typography.h2 as any, { color: theme.colors.text }]}>Loading...</Text>
       </View>
     );
   }
@@ -386,79 +443,76 @@ export function RootNavigator() {
     <NavigationContainer
       ref={navigationRef}
       linking={linking}
-      theme={{
-        ...DarkTheme,
-        colors: {
-          ...DarkTheme.colors,
-          background: colors.almostBlack,
-          card: colors.bgDarkBlue,
-          text: colors.white,
-          primary: colors.mainBlue,
-          border: colors.darkGrey,
-          notification: colors.mainBlue,
-        },
-      }}
+      theme={navigationTheme}
     >
       <Tab.Navigator
         screenOptions={{
-          headerStyle: { backgroundColor: colors.almostBlack },
-          headerTintColor: colors.white,
-          tabBarStyle: { backgroundColor: colors.bgDarkBlue, borderTopColor: colors.darkGrey },
-          tabBarActiveTintColor: colors.white,
-          tabBarInactiveTintColor: colors.lessLightLightGray,
-          tabBarLabelStyle: { fontFamily: typography.families.body, fontSize: 12 },
+          headerStyle: { backgroundColor: theme.colors.surface },
+          headerTintColor: theme.colors.text,
+          tabBarStyle: {
+            backgroundColor: theme.colors.surface,
+            borderTopColor: theme.colors.border
+          },
+          tabBarActiveTintColor: theme.colors.primary,
+          tabBarInactiveTintColor: theme.colors.textSecondary,
+          tabBarLabelStyle: { fontFamily: TAB_LABEL_FONT_FAMILY, fontSize: 12 },
         }}
       >
         <Tab.Screen
           name="Listen"
-          component={ListenStackNavigator}
           options={{
             headerShown: false,
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="headset" size={size} color={color} />
             ),
           }}
-        />
+        >
+          {() => <ListenStackNavigator theme={theme} />}
+        </Tab.Screen>
         <Tab.Screen
           name="Bible"
-          component={BibleStackNavigator}
           options={{
             headerShown: false,
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="book" size={size} color={color} />
             ),
           }}
-        />
+        >
+          {() => <BibleStackNavigator theme={theme} />}
+        </Tab.Screen>
         <Tab.Screen
           name="Notes"
-          component={NotesStackNavigator}
           options={{
             headerShown: false,
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="create" size={size} color={color} />
             ),
           }}
-        />
+        >
+          {() => <NotesStackNavigator theme={theme} />}
+        </Tab.Screen>
         <Tab.Screen
           name="Connect"
-          component={ConnectStackNavigator}
           options={{
             headerShown: false,
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="people" size={size} color={color} />
             ),
           }}
-        />
+        >
+          {() => <ConnectStackNavigator theme={theme} />}
+        </Tab.Screen>
         <Tab.Screen
           name="More"
-          component={MoreStackNavigator}
           options={{
             headerShown: false,
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="ellipsis-horizontal" size={size} color={color} />
             ),
           }}
-        />
+        >
+          {() => <MoreStackNavigator theme={theme} />}
+        </Tab.Screen>
       </Tab.Navigator>
     </NavigationContainer>
   );

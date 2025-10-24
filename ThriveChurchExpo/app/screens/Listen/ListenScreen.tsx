@@ -4,8 +4,7 @@ import { FlashList } from '@shopify/flash-list';
 import FastImage from 'react-native-fast-image';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { api } from '../../services/api/client';
-import { colors } from '../../theme/colors';
-import { typography } from '../../theme/typography';
+import { useTheme } from '../../hooks/useTheme';
 import OfflineBanner from '../../components/OfflineBanner';
 import { SermonSeriesSummary, SermonsSummaryPagedResponse } from '../../types/api';
 import { setCurrentScreen } from '../../services/analytics/analyticsService';
@@ -34,9 +33,10 @@ interface SeriesRowProps {
   cardWidth: number;
   cardHeight: number;
   onSeriesPress: (seriesId: string, artUrl: string) => void;
+  placeholderColor: string;
 }
 
-const SeriesRow = React.memo<SeriesRowProps>(({ row, cardWidth, cardHeight, onSeriesPress }) => {
+const SeriesRow = React.memo<SeriesRowProps>(({ row, cardWidth, cardHeight, onSeriesPress, placeholderColor }) => {
   return (
     <View
       style={{
@@ -60,7 +60,7 @@ const SeriesRow = React.memo<SeriesRowProps>(({ row, cardWidth, cardHeight, onSe
               flex: 1,
               borderRadius: 8,
               overflow: 'hidden',
-              backgroundColor: colors.lightGray,
+              backgroundColor: placeholderColor, // ← ONLY COLOR CHANGED
             }}
           >
             <FastImage
@@ -77,6 +77,7 @@ const SeriesRow = React.memo<SeriesRowProps>(({ row, cardWidth, cardHeight, onSe
 
 export default function ListenScreen({ onSeriesPress }: ListenScreenProps) {
   const { width, height } = useWindowDimensions();
+  const { theme } = useTheme();
   const isTablet = Math.min(width, height) >= 768;
   const isLandscape = width > height;
 
@@ -175,36 +176,37 @@ export default function ListenScreen({ onSeriesPress }: ListenScreenProps) {
         cardWidth={cardWidth}
         cardHeight={cardHeight}
         onSeriesPress={onSeriesPress}
+        placeholderColor={theme.colors.border}
       />
     );
-  }, [cardWidth, cardHeight, onSeriesPress]);
+  }, [cardWidth, cardHeight, onSeriesPress, theme.colors.border]);
 
   const renderFooter = useCallback(() => {
     if (!isFetchingNextPage) return null;
     return (
       <View style={{ paddingVertical: 16, alignItems: 'center' }}>
-        <ActivityIndicator color={colors.white} />
+        <ActivityIndicator color={theme.colors.primary} />
       </View>
     );
-  }, [isFetchingNextPage]);
+  }, [isFetchingNextPage, theme.colors.primary]);
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.almostBlack, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ flex: 1, backgroundColor: theme.colors.background, alignItems: 'center', justifyContent: 'center' }}>
         <OfflineBanner />
-        <ActivityIndicator color={colors.white} size="large" />
+        <ActivityIndicator color={theme.colors.primary} size="large" />
       </View>
     );
   }
 
   if (isError) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.almostBlack, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}>
+      <View style={{ flex: 1, backgroundColor: theme.colors.background, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}>
         <OfflineBanner />
-        <Text style={[typography.h2, { textAlign: 'center', marginBottom: 16 }]}>
+        <Text style={[theme.typography.h2 as any, { textAlign: 'center', marginBottom: 16 }]}>
           An error occurred while loading content
         </Text>
-        <Text style={[typography.body, { textAlign: 'center', color: colors.lessLightLightGray }]}>
+        <Text style={[theme.typography.body as any, { textAlign: 'center', color: theme.colors.textTertiary }]}>
           Check your internet connection and try again
         </Text>
       </View>
@@ -212,7 +214,7 @@ export default function ListenScreen({ onSeriesPress }: ListenScreenProps) {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.almostBlack }}>
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <OfflineBanner />
       <FlashList
         key={`flashlist-${columns}`}

@@ -9,8 +9,8 @@ import {
   Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { colors } from '../../theme/colors';
-import { typography } from '../../theme/typography';
+import { useTheme } from '../../hooks/useTheme';
+import type { Theme } from '../../theme/types';
 import { SermonMessage } from '../../types/api';
 import { getRecentlyPlayed, clearRecentlyPlayed } from '../../services/storage/storage';
 import { getDownloadedMessage } from '../../services/storage/storage';
@@ -19,6 +19,7 @@ import { setCurrentScreen } from '../../services/analytics/analyticsService';
 
 export default function RecentlyPlayedScreen() {
   const navigation = useNavigation();
+  const { theme } = useTheme();
   const [recentlyPlayed, setRecentlyPlayed] = useState<SermonMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -174,11 +175,11 @@ export default function RecentlyPlayedScreen() {
     return (
       <TouchableOpacity
         style={{
-          backgroundColor: colors.almostBlack,
+          backgroundColor: theme.colors.background,
           paddingHorizontal: 16,
           paddingVertical: 16,
           borderBottomWidth: 0.5,
-          borderBottomColor: colors.darkGrey,
+          borderBottomColor: theme.colors.border,
           flexDirection: 'row',
           alignItems: 'center',
         }}
@@ -193,7 +194,7 @@ export default function RecentlyPlayedScreen() {
               width: 106,
               height: 60,
               borderRadius: 8,
-              backgroundColor: colors.darkGrey,
+              backgroundColor: theme.colors.card,
               marginRight: 12,
             }}
             resizeMode="cover"
@@ -204,13 +205,13 @@ export default function RecentlyPlayedScreen() {
               width: 106,
               height: 60,
               borderRadius: 8,
-              backgroundColor: colors.darkGrey,
+              backgroundColor: theme.colors.card,
               marginRight: 12,
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <Text style={[typography.label, { color: colors.lightGray }]}>
+            <Text style={[theme.typography.label as any, { color: theme.colors.textSecondary }]}>
               {item.WeekNum || '?'}
             </Text>
           </View>
@@ -218,30 +219,30 @@ export default function RecentlyPlayedScreen() {
 
         {/* Message Info */}
         <View style={{ flex: 1 }}>
-          <Text style={[typography.h3, { marginBottom: 4 }]} numberOfLines={2}>
+          <Text style={[theme.typography.h3 as any, { marginBottom: 4 }]} numberOfLines={2}>
             {item.Title}
           </Text>
-          <Text style={[typography.body, { color: colors.lessLightLightGray, marginBottom: 2 }]}>
+          <Text style={[theme.typography.body as any, { color: theme.colors.textTertiary, marginBottom: 2 }]}>
             {item.seriesTitle || 'Sermon'}
           </Text>
-          <Text style={[typography.caption, { color: colors.lightGray }]}>
+          <Text style={[theme.typography.caption as any, { color: theme.colors.textSecondary }]}>
             {item.Speaker} • {formatDate(item.previouslyPlayed)}
           </Text>
         </View>
       </TouchableOpacity>
     );
-  }, [handleMessagePress, formatDate]);
+  }, [handleMessagePress, formatDate, theme]);
 
   const renderEmptyState = useCallback(() => (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}>
-      <Text style={[typography.h2, { textAlign: 'center', marginBottom: 16 }]}>
+      <Text style={[theme.typography.h2 as any, { textAlign: 'center', marginBottom: 16 }]}>
         No Recently Played
       </Text>
-      <Text style={[typography.body, { textAlign: 'center', color: colors.lessLightLightGray }]}>
+      <Text style={[theme.typography.body as any, { textAlign: 'center', color: theme.colors.textTertiary }]}>
         Sermons you listen to will appear here
       </Text>
     </View>
-  ), []);
+  ), [theme]);
 
   const renderHeader = useCallback(() => {
     if (recentlyPlayed.length === 0) return null;
@@ -250,33 +251,33 @@ export default function RecentlyPlayedScreen() {
       <View style={{
         paddingHorizontal: 16,
         paddingVertical: 12,
-        backgroundColor: colors.bgDarkBlue,
+        backgroundColor: theme.colors.backgroundSecondary,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
       }}>
-        <Text style={[typography.body, { color: colors.lightGray }]}>
+        <Text style={[theme.typography.body as any, { color: theme.colors.textSecondary }]}>
           {recentlyPlayed.length} {recentlyPlayed.length === 1 ? 'sermon' : 'sermons'}
         </Text>
         <TouchableOpacity onPress={handleClearAll}>
-          <Text style={[typography.body, { color: colors.mainBlue }]}>
+          <Text style={[theme.typography.body as any, { color: theme.colors.primary }]}>
             Clear All
           </Text>
         </TouchableOpacity>
       </View>
     );
-  }, [recentlyPlayed.length, handleClearAll]);
+  }, [recentlyPlayed.length, handleClearAll, theme]);
 
   if (loading) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.bgDarkBlue, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator color={colors.white} size="large" />
+      <View style={{ flex: 1, backgroundColor: theme.colors.backgroundSecondary, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator color={theme.colors.primary} size="large" />
       </View>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.bgDarkBlue }}>
+    <View style={{ flex: 1, backgroundColor: theme.colors.backgroundSecondary }}>
       <FlatList
         data={recentlyPlayed}
         renderItem={renderRecentlyPlayedItem}

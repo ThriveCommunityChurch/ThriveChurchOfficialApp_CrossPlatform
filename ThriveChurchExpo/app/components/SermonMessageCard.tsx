@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/colors';
-import { typography } from '../theme/typography';
+import { useTheme } from '../hooks/useTheme';
+import type { Theme } from '../theme/types';
 import { SermonMessage } from '../types/api';
 
 interface SermonMessageCardProps {
@@ -22,6 +22,8 @@ export const SermonMessageCard: React.FC<SermonMessageCardProps> = ({
   showBorder = true,
   noHorizontalMargin = false,
 }) => {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const formatDate = (dateString: string): string => {
     try {
       const date = new Date(dateString);
@@ -80,7 +82,7 @@ export const SermonMessageCard: React.FC<SermonMessageCardProps> = ({
 
           {/* Speaker with Icon */}
           <View style={styles.metadataRow}>
-            <Ionicons name="person" size={14} color={colors.lightGray} style={styles.metadataIcon} />
+            <Ionicons name="person" size={14} color={theme.colors.textSecondary} style={styles.metadataIcon} />
             <Text style={styles.speaker} numberOfLines={1}>
               {message.Speaker}
             </Text>
@@ -88,7 +90,7 @@ export const SermonMessageCard: React.FC<SermonMessageCardProps> = ({
 
           {/* Date with Icon */}
           <View style={styles.metadataRow}>
-            <Ionicons name="calendar-outline" size={14} color={colors.lightGray} style={styles.metadataIcon} />
+            <Ionicons name="calendar-outline" size={14} color={theme.colors.textSecondary} style={styles.metadataIcon} />
             <Text style={styles.date}>
               {formatDate(message.Date)}
             </Text>
@@ -101,10 +103,10 @@ export const SermonMessageCard: React.FC<SermonMessageCardProps> = ({
               <Ionicons
                 name={hasAudio ? 'headset' : 'headset-outline'}
                 size={18}
-                color={hasAudio ? colors.mainBlue : colors.lightGray}
+                color={hasAudio ? theme.colors.primary : theme.colors.textTertiary}
                 accessibilityLabel={hasAudio ? 'Audio available' : 'Audio not available'}
               />
-              <Text style={[styles.mediaLabel, { color: hasAudio ? colors.mainBlue : colors.lightGray }]}>
+              <Text style={[styles.mediaLabel, { color: hasAudio ? theme.colors.primary : theme.colors.textTertiary }]}>
                 Audio
               </Text>
             </View>
@@ -114,10 +116,10 @@ export const SermonMessageCard: React.FC<SermonMessageCardProps> = ({
               <Ionicons
                 name={hasVideo ? 'play-circle' : 'play-circle-outline'}
                 size={18}
-                color={hasVideo ? colors.mainBlue : colors.lightGray}
+                color={hasVideo ? theme.colors.primary : theme.colors.textTertiary}
                 accessibilityLabel={hasVideo ? 'Video available' : 'Video not available'}
               />
-              <Text style={[styles.mediaLabel, { color: hasVideo ? colors.mainBlue : colors.lightGray }]}>
+              <Text style={[styles.mediaLabel, { color: hasVideo ? theme.colors.primary : theme.colors.textTertiary }]}>
                 Video
               </Text>
             </View>
@@ -128,7 +130,7 @@ export const SermonMessageCard: React.FC<SermonMessageCardProps> = ({
                 <Ionicons
                   name="time-outline"
                   size={18}
-                  color={colors.lightGray}
+                  color={theme.colors.textSecondary}
                 />
                 <Text style={styles.duration}>
                   {formatDuration(message.AudioDuration)}
@@ -143,7 +145,7 @@ export const SermonMessageCard: React.FC<SermonMessageCardProps> = ({
           {downloading && (
             <ActivityIndicator
               size="small"
-              color={colors.mainBlue}
+              color={theme.colors.primary}
               accessibilityLabel="Downloading"
             />
           )}
@@ -151,7 +153,7 @@ export const SermonMessageCard: React.FC<SermonMessageCardProps> = ({
             <Ionicons
               name="checkmark-circle"
               size={24}
-              color={colors.bgGreen}
+              color={theme.colors.success}
               accessibilityLabel="Downloaded"
             />
           )}
@@ -161,14 +163,14 @@ export const SermonMessageCard: React.FC<SermonMessageCardProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
-    backgroundColor: colors.darkGrey,
+    backgroundColor: theme.colors.card, // ← ONLY COLOR CHANGED
     marginHorizontal: 16,
     marginVertical: 8,
     borderRadius: 12,
     // Shadow for iOS
-    shadowColor: '#000',
+    shadowColor: theme.colors.shadowDark, // ← ONLY COLOR CHANGED
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
@@ -190,7 +192,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: colors.bgDarkBlue,
+    backgroundColor: theme.colors.backgroundSecondary, // ← ONLY COLOR CHANGED
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -198,16 +200,16 @@ const styles = StyleSheet.create({
     paddingTop: 2,
   },
   weekNumber: {
-    ...typography.h3,
-    color: colors.white,
+    ...theme.typography.h3,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
     fontSize: 20,
     fontWeight: '700',
     lineHeight: 24,
     marginBottom: -4,
   },
   weekLabel: {
-    ...typography.caption,
-    color: colors.lightGray,
+    ...theme.typography.caption,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     fontSize: 8,
     marginTop: 0,
     lineHeight: 10,
@@ -218,8 +220,8 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   title: {
-    ...typography.h3,
-    color: colors.white,
+    ...theme.typography.h3,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
     marginBottom: 6,
     lineHeight: 19,
     fontSize: 16,
@@ -235,14 +237,14 @@ const styles = StyleSheet.create({
     width: 14,
   },
   speaker: {
-    ...typography.body,
-    color: colors.lessLightLightGray,
+    ...theme.typography.body,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     fontSize: 13,
     flex: 1,
   },
   date: {
-    ...typography.caption,
-    color: colors.lightGray,
+    ...theme.typography.caption,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     fontSize: 12,
   },
   mediaRow: {
@@ -257,13 +259,13 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   mediaLabel: {
-    ...typography.caption,
+    ...theme.typography.caption,
     fontSize: 11,
     fontWeight: '500',
   },
   duration: {
-    ...typography.caption,
-    color: colors.lightGray,
+    ...theme.typography.caption,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     fontSize: 11,
     fontWeight: '500',
   },

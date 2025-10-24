@@ -14,8 +14,8 @@ import FastImage from 'react-native-fast-image';
 import { useQuery } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../../services/api/client';
-import { colors } from '../../theme/colors';
-import { typography } from '../../theme/typography';
+import { useTheme } from '../../hooks/useTheme';
+import type { Theme } from '../../theme/types';
 import OfflineBanner from '../../components/OfflineBanner';
 import { SermonSeries, SermonMessage } from '../../types/api';
 import { isMessageDownloaded } from '../../services/storage/storage';
@@ -30,6 +30,8 @@ interface SeriesDetailScreenProps {
 
 export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDetailScreenProps) {
   const navigation = useNavigation();
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
   // Calculate orientation and device type
@@ -115,21 +117,21 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.bgDarkBlue, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ flex: 1, backgroundColor: theme.colors.backgroundSecondary, alignItems: 'center', justifyContent: 'center' }}>
         <OfflineBanner />
-        <ActivityIndicator color={colors.white} size="large" />
+        <ActivityIndicator color={theme.colors.primary} size="large" />
       </View>
     );
   }
 
   if (isError || !series) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.bgDarkBlue, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}>
+      <View style={{ flex: 1, backgroundColor: theme.colors.backgroundSecondary, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}>
         <OfflineBanner />
-        <Text style={[typography.h2, { textAlign: 'center', marginBottom: 16 }]}>
+        <Text style={[theme.typography.h2 as any, { textAlign: 'center', marginBottom: 16 }]}>
           Error loading series
         </Text>
-        <Text style={[typography.body, { textAlign: 'center', color: colors.lessLightLightGray }]}>
+        <Text style={[theme.typography.body as any, { textAlign: 'center', color: theme.colors.textTertiary }]}>
           Please try again later
         </Text>
       </View>
@@ -177,7 +179,7 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
                     {/* Current Series Badge */}
                     {isCurrentSeries && (
                       <View style={styles.tabletCurrentBadge}>
-                        <Ionicons name="radio-button-on" size={12} color={colors.bgGreen} />
+                        <Ionicons name="radio-button-on" size={12} color={theme.colors.success} />
                         <Text style={styles.tabletCurrentBadgeText}>Current Series</Text>
                       </View>
                     )}
@@ -210,7 +212,7 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
               {Array.from(new Set(series.Messages.map(m => m.Speaker).filter(Boolean))).map((speaker, index) => (
                 <View key={index} style={styles.tabletSpeakerCard}>
                   <View style={styles.tabletSpeakerAvatar}>
-                    <Ionicons name="person" size={24} color={colors.mainBlue} />
+                    <Ionicons name="person" size={24} color={theme.colors.primary} />
                   </View>
                   <View style={styles.tabletSpeakerInfo}>
                     <Text style={styles.tabletSpeakerName}>{speaker}</Text>
@@ -222,7 +224,7 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
               {/* Show placeholder if no speakers */}
               {Array.from(new Set(series.Messages.map(m => m.Speaker).filter(Boolean))).length === 0 && (
                 <View style={styles.tabletEmptyState}>
-                  <Ionicons name="person-outline" size={32} color={colors.lighterBlueGray} />
+                  <Ionicons name="person-outline" size={32} color={theme.colors.border} />
                   <Text style={styles.tabletEmptyStateText}>No speakers listed</Text>
                 </View>
               )}
@@ -237,14 +239,14 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
                 <View style={styles.tabletTopicsContainer}>
                   {series.Tags.map((tag, index) => (
                     <View key={index} style={styles.tabletTopicTag}>
-                      <Ionicons name="pricetag" size={14} color={colors.mainBlue} />
+                      <Ionicons name="pricetag" size={14} color={theme.colors.primary} />
                       <Text style={styles.tabletTopicText}>{getTagDisplayLabel(tag)}</Text>
                     </View>
                   ))}
                 </View>
               ) : (
                 <View style={styles.tabletEmptyState}>
-                  <Ionicons name="pricetags-outline" size={32} color={colors.lighterBlueGray} />
+                  <Ionicons name="pricetags-outline" size={32} color={theme.colors.border} />
                   <Text style={styles.tabletEmptyStateText}>No topics tagged</Text>
                 </View>
               )}
@@ -327,7 +329,7 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
             <View style={styles.phoneTagsContainer}>
               {series.Tags.slice(0, 4).map((tag, index) => (
                 <View key={index} style={styles.phoneTag}>
-                  <Ionicons name="pricetag" size={12} color={colors.mainBlue} />
+                  <Ionicons name="pricetag" size={12} color={theme.colors.primary} />
                   <Text style={styles.phoneTagText}>{getTagDisplayLabel(tag)}</Text>
                 </View>
               ))}
@@ -371,11 +373,11 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
   return isTabletDevice ? renderTabletLayout() : renderPhoneLayout();
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   // Common styles
   container: {
     flex: 1,
-    backgroundColor: colors.bgDarkBlue,
+    backgroundColor: theme.colors.backgroundSecondary, // ← ONLY COLOR CHANGED
   },
   scrollView: {
     flex: 1,
@@ -396,7 +398,7 @@ const styles = StyleSheet.create({
   },
   tabletHeroOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: theme.colors.overlayMedium, // ← ONLY COLOR CHANGED
     paddingHorizontal: 48,
     paddingVertical: 40,
     justifyContent: 'center',
@@ -413,7 +415,7 @@ const styles = StyleSheet.create({
     aspectRatio: 16 / 9,
     borderRadius: 12,
     overflow: 'hidden',
-    shadowColor: '#000',
+    shadowColor: theme.colors.shadowDark, // ← ONLY COLOR CHANGED
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.4,
     shadowRadius: 16,
@@ -422,18 +424,18 @@ const styles = StyleSheet.create({
   tabletHeroArtwork: {
     width: '100%',
     height: '100%',
-    backgroundColor: colors.darkGrey,
+    backgroundColor: theme.colors.card, // ← ONLY COLOR CHANGED
   },
   tabletHeroContent: {
     flex: 1,
     justifyContent: 'center',
   },
   tabletHeroTitle: {
-    ...typography.h1,
+    ...theme.typography.h1,
     fontSize: 48,
     lineHeight: 56,
     fontWeight: '700',
-    color: colors.white,
+    color: theme.colors.textInverse, // ← White text on dark overlay
     marginBottom: 24,
   },
   tabletHeroMetadata: {
@@ -443,7 +445,7 @@ const styles = StyleSheet.create({
   tabletCurrentBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(76, 175, 80, 0.15)',
+    backgroundColor: theme.colors.successLight, // ← ONLY COLOR CHANGED
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
@@ -451,16 +453,16 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   tabletCurrentBadgeText: {
-    ...typography.body,
+    ...theme.typography.body,
     fontSize: 14,
     fontWeight: '600',
-    color: colors.bgGreen,
+    color: theme.colors.success, // ← ONLY COLOR CHANGED
   },
   tabletHeroSummary: {
-    ...typography.body,
+    ...theme.typography.body,
     fontSize: 16,
     lineHeight: 24,
-    color: colors.lessLightLightGray,
+    color: theme.colors.textInverse, // ← White text on dark overlay
   },
   tabletHeroSummaryPortrait: {
     fontSize: 14,
@@ -473,9 +475,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   tabletMetadataText: {
-    ...typography.body,
+    ...theme.typography.body,
     fontSize: 16,
-    color: colors.lessLightLightGray,
+    color: theme.colors.textTertiary, // ← ONLY COLOR CHANGED
   },
 
   // Tablet Two Column Layout
@@ -498,10 +500,10 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   tabletSidebarTitle: {
-    ...typography.h3,
+    ...theme.typography.h3,
     fontSize: 20,
     fontWeight: '700',
-    color: colors.white,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
     marginBottom: 16,
   },
 
@@ -509,7 +511,7 @@ const styles = StyleSheet.create({
   tabletSpeakerCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.darkGrey,
+    backgroundColor: theme.colors.card, // ← ONLY COLOR CHANGED
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
@@ -519,7 +521,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: colors.bgDarkBlue,
+    backgroundColor: theme.colors.backgroundSecondary, // ← ONLY COLOR CHANGED
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -527,16 +529,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   tabletSpeakerName: {
-    ...typography.body,
+    ...theme.typography.body,
     fontSize: 16,
     fontWeight: '600',
-    color: colors.white,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
     marginBottom: 2,
   },
   tabletSpeakerRole: {
-    ...typography.caption,
+    ...theme.typography.caption,
     fontSize: 13,
-    color: colors.lightGray,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
   },
 
   // Topics
@@ -548,32 +550,32 @@ const styles = StyleSheet.create({
   tabletTopicTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.darkGrey,
+    backgroundColor: theme.colors.card, // ← ONLY COLOR CHANGED
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
     gap: 6,
   },
   tabletTopicText: {
-    ...typography.caption,
+    ...theme.typography.caption,
     fontSize: 13,
     fontWeight: '500',
-    color: colors.white,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
   },
 
   // Summary
   tabletSummaryCard: {
-    backgroundColor: colors.darkGrey,
+    backgroundColor: theme.colors.card, // ← ONLY COLOR CHANGED
     padding: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.lighterBlueGray,
+    borderColor: theme.colors.border, // ← ONLY COLOR CHANGED
   },
   tabletSummaryText: {
-    ...typography.body,
+    ...theme.typography.body,
     fontSize: 14,
     lineHeight: 22,
-    color: colors.lessLightLightGray,
+    color: theme.colors.textTertiary, // ← ONLY COLOR CHANGED
   },
 
   // Empty State
@@ -584,9 +586,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   tabletEmptyStateText: {
-    ...typography.body,
+    ...theme.typography.body,
     fontSize: 14,
-    color: colors.lighterBlueGray,
+    color: theme.colors.border, // ← ONLY COLOR CHANGED
     marginTop: 8,
     textAlign: 'center',
   },
@@ -597,10 +599,10 @@ const styles = StyleSheet.create({
     minWidth: 0, // Ensures flex child doesn't overflow
   },
   tabletSectionTitle: {
-    ...typography.h2,
+    ...theme.typography.h2,
     fontSize: 28,
     fontWeight: '700',
-    color: colors.white,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
     marginBottom: 24,
     paddingTop: 4, // Prevent text clipping at the top
   },
@@ -619,7 +621,7 @@ const styles = StyleSheet.create({
     aspectRatio: 16 / 9,
     borderRadius: 12,
     overflow: 'hidden',
-    shadowColor: '#000',
+    shadowColor: theme.colors.shadowDark, // ← ONLY COLOR CHANGED
     shadowOffset: { width: 0, height: 4 },
     shadowRadius: 8,
     shadowOpacity: 0.4,
@@ -628,11 +630,11 @@ const styles = StyleSheet.create({
   phoneArtwork: {
     width: '100%',
     height: '100%',
-    backgroundColor: colors.darkGrey,
+    backgroundColor: theme.colors.card, // ← ONLY COLOR CHANGED
   },
   phoneCurrentLabel: {
-    ...typography.body,
-    color: colors.lightGray,
+    ...theme.typography.body,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     marginHorizontal: 18,
     marginTop: 16,
     marginBottom: 0,
@@ -640,34 +642,34 @@ const styles = StyleSheet.create({
   phoneSummarySection: {
     marginHorizontal: 16,
     marginTop: 16,
-    backgroundColor: colors.darkGrey,
+    backgroundColor: theme.colors.card, // ← ONLY COLOR CHANGED
     padding: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.lighterBlueGray,
+    borderColor: theme.colors.border, // ← ONLY COLOR CHANGED
   },
   phoneSummaryLabel: {
-    ...typography.caption,
+    ...theme.typography.caption,
     fontSize: 12,
-    color: colors.lightGray,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     marginBottom: 8,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   phoneSummaryText: {
-    ...typography.body,
+    ...theme.typography.body,
     fontSize: 14,
     lineHeight: 20,
-    color: colors.lessLightLightGray,
+    color: theme.colors.textTertiary, // ← ONLY COLOR CHANGED
   },
   phoneTagsSection: {
     marginHorizontal: 16,
     marginTop: 16,
   },
   phoneTagsLabel: {
-    ...typography.caption,
+    ...theme.typography.caption,
     fontSize: 12,
-    color: colors.lightGray,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     marginBottom: 12,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -680,20 +682,20 @@ const styles = StyleSheet.create({
   phoneTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.darkGrey,
+    backgroundColor: theme.colors.card, // ← ONLY COLOR CHANGED
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 16,
     gap: 6,
   },
   phoneTagText: {
-    ...typography.caption,
+    ...theme.typography.caption,
     fontSize: 13,
     fontWeight: '500',
-    color: colors.white,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
   },
   phoneTagMore: {
-    backgroundColor: colors.bgDarkBlue,
+    backgroundColor: theme.colors.backgroundSecondary, // ← ONLY COLOR CHANGED
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 16,
@@ -701,10 +703,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   phoneTagMoreText: {
-    ...typography.caption,
+    ...theme.typography.caption,
     fontSize: 13,
     fontWeight: '500',
-    color: colors.lightGray,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
   },
   phoneMessagesList: {
     // marginTop is set dynamically based on isCurrentSeries

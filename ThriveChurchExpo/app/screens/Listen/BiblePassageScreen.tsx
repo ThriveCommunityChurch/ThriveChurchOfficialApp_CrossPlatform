@@ -10,8 +10,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import BiblePassageReader from '../../components/BiblePassageReader';
-import { colors } from '../../theme/colors';
-import { typography } from '../../theme/typography';
+import { useTheme } from '../../hooks/useTheme';
+import type { Theme } from '../../theme/types';
 import { SermonMessage } from '../../types/api';
 import { setCurrentScreen, logViewBible } from '../../services/analytics/analyticsService';
 
@@ -28,6 +28,8 @@ type BiblePassageScreenNavigationProp = StackNavigationProp<BiblePassageScreenPa
 const BiblePassageScreen: React.FC = () => {
   const navigation = useNavigation<BiblePassageScreenNavigationProp>();
   const route = useRoute<BiblePassageScreenRouteProp>();
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
 
   const { message, seriesTitle } = route.params;
 
@@ -46,7 +48,7 @@ const BiblePassageScreen: React.FC = () => {
   if (!message.PassageRef) {
     return (
       <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor={colors.almostBlack} />
+        <StatusBar barStyle={theme.isDark ? "light-content" : "dark-content"} backgroundColor={theme.colors.background} />
         <View style={styles.header}>
           <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
             <Text style={styles.closeButtonText}>✕</Text>
@@ -62,7 +64,7 @@ const BiblePassageScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.almostBlack} />
+      <StatusBar barStyle={theme.isDark ? "light-content" : "dark-content"} backgroundColor={theme.colors.background} />
       
       <View style={styles.header}>
         <View style={styles.headerContent}>
@@ -90,17 +92,17 @@ const BiblePassageScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.almostBlack,
+    backgroundColor: theme.colors.background, // ← ONLY COLOR CHANGED
   },
   header: {
-    backgroundColor: colors.almostBlack,
+    backgroundColor: theme.colors.background, // ← ONLY COLOR CHANGED
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: colors.darkGrey,
+    borderBottomColor: theme.colors.border, // ← ONLY COLOR CHANGED
   },
   headerContent: {
     flexDirection: 'row',
@@ -112,25 +114,25 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   messageTitle: {
-    ...typography.h3,
-    color: colors.white,
+    ...theme.typography.h3,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
     marginBottom: 2,
   },
   seriesTitle: {
-    ...typography.caption,
-    color: colors.lightGrey,
+    ...theme.typography.caption,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
   },
   closeButton: {
     width: 36,
     height: 36,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.darkGrey,
+    backgroundColor: theme.colors.card, // ← ONLY COLOR CHANGED
     borderRadius: 18,
   },
   closeButtonText: {
-    ...typography.body,
-    color: colors.white,
+    ...theme.typography.body,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
     fontSize: 16,
   },
   reader: {
@@ -143,14 +145,14 @@ const styles = StyleSheet.create({
     padding: 32,
   },
   errorText: {
-    ...typography.h2,
-    color: colors.white,
+    ...theme.typography.h2,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
     textAlign: 'center',
     marginBottom: 8,
   },
   errorSubtext: {
-    ...typography.body,
-    color: colors.lightGrey,
+    ...theme.typography.body,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     textAlign: 'center',
   },
 });

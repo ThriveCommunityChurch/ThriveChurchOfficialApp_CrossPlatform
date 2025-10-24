@@ -8,8 +8,8 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import { colors } from '../theme/colors';
-import { typography } from '../theme/typography';
+import { useTheme } from '../hooks/useTheme';
+import type { Theme } from '../theme/types';
 import { esvApiService, BiblePassage } from '../services/bible/esvApiService';
 
 interface BiblePassageReaderProps {
@@ -22,7 +22,7 @@ interface BiblePassageReaderProps {
  * Format Bible passage text with proper verse numbers and styling
  * This matches the formatting used in the iOS app's BibleTextFormatter
  */
-const formatPassageText = (text: string): React.ReactNode[] => {
+const formatPassageText = (text: string, styles: any): React.ReactNode[] => {
   if (!text) return [];
 
   const elements: React.ReactNode[] = [];
@@ -30,10 +30,10 @@ const formatPassageText = (text: string): React.ReactNode[] => {
 
   // Split text into lines and process each one
   const lines = text.split('\n');
-  
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
-    
+
     if (!line) {
       // Empty line - add spacing
       elements.push(
@@ -65,16 +65,16 @@ const formatPassageText = (text: string): React.ReactNode[] => {
     // Process verse text with verse numbers
     const versePattern = /\[(\d+)\]/g;
     const parts = line.split(versePattern);
-    
+
     if (parts.length > 1) {
       // Line contains verse numbers
       const lineElements: React.ReactNode[] = [];
-      
+
       for (let j = 0; j < parts.length; j++) {
         const part = parts[j];
-        
+
         if (!part) continue;
-        
+
         // Check if this part is a verse number
         if (j % 2 === 1 && /^\d+$/.test(part)) {
           lineElements.push(
@@ -91,7 +91,7 @@ const formatPassageText = (text: string): React.ReactNode[] => {
           );
         }
       }
-      
+
       elements.push(
         <Text key={key++} style={styles.verseLine}>
           {lineElements}
@@ -115,6 +115,8 @@ export const BiblePassageReader: React.FC<BiblePassageReaderProps> = ({
   onClose,
   style,
 }) => {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const [passage, setPassage] = useState<BiblePassage | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -164,7 +166,7 @@ export const BiblePassageReader: React.FC<BiblePassageReaderProps> = ({
   if (isLoading) {
     return (
       <View style={[styles.container, styles.centerContent, style]}>
-        <ActivityIndicator size="large" color={colors.primary} />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
         <Text style={styles.loadingText}>Loading passage...</Text>
       </View>
     );
@@ -213,7 +215,7 @@ export const BiblePassageReader: React.FC<BiblePassageReaderProps> = ({
     );
   }
 
-  const formattedText = formatPassageText(passage.text);
+  const formattedText = formatPassageText(passage.text, styles);
 
   return (
     <View style={[styles.container, style]}>
@@ -239,10 +241,10 @@ export const BiblePassageReader: React.FC<BiblePassageReaderProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.almostBlack,
+    backgroundColor: theme.colors.background, // ← ONLY COLOR CHANGED
   },
   centerContent: {
     justifyContent: 'center',
@@ -262,11 +264,11 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: colors.darkGrey,
+    borderBottomColor: theme.colors.border, // ← ONLY COLOR CHANGED
   },
   title: {
-    ...typography.h1,
-    color: colors.white,
+    ...theme.typography.h1,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
     flex: 1,
   },
   headerCloseButton: {
@@ -274,66 +276,66 @@ const styles = StyleSheet.create({
     height: 32,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.darkGrey,
+    backgroundColor: theme.colors.card, // ← ONLY COLOR CHANGED
     borderRadius: 16,
     marginLeft: 16,
   },
   headerCloseButtonText: {
-    ...typography.body,
-    color: colors.white,
+    ...theme.typography.body,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
     fontSize: 16,
   },
   passageContainer: {
     flex: 1,
   },
   heading: {
-    ...typography.h2,
-    color: colors.white,
+    ...theme.typography.h2,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
     textAlign: 'center',
     marginVertical: 16,
     fontWeight: 'bold',
   },
   passageReference: {
-    ...typography.h3,
-    color: colors.lightGrey,
+    ...theme.typography.h3,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     marginBottom: 12,
     fontWeight: '600',
   },
   verseLine: {
-    ...typography.body,
-    color: colors.white,
+    ...theme.typography.body,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
     lineHeight: 24,
     marginBottom: 8,
   },
   verseNumber: {
-    ...typography.caption,
-    color: colors.primary,
+    ...theme.typography.caption,
+    color: theme.colors.primary, // ← ONLY COLOR CHANGED
     fontWeight: 'bold',
     fontSize: 14,
     marginRight: 4,
   },
   verseText: {
-    ...typography.body,
-    color: colors.white,
+    ...theme.typography.body,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
     lineHeight: 24,
   },
   lineBreak: {
     height: 12,
   },
   loadingText: {
-    ...typography.body,
-    color: colors.lightGrey,
+    ...theme.typography.body,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     marginTop: 16,
   },
   errorTitle: {
-    ...typography.h2,
-    color: colors.white,
+    ...theme.typography.h2,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
     textAlign: 'center',
     marginBottom: 12,
   },
   errorText: {
-    ...typography.body,
-    color: colors.lightGrey,
+    ...theme.typography.body,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     textAlign: 'center',
     marginBottom: 24,
   },
@@ -343,34 +345,34 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   retryButton: {
-    backgroundColor: colors.primary,
+    backgroundColor: theme.colors.primary, // ← ONLY COLOR CHANGED
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
   },
   retryButtonText: {
-    ...typography.button,
-    color: colors.white,
+    ...theme.typography.button,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
   },
   infoButton: {
-    backgroundColor: colors.darkGrey,
+    backgroundColor: theme.colors.card, // ← ONLY COLOR CHANGED
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
   },
   infoButtonText: {
-    ...typography.button,
-    color: colors.white,
+    ...theme.typography.button,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
   },
   closeButton: {
-    backgroundColor: colors.mediumGrey,
+    backgroundColor: theme.colors.cardSecondary, // ← ONLY COLOR CHANGED
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
   },
   closeButtonText: {
-    ...typography.button,
-    color: colors.white,
+    ...theme.typography.button,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
   },
 });
 

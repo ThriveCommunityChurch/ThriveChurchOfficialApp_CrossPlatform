@@ -9,8 +9,8 @@ import {
   ViewToken,
   Image,
 } from 'react-native';
-import { colors } from '../../theme/colors';
-import { typography } from '../../theme/typography';
+import { useTheme } from '../../hooks/useTheme';
+import type { Theme } from '../../theme/types';
 import { setOnboardingCompleted } from '../../services/storage/storage';
 import { logTutorialBegin, logTutorialComplete } from '../../services/analytics/analyticsService';
 
@@ -49,6 +49,8 @@ interface OnboardingScreenProps {
 }
 
 export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
 
@@ -103,21 +105,21 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
         <View style={styles.imageContainer}>
           {/* Placeholder for image - in production, use actual images */}
           <View style={styles.imagePlaceholder}>
-            <Text style={[typography.h1, { color: colors.mainBlue }]}>📱</Text>
+            <Text style={[theme.typography.h1 as any, { color: theme.colors.primary }]}>📱</Text>
           </View>
         </View>
-        
+
         <View style={styles.textContainer}>
-          <Text style={[typography.h1, styles.headerText]}>
+          <Text style={[theme.typography.h1 as any, styles.headerText]}>
             {item.headerText}
           </Text>
-          <Text style={[typography.body, styles.bodyText]}>
+          <Text style={[theme.typography.body as any, styles.bodyText]}>
             {item.bodyText}
           </Text>
         </View>
       </View>
     );
-  }, []);
+  }, [theme]);
 
   const renderDots = useCallback(() => {
     return (
@@ -160,7 +162,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
         >
           <Text
             style={[
-              typography.body,
+              theme.typography.body as any,
               styles.previousButtonText,
               currentIndex === 0 && styles.disabledButtonText,
             ]}
@@ -173,7 +175,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
           style={styles.skipButton}
           onPress={handleSkip}
         >
-          <Text style={[typography.caption, styles.skipButtonText]}>
+          <Text style={[theme.typography.caption as any, styles.skipButtonText]}>
             Skip
           </Text>
         </TouchableOpacity>
@@ -182,7 +184,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
           style={styles.nextButton}
           onPress={handleNext}
         >
-          <Text style={[typography.body, styles.nextButtonText]}>
+          <Text style={[theme.typography.body as any, styles.nextButtonText]}>
             {currentIndex === pages.length - 1 ? 'DONE' : 'NEXT'}
           </Text>
         </TouchableOpacity>
@@ -191,10 +193,10 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.almostBlack,
+    backgroundColor: theme.colors.background, // ← ONLY COLOR CHANGED
   },
   page: {
     width,
@@ -213,7 +215,7 @@ const styles = StyleSheet.create({
     width: width * 0.6,
     height: width * 0.6,
     borderRadius: 20,
-    backgroundColor: colors.bgDarkBlue,
+    backgroundColor: theme.colors.backgroundSecondary, // ← ONLY COLOR CHANGED
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -226,11 +228,11 @@ const styles = StyleSheet.create({
   headerText: {
     textAlign: 'center',
     marginBottom: 16,
-    color: colors.white,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
   },
   bodyText: {
     textAlign: 'center',
-    color: colors.lessLightLightGray,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     lineHeight: 24,
   },
   dotsContainer: {
@@ -246,10 +248,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
   activeDot: {
-    backgroundColor: colors.mainBlue,
+    backgroundColor: theme.colors.primary, // ← ONLY COLOR CHANGED
   },
   inactiveDot: {
-    backgroundColor: colors.bgBlue,
+    backgroundColor: theme.colors.primaryDark, // ← ONLY COLOR CHANGED
   },
   footer: {
     flexDirection: 'row',
@@ -262,7 +264,7 @@ const styles = StyleSheet.create({
     minWidth: 60,
   },
   previousButtonText: {
-    color: colors.lessLightLightGray,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
   },
   disabledButtonText: {
     opacity: 0,
@@ -272,14 +274,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   skipButtonText: {
-    color: colors.lighterBlueGray,
+    color: theme.colors.textTertiary, // ← ONLY COLOR CHANGED
   },
   nextButton: {
     minWidth: 60,
     alignItems: 'flex-end',
   },
   nextButtonText: {
-    color: colors.mainBlue,
+    color: theme.colors.primary, // ← ONLY COLOR CHANGED
     fontWeight: 'bold',
   },
 });

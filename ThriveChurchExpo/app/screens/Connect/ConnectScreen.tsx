@@ -20,7 +20,8 @@ import {
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../hooks/useTheme';
+import type { Theme } from '../../theme/types';
 import { ConnectMenuItem, ConfigKeys } from '../../types/config';
 import { getConfigSetting } from '../../services/storage/storage';
 import { useConfigContext } from '../../providers/ConfigProvider';
@@ -38,9 +39,11 @@ type NavigationProp = NativeStackNavigationProp<ConnectStackParamList>;
 interface ConnectCardProps {
   item: ConnectMenuItem;
   onPress: (item: ConnectMenuItem) => void;
+  theme: Theme;
 }
 
-const ConnectCard: React.FC<ConnectCardProps> = ({ item, onPress }) => {
+const ConnectCard: React.FC<ConnectCardProps> = ({ item, onPress, theme }) => {
+  const styles = createStyles(theme);
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
@@ -91,6 +94,8 @@ const ConnectCard: React.FC<ConnectCardProps> = ({ item, onPress }) => {
 };
 
 export const ConnectScreen: React.FC = () => {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const navigation = useNavigation<NavigationProp>();
   const [menuItems, setMenuItems] = useState<ConnectMenuItem[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -316,7 +321,7 @@ export const ConnectScreen: React.FC = () => {
   };
 
   const renderItem = ({ item }: { item: ConnectMenuItem }) => (
-    <ConnectCard item={item} onPress={handleItemPress} />
+    <ConnectCard item={item} onPress={handleItemPress} theme={theme} />
   );
 
   const keyExtractor = (item: ConnectMenuItem) => item.id;
@@ -325,7 +330,7 @@ export const ConnectScreen: React.FC = () => {
   if (isLoading && !configsExist && menuItems.length === 0) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.mainBlue} />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
         <Text style={styles.loadingText}>Loading configurations...</Text>
       </View>
     );
@@ -356,10 +361,10 @@ export const ConnectScreen: React.FC = () => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            tintColor={colors.mainBlue}
-            colors={[colors.mainBlue]}
+            tintColor={theme.colors.primary}
+            colors={[theme.colors.primary]}
             title="Pull to refresh configs"
-            titleColor={colors.lessLightLightGray}
+            titleColor={theme.colors.textSecondary}
           />
         }
       />
@@ -367,14 +372,14 @@ export const ConnectScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.almostBlack,
+    backgroundColor: theme.colors.background, // ← ONLY COLOR CHANGED
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: colors.almostBlack,
+    backgroundColor: theme.colors.background, // ← ONLY COLOR CHANGED
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -382,11 +387,11 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 16,
     fontFamily: 'Avenir-Book',
-    color: colors.lessLightLightGray,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
   },
   emptyContainer: {
     flex: 1,
-    backgroundColor: colors.almostBlack,
+    backgroundColor: theme.colors.background, // ← ONLY COLOR CHANGED
     justifyContent: 'center',
     alignItems: 'center',
     padding: 32,
@@ -394,24 +399,24 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontFamily: 'Avenir-Medium',
-    color: colors.white,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
     marginBottom: 8,
     textAlign: 'center',
   },
   emptySubtitle: {
     fontSize: 14,
     fontFamily: 'Avenir-Book',
-    color: colors.lessLightLightGray,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     textAlign: 'center',
   },
   listContent: {
     padding: 8,
   },
   card: {
-    backgroundColor: colors.darkGrey,
+    backgroundColor: theme.colors.card, // ← ONLY COLOR CHANGED
     borderRadius: 12,
     marginBottom: 8,
-    shadowColor: '#000',
+    shadowColor: theme.colors.shadowDark, // ← ONLY COLOR CHANGED
     shadowOffset: {
       width: 0,
       height: 4,
@@ -432,17 +437,17 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontFamily: 'Avenir-Medium',
-    color: colors.white,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 14,
     fontFamily: 'Avenir-Book',
-    color: colors.lessLightLightGray,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
   },
   chevron: {
     fontSize: 32,
-    color: colors.lessLightLightGray,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     marginLeft: 12,
     fontWeight: '300',
   },

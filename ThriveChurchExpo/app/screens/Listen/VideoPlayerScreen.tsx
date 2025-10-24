@@ -12,8 +12,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import VideoPlayer from '../../components/VideoPlayer';
-import { colors } from '../../theme/colors';
-import { typography } from '../../theme/typography';
+import { useTheme } from '../../hooks/useTheme';
+import type { Theme } from '../../theme/types';
 import { SermonMessage } from '../../types/api';
 import { setCurrentScreen, logCustomEvent } from '../../services/analytics/analyticsService';
 
@@ -30,7 +30,9 @@ type VideoPlayerScreenNavigationProp = StackNavigationProp<VideoPlayerScreenPara
 const VideoPlayerScreen: React.FC = () => {
   const navigation = useNavigation<VideoPlayerScreenNavigationProp>();
   const route = useRoute<VideoPlayerScreenRouteProp>();
-  
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
+
   const { message, seriesTitle } = route.params;
 
   useEffect(() => {
@@ -169,10 +171,10 @@ const VideoPlayerScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.almostBlack,
+    backgroundColor: theme.colors.background, // ← ONLY COLOR CHANGED
   },
   header: {
     flexDirection: 'row',
@@ -180,30 +182,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: colors.almostBlack,
+    backgroundColor: theme.colors.background, // ← ONLY COLOR CHANGED
   },
   closeButton: {
     width: 44,
     height: 44,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.darkGrey,
+    backgroundColor: theme.colors.card, // ← ONLY COLOR CHANGED
     borderRadius: 22,
   },
   closeButtonText: {
-    ...typography.h3,
-    color: colors.white,
+    ...theme.typography.h3,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
     fontSize: 18,
   },
   youtubeButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: colors.primary,
+    backgroundColor: theme.colors.primary, // ← ONLY COLOR CHANGED
     borderRadius: 8,
   },
   youtubeButtonText: {
-    ...typography.button,
-    color: colors.white,
+    ...theme.typography.button,
+    color: theme.colors.textInverse, // ← ONLY COLOR CHANGED
     fontSize: 14,
   },
   playerWrapper: {
@@ -215,26 +217,26 @@ const styles = StyleSheet.create({
   },
   infoContainer: {
     padding: 16,
-    backgroundColor: colors.almostBlack,
+    backgroundColor: theme.colors.background, // ← ONLY COLOR CHANGED
   },
   messageTitle: {
-    ...typography.h2,
-    color: colors.white,
+    ...theme.typography.h2,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
     marginBottom: 4,
   },
   seriesTitle: {
-    ...typography.h3,
-    color: colors.lightGrey,
+    ...theme.typography.h3,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     marginBottom: 8,
   },
   speaker: {
-    ...typography.body,
-    color: colors.lightGrey,
+    ...theme.typography.body,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     marginBottom: 4,
   },
   date: {
-    ...typography.caption,
-    color: colors.mediumGrey,
+    ...theme.typography.caption,
+    color: theme.colors.textTertiary, // ← ONLY COLOR CHANGED
   },
   errorContainer: {
     flex: 1,
@@ -243,14 +245,14 @@ const styles = StyleSheet.create({
     padding: 32,
   },
   errorText: {
-    ...typography.h2,
-    color: colors.white,
+    ...theme.typography.h2,
+    color: theme.colors.text, // ← ONLY COLOR CHANGED
     textAlign: 'center',
     marginBottom: 8,
   },
   errorSubtext: {
-    ...typography.body,
-    color: colors.lightGrey,
+    ...theme.typography.body,
+    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
     textAlign: 'center',
   },
 });

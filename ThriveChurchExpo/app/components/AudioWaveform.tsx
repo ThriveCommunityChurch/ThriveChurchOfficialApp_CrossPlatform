@@ -1,6 +1,7 @@
 import React, { useMemo, useEffect, useRef } from 'react';
 import { View, StyleSheet, TouchableOpacity, Animated } from 'react-native';
-import { colors } from '../theme/colors';
+import { useTheme } from '../hooks/useTheme';
+import type { Theme } from '../theme/types';
 
 interface AudioWaveformProps {
   progress: number; // 0 to 1
@@ -19,6 +20,8 @@ export const AudioWaveform: React.FC<AudioWaveformProps> = ({
   isLoading = false,
   height = 60,
 }) => {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   // Animated value for pulsing effect
   const pulseAnim = useRef(new Animated.Value(0.4)).current;
 
@@ -125,7 +128,7 @@ export const AudioWaveform: React.FC<AudioWaveformProps> = ({
                 styles.bar,
                 {
                   height: `${barHeight * 100}%`,
-                  backgroundColor: isPlayed ? colors.mainBlue : colors.darkGrey,
+                  backgroundColor: isPlayed ? theme.colors.primary : theme.colors.card,
                 },
               ]}
             />
@@ -136,7 +139,7 @@ export const AudioWaveform: React.FC<AudioWaveformProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -162,7 +165,7 @@ const styles = StyleSheet.create({
     minHeight: 4,
   },
   skeletonBar: {
-    backgroundColor: colors.darkGrey,
+    backgroundColor: theme.colors.card, // ← ONLY COLOR CHANGED
   },
 });
 
