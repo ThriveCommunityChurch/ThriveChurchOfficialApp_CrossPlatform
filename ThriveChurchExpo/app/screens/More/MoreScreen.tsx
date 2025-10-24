@@ -395,20 +395,21 @@ export const MoreScreen: React.FC = () => {
         return;
       }
 
-      // Prepare share options
-      const shareOptions = {
+      // Prepare share options for email only
+      const shareOptions: any = {
         title: 'Send Logs to Support',
         message: 'Please describe any issues you\'re experiencing with the app:',
         url: `file://${logFilePath}`,
         subject: `Thrive ${Platform.OS === 'ios' ? 'iOS' : 'Android'} - ID: ${feedbackId}`,
         email: 'wyatt@thrive-fl.org',
+        social: Share.Social.EMAIL,
         type: 'text/plain',
         filename: `${feedbackId}.log`,
       };
 
-      // Attempt to share/send via email
+      // Attempt to share/send via email only
       try {
-        await Share.open(shareOptions);
+        await Share.shareSingle(shareOptions);
 
         // If successful, log it (but don't await to avoid blocking)
         logInfo(`User successfully opened share dialog for logs (ID: ${feedbackId})`).catch(() => {
