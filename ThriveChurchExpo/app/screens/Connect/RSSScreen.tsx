@@ -120,7 +120,7 @@ export default function RSSScreen() {
       .then((response) => response.text())
       .then((responseData) => rssParser.parse(responseData))
       .then((rss) => {
-        const parsedItems = rss.items.map(item => ({
+        const parsedItems = rss.items.map((item: any) => ({
           title: item.title,
           pubDate: item.published,
           content: item.content,

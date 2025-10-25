@@ -423,8 +423,8 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     elevation: 10,
   },
   tabletHeroArtwork: {
-    width: '100%',
-    height: '100%',
+    width: '100%' as const,
+    height: '100%' as const,
     backgroundColor: theme.colors.card, // ← ONLY COLOR CHANGED
   },
   tabletHeroContent: {
@@ -629,8 +629,8 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     elevation: 8,
   },
   phoneArtwork: {
-    width: '100%',
-    height: '100%',
+    width: '100%' as const,
+    height: '100%' as const,
     backgroundColor: theme.colors.card, // ← ONLY COLOR CHANGED
   },
   phoneCurrentLabel: {
