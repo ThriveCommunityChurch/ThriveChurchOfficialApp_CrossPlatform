@@ -17,11 +17,15 @@ import { getTagDisplayLabel } from '../types/messageTag';
 interface RelatedSeriesCardProps {
   series: SermonSeriesWithMatchCount;
   onPress: () => void;
+  showTags?: boolean; // Whether to show tags (default: true)
+  summaryLines?: number; // Number of lines for summary (default: 4)
 }
 
 export const RelatedSeriesCard: React.FC<RelatedSeriesCardProps> = ({
   series,
   onPress,
+  showTags = true,
+  summaryLines = 4,
 }) => {
   const { theme } = useTheme();
   const styles = createStyles(theme);
@@ -85,13 +89,13 @@ export const RelatedSeriesCard: React.FC<RelatedSeriesCardProps> = ({
 
         {/* Summary */}
         {series.Summary && (
-          <Text style={styles.summary} numberOfLines={4}>
+          <Text style={styles.summary} numberOfLines={summaryLines}>
             {series.Summary}
           </Text>
         )}
 
         {/* Tags */}
-        {displayTags.length > 0 && (
+        {showTags && displayTags.length > 0 && (
           <View style={styles.tagsContainer}>
             {displayTags.map((tag, index) => (
               <View key={index} style={styles.tag}>

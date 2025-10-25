@@ -56,7 +56,7 @@ export interface SermonSeries {
  */
 export enum SearchTarget {
   Series = "Series",
-  Message = "Message"
+  Message = "Messages"
 }
 
 /**
@@ -78,9 +78,11 @@ export interface SermonSearchRequest {
 
 /**
  * Response from sermon search API
+ * Returns either Series or Messages based on SearchTarget
  */
 export interface SermonSearchResponse {
-  Series: SermonSeries[]; // Reuses existing SermonSeries interface
+  Series: SermonSeries[]; // Returned when SearchTarget is Series
+  Messages?: SermonMessage[]; // Returned when SearchTarget is Message
 }
 
 /**

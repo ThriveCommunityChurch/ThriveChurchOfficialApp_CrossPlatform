@@ -21,6 +21,7 @@ import { logInfo, logWarning, logError } from '../services/logging/logger';
 import ListenScreen from '../screens/Listen/ListenScreen';
 import SeriesDetailScreen from '../screens/Listen/SeriesDetailScreen';
 import { SermonDetailScreen } from '../screens/Listen/SermonDetailScreen';
+import { SearchScreen } from '../screens/Listen/SearchScreen';
 import NowPlayingScreen from '../screens/Listen/NowPlayingScreen';
 import RecentlyPlayedScreen from '../screens/Listen/RecentlyPlayedScreen';
 import DownloadsScreen from '../screens/Listen/DownloadsScreen';
@@ -110,6 +111,16 @@ function ListenStackNavigator({ theme }: { theme: Theme }) {
         name="ListenHome"
         options={({ navigation }) => ({
           title: 'Listen',
+          headerLeft: () => (
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Search')}
+              style={{ marginLeft: 16 }}
+              accessibilityLabel="Search"
+              accessibilityRole="button"
+            >
+              <Ionicons name="search" size={24} color={theme.colors.text} />
+            </TouchableOpacity>
+          ),
           headerRight: () => (
             <View style={{ flexDirection: 'row', marginRight: 8 }}>
               <TouchableOpacity
@@ -150,6 +161,15 @@ function ListenStackNavigator({ theme }: { theme: Theme }) {
           />
         )}
       </ListenStack.Screen>
+      <ListenStack.Screen
+        name="Search"
+        component={SearchScreen}
+        options={{
+          title: 'Search',
+          headerBackTitle: 'Listen',
+          headerTitleAlign: 'center',
+        }}
+      />
       <ListenStack.Screen
         name="SeriesDetail"
         options={({ route }: any) => ({
