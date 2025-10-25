@@ -251,7 +251,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     backgroundColor: theme.colors.primary, // ← ONLY COLOR CHANGED
   },
   inactiveDot: {
-    backgroundColor: theme.colors.primaryDark, // ← ONLY COLOR CHANGED
+    backgroundColor: theme.colors.textTertiary, // ← ONLY COLOR CHANGED
   },
   footer: {
     flexDirection: 'row',

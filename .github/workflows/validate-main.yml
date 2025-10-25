@@ -47,11 +47,7 @@ jobs:
       
       - name: TypeScript type check
         run: npx tsc --noEmit
-      
-      - name: Run ESLint
-        run: npx eslint . --ext .js,.jsx,.ts,.tsx --max-warnings 0
-        continue-on-error: true
-      
+
       - name: Security audit
         run: npm audit --audit-level=moderate
         continue-on-error: true

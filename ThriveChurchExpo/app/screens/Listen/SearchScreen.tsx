@@ -46,6 +46,13 @@ export const SearchScreen: React.FC = () => {
   // Determine if device is tablet in landscape
   const isTabletLandscape = width >= 1024;
 
+  // Handle sort direction toggle
+  const handleSortDirectionToggle = useCallback(() => {
+    setSortDirection((prev) =>
+      prev === SortDirection.Descending ? SortDirection.Ascending : SortDirection.Descending
+    );
+  }, []);
+
   // Track screen view
   useEffect(() => {
     setCurrentScreen('SearchScreen', 'Search');
@@ -137,13 +144,6 @@ export const SearchScreen: React.FC = () => {
   // Handle search target change
   const handleSearchTargetChange = useCallback((target: SearchTarget) => {
     setSearchTarget(target);
-  }, []);
-
-  // Handle sort direction toggle
-  const handleSortDirectionToggle = useCallback(() => {
-    setSortDirection((prev) =>
-      prev === SortDirection.Descending ? SortDirection.Ascending : SortDirection.Descending
-    );
   }, []);
 
   // Handle result press

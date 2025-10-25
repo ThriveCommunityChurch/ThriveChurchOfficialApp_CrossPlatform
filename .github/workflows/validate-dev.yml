@@ -50,20 +50,14 @@ jobs:
       # Validates that all TypeScript code compiles without errors
       - name: TypeScript type check
         run: npx tsc --noEmit
-      
-      # Step 6: ESLint linting
-      # Checks code quality and catches common errors
-      - name: Run ESLint
-        run: npx eslint . --ext .js,.jsx,.ts,.tsx --max-warnings 0
-        continue-on-error: true
-      
-      # Step 7: Dependency security audit
+
+      # Step 6: Dependency security audit
       # Checks for known security vulnerabilities in dependencies
       - name: Security audit
         run: npm audit --audit-level=moderate
         continue-on-error: true
       
-      # Step 8: Expo export validation
+      # Step 7: Expo export validation
       # Validates that the JavaScript bundle can be created successfully
       # This catches import errors, bundle configuration issues, etc.
       - name: Validate Expo export

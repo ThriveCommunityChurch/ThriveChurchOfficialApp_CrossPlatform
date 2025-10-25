@@ -680,7 +680,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     flex: 1,
   },
   artwork: {
-    width: '100%',
+    width: '100%' as const,
     aspectRatio: 16 / 9,
     backgroundColor: theme.colors.backgroundSecondary, // ← ONLY COLOR CHANGED
   },
@@ -939,8 +939,8 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     elevation: 12,
   },
   tabletHeroArtwork: {
-    width: '100%',
-    height: '100%',
+    width: '100%' as const,
+    height: '100%' as const,
   },
   tabletHeroContent: {
     flex: 1,
