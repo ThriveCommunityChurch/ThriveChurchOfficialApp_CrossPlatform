@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SermonMessage } from '../../types/api';
 import { Note } from '../../types/notes';
 import { ConfigSetting } from '../../types/config';
+import { BibleTranslation, ThemeMode, DEFAULT_BIBLE_TRANSLATION } from '../../types/settings';
 
 // Storage wrapper using AsyncStorage
 // All operations are async to properly handle AsyncStorage's async nature
@@ -39,6 +40,8 @@ export const StorageKeys = {
   ONBOARDING_COMPLETED: 'onboardingCompleted',
   DOWNLOAD_QUEUE: 'downloadQueue',
   NOTES: 'notes',
+  THEME_MODE: 'themeMode',
+  BIBLE_TRANSLATION: 'bibleTranslation',
 } as const;
 
 // Recently Played Functions
@@ -457,3 +460,47 @@ export const clearAllStorage = async (): Promise<void> => {
   }
 };
 
+// Settings Functions
+export const getThemeMode = async (): Promise<ThemeMode> => {
+  if (!isStorageAvailable()) return 'auto';
+
+  try {
+    const data = await AsyncStorage.getItem(StorageKeys.THEME_MODE);
+    return (data as ThemeMode) || 'auto';
+  } catch (error) {
+    console.error('Error reading theme mode:', error);
+    return 'auto';
+  }
+};
+
+export const setThemeMode = async (mode: ThemeMode): Promise<void> => {
+  if (!isStorageAvailable()) return;
+
+  try {
+    await AsyncStorage.setItem(StorageKeys.THEME_MODE, mode);
+  } catch (error) {
+    console.error('Error saving theme mode:', error);
+  }
+};
+
+export const getBibleTranslation = async (): Promise<BibleTranslation> => {
+  if (!isStorageAvailable()) return DEFAULT_BIBLE_TRANSLATION;
+
+  try {
+    const data = await AsyncStorage.getItem(StorageKeys.BIBLE_TRANSLATION);
+    return data ? JSON.parse(data) : DEFAULT_BIBLE_TRANSLATION;
+  } catch (error) {
+    console.error('Error reading Bible translation:', error);
+    return DEFAULT_BIBLE_TRANSLATION;
+  }
+};
+
+export const setBibleTranslation = async (translation: BibleTranslation): Promise<void> => {
+  if (!isStorageAvailable()) return;
+
+  try {
+    await AsyncStorage.setItem(StorageKeys.BIBLE_TRANSLATION, JSON.stringify(translation));
+  } catch (error) {
+    console.error('Error saving Bible translation:', error);
+  }
+};

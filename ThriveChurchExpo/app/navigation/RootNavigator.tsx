@@ -31,6 +31,7 @@ import { BookListScreen } from '../screens/Bible/BookListScreen';
 import { NotesListScreen, NoteDetailScreen } from '../screens/Notes';
 import { ConnectScreen, RSSScreen, RSSDetailScreen, WebViewScreen } from '../screens/Connect';
 import { MoreScreen } from '../screens/More';
+import { SettingsScreen } from '../screens/Settings';
 import OnboardingScreen from '../screens/Onboarding/OnboardingScreen';
 import { isOnboardingCompleted } from '../services/storage/storage';
 
@@ -331,6 +332,14 @@ function MoreStackNavigator({ theme }: { theme: Theme }) {
         component={MoreScreen}
         options={{
           title: 'More',
+        }}
+      />
+      <MoreStack.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{
+          title: 'Settings',
+          headerBackTitle: 'More',
         }}
       />
       <MoreStack.Screen

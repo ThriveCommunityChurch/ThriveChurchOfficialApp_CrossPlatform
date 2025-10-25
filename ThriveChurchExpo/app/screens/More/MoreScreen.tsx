@@ -329,7 +329,7 @@ export const MoreScreen: React.FC = () => {
   };
 
   const handleSettings = () => {
-    Linking.openSettings();
+    navigation.navigate('Settings');
   };
 
   const handleSendLogs = async () => {

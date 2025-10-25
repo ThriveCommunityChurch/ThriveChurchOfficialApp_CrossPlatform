@@ -1,7 +1,8 @@
-import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
+import React, { createContext, useContext, ReactNode, useState, useEffect, useMemo, useCallback } from 'react';
 import { useColorScheme, Appearance, ColorSchemeName } from 'react-native';
 import { darkTheme, lightTheme } from '../theme';
 import type { ThemeContextValue, ThemeMode } from '../theme/types';
+import { getThemeMode, setThemeMode as saveThemeMode } from '../services/storage/storage';
 
 /**
  * Theme Context
@@ -25,10 +26,12 @@ interface ThemeProviderProps {
  *
  * Features:
  * - Automatic OS theme detection using useColorScheme hook
+ * - Manual theme override (light, dark, or auto)
  * - Real-time theme updates when system appearance changes
+ * - Persistent theme preference using AsyncStorage
  * - Provides theme object with colors and typography
  * - Provides isDark flag for conditional logic
- * - Provides themeMode for future manual override capability
+ * - Provides themeMode and setThemeMode for manual control
  *
  * Usage:
  * ```tsx
@@ -44,6 +47,18 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
 
   // Use state to ensure re-renders when appearance changes
   const [colorScheme, setColorScheme] = useState<ColorSchemeName>(systemColorScheme);
+
+  // User's theme mode preference (auto, light, or dark)
+  const [userThemeMode, setUserThemeMode] = useState<ThemeMode>('auto');
+
+  // Load user's theme preference from AsyncStorage on mount
+  useEffect(() => {
+    const loadThemePreference = async () => {
+      const savedMode = await getThemeMode();
+      setUserThemeMode(savedMode);
+    };
+    loadThemePreference();
+  }, []);
 
   // Listen for system appearance changes
   useEffect(() => {
@@ -63,17 +78,33 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     };
   }, []);
 
-  // Select theme based on system preference
-  // Default to dark theme if system preference is null or 'dark'
-  const theme = colorScheme === 'light' ? lightTheme : darkTheme;
+  // Determine effective color scheme based on user preference
+  // If user selected 'auto', use system preference
+  // Otherwise, use the user's explicit choice (light or dark)
+  const effectiveColorScheme = useMemo(() => {
+    if (userThemeMode === 'auto') {
+      return colorScheme;
+    }
+    return userThemeMode;
+  }, [userThemeMode, colorScheme]);
+
+  // Select theme based on effective color scheme
+  // Default to dark theme if effective color scheme is null or 'dark'
+  const theme = effectiveColorScheme === 'light' ? lightTheme : darkTheme;
   const isDark = theme.isDark;
-  const themeMode: ThemeMode = 'auto'; // Currently always auto, can be extended for manual override
+
+  // Handle theme mode changes
+  // Updates local state and persists to AsyncStorage
+  const handleSetThemeMode = useCallback(async (mode: ThemeMode) => {
+    setUserThemeMode(mode);
+    await saveThemeMode(mode);
+  }, []);
 
   const contextValue: ThemeContextValue = {
     theme,
     isDark,
-    themeMode,
-    // setThemeMode can be added in the future for manual theme toggle
+    themeMode: userThemeMode,
+    setThemeMode: handleSetThemeMode,
   };
 
   return (

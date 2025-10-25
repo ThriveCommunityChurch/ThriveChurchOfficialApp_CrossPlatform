@@ -4,6 +4,7 @@
  */
 
 import { BibleBook } from '../types/bible';
+import { BibleTranslation, DEFAULT_BIBLE_TRANSLATION } from '../types/settings';
 
 /**
  * All 66 Bible books with their display names and YouVersion URL slugs
@@ -135,15 +136,20 @@ export const getBookBySlug = (slug: string): BibleBook | undefined => {
 /**
  * YouVersion Bible URL format
  * Version 59 = ESV (English Standard Version)
+ * @deprecated Use getYouVersionUrl with translation parameter instead
  */
 export const YOUVERSION_BASE_URL = 'https://www.bible.com/bible/59';
 
 /**
- * Generate YouVersion URL for a book
+ * Generate YouVersion URL for a book with specified translation
  * @param slug - Book slug (e.g., 'gen', 'mat')
+ * @param translation - Bible translation (defaults to ESV)
  * @returns Full YouVersion URL
  */
-export const getYouVersionUrl = (slug: string): string => {
-  return `${YOUVERSION_BASE_URL}/${slug}.1`;
+export const getYouVersionUrl = (
+  slug: string,
+  translation: BibleTranslation = DEFAULT_BIBLE_TRANSLATION
+): string => {
+  return `https://www.bible.com/bible/${translation.id}/${slug}.1`;
 };
 

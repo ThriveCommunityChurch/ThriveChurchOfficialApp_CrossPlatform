@@ -80,6 +80,7 @@ export const linking: LinkingOptions<any> = {
       More: {
         screens: {
           MoreHome: 'more',
+          Settings: 'more/settings',
           WebView: {
             path: 'more/:title',
             parse: {
@@ -162,7 +163,9 @@ export const handleDeepLink = (
       navigation.navigate('Connect', { screen: 'ConnectHome' });
     }
     // More tab deep links
-    else if (path.includes('/more/')) {
+    else if (path.includes('/more/settings')) {
+      navigation.navigate('More', { screen: 'Settings' });
+    } else if (path.includes('/more/')) {
       const title = decodeURIComponent(path.split('/more/')[1]);
       navigation.navigate('More', {
         screen: 'WebView',
