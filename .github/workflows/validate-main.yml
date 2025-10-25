@@ -135,7 +135,7 @@ jobs:
       
       # Run expo prebuild for iOS
       - name: Run Expo prebuild for iOS
-        run: npx expo prebuild --platform ios --no-install
+        run: npx expo prebuild --platform ios --no-install --clean
         env:
           EXPO_NO_TELEMETRY: 1
       
@@ -247,7 +247,7 @@ jobs:
       
       # Run expo prebuild for Android
       - name: Run Expo prebuild for Android
-        run: npx expo prebuild --platform android --no-install
+        run: npx expo prebuild --platform android --no-install --clean
         env:
           EXPO_NO_TELEMETRY: 1
       
