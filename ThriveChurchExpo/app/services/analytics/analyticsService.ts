@@ -21,6 +21,7 @@ export const AnalyticsEvents = {
   CREATE_NOTE: 'create_note',
   SHARE_NOTE: 'share_note',
   VIEW_BIBLE: 'view_bible',
+  PLAY_BIBLE_AUDIO: 'play_bible_audio',
   CONTACT_CHURCH: 'contact_church',
   VIEW_ANNOUNCEMENTS: 'view_announcements',
   OPEN_SOCIAL: 'open_social',
@@ -207,6 +208,26 @@ export const logViewBible = async (book: string): Promise<void> => {
 };
 
 /**
+ * Log Bible audio play event
+ */
+export const logPlayBibleAudio = async (passage: string): Promise<void> => {
+  if (!isAnalyticsEnabled()) {
+    console.log('Analytics: Play Bible Audio (disabled by feature flag):', passage);
+    return;
+  }
+
+  try {
+    await analytics().logEvent(AnalyticsEvents.PLAY_BIBLE_AUDIO, {
+      passage: passage,
+      content_type: 'bible_audio',
+    });
+    console.log('Analytics: Play Bible Audio:', passage);
+  } catch (error) {
+    console.error('Analytics error (logPlayBibleAudio):', error);
+  }
+};
+
+/**
  * Log contact church event
  */
 export const logContactChurch = async (method: string): Promise<void> => {
@@ -345,6 +366,7 @@ export default {
   logCreateNote,
   logShareNote,
   logViewBible,
+  logPlayBibleAudio,
   logContactChurch,
   logViewAnnouncements,
   logOpenSocial,

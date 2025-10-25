@@ -167,6 +167,38 @@ class ESVApiService {
   }
 
   /**
+   * Get audio URL for a Bible passage
+   * The ESV API returns a redirect to an MP3 file
+   * @param reference - Bible reference (e.g., "John 3:16", "Genesis 1:1-3")
+   * @returns string - URL to audio file with authorization headers
+   */
+  getAudioUrl(reference: string): string {
+    if (!reference || reference.trim() === '') {
+      throw new Error('No passage reference provided');
+    }
+
+    if (this.apiKey === 'DEMO_KEY') {
+      throw new Error('ESV API key not configured');
+    }
+
+    // Encode the reference for URL
+    const encodedReference = encodeURIComponent(reference);
+
+    // Return the audio URL - the client will need to add Authorization header
+    return `${this.baseUrl}/passage/audio/?q=${encodedReference}`;
+  }
+
+  /**
+   * Get authorization header for ESV API requests
+   * @returns object with Authorization header
+   */
+  getAuthHeaders(): { Authorization: string } {
+    return {
+      Authorization: `Token ${this.apiKey}`,
+    };
+  }
+
+  /**
    * Get API status and configuration info
    * @returns object with API status information
    */
