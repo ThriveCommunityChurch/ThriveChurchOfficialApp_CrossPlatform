@@ -1,8 +1,8 @@
 package com.thrivefl.ThriveCommunityChurch
 import expo.modules.splashscreen.SplashScreenManager
-
 import android.content.Intent
 import android.content.res.Configuration
+
 import android.os.Build
 import android.os.Bundle
 
@@ -47,17 +47,6 @@ class MainActivity : ReactActivity() {
   }
 
   /**
-   * Handle configuration changes (including theme changes)
-   * This ensures React Native is notified when the system theme changes
-   */
-  override fun onConfigurationChanged(newConfig: Configuration) {
-      super.onConfigurationChanged(newConfig)
-      val intent = Intent("onConfigurationChanged")
-      intent.putExtra("newConfig", newConfig)
-      sendBroadcast(intent)
-  }
-
-  /**
     * Align the back button behavior with Android S
     * where moving root activities to background instead of finishing activities.
     * @see <a href="https://developer.android.com/reference/android/app/Activity#onBackPressed()">onBackPressed</a>
@@ -68,6 +57,18 @@ class MainActivity : ReactActivity() {
               // For non-root activities, use the default implementation to finish them.
               super.invokeDefaultOnBackPressed()
           }
+
+  /**
+   * Handle configuration changes (including theme changes)
+   * This ensures React Native is notified when the system theme changes
+   */
+  override fun onConfigurationChanged(newConfig: Configuration) {
+      super.onConfigurationChanged(newConfig)
+      val intent = Intent("onConfigurationChanged")
+      intent.putExtra("newConfig", newConfig)
+      sendBroadcast(intent)
+  }
+
           return
       }
 
