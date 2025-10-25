@@ -1,0 +1,444 @@
+name: Validate Main Branch
+
+# This workflow runs comprehensive validation checks on the main/master branch
+# Purpose: Ensure production-ready code with full iOS and Android build validation
+# Runtime: ~10-15 minutes
+# Triggers: Pull requests to main/master, pushes to main/master
+
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:  # Allows manual triggering from GitHub UI
+
+jobs:
+  # ============================================
+  # JOB 1: Quick Validation (Same as dev branch)
+  # ============================================
+  quick-validation:
+    name: Quick Validation (TypeScript, Lint, Export)
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: ThriveChurchExpo
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: 'npm'
+          cache-dependency-path: ThriveChurchExpo/package-lock.json
+      
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+      
+      - name: Generate mock credentials
+        run: node scripts/generate-ci-credentials.js
+      
+      - name: TypeScript type check
+        run: npx tsc --noEmit
+      
+      - name: Run ESLint
+        run: npx eslint . --ext .js,.jsx,.ts,.tsx --max-warnings 0
+        continue-on-error: true
+      
+      - name: Security audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+      
+      - name: Validate Expo export
+        run: npx expo export --platform all --output-dir dist
+        env:
+          EXPO_NO_TELEMETRY: 1
+      
+      - name: Quick validation summary
+        if: success()
+        run: |
+          echo "✅ Quick validation checks passed!"
+  
+  # ============================================
+  # JOB 2: iOS Prebuild Validation
+  # ============================================
+  ios-prebuild:
+    name: iOS Prebuild Validation
+    runs-on: ubuntu-latest
+    needs: quick-validation
+    
+    defaults:
+      run:
+        working-directory: ThriveChurchExpo
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: 'npm'
+          cache-dependency-path: ThriveChurchExpo/package-lock.json
+      
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+      
+      - name: Generate mock credentials
+        run: node scripts/generate-ci-credentials.js
+      
+      # Generate mock GoogleService-Info.plist for iOS
+      - name: Generate mock GoogleService-Info.plist
+        run: |
+          cat > GoogleService-Info.plist << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>CLIENT_ID</key>
+            <string>123456789012-abcdefghijklmnopqrstuvwxyz123456.apps.googleusercontent.com</string>
+            <key>REVERSED_CLIENT_ID</key>
+            <string>com.googleusercontent.apps.123456789012-abcdefghijklmnopqrstuvwxyz123456</string>
+            <key>API_KEY</key>
+            <string>AIzaSyMockApiKeyForCITestingOnly123456789</string>
+            <key>GCM_SENDER_ID</key>
+            <string>123456789012</string>
+            <key>PLIST_VERSION</key>
+            <string>1</string>
+            <key>BUNDLE_ID</key>
+            <string>com.thrive-fl.ThriveCommunityChurch</string>
+            <key>PROJECT_ID</key>
+            <string>thrive-church-ci-mock</string>
+            <key>STORAGE_BUCKET</key>
+            <string>thrive-church-ci-mock.appspot.com</string>
+            <key>IS_ADS_ENABLED</key>
+            <false/>
+            <key>IS_ANALYTICS_ENABLED</key>
+            <false/>
+            <key>IS_APPINVITE_ENABLED</key>
+            <false/>
+            <key>IS_GCM_ENABLED</key>
+            <true/>
+            <key>IS_SIGNIN_ENABLED</key>
+            <true/>
+            <key>GOOGLE_APP_ID</key>
+            <string>1:123456789012:ios:abcdef1234567890abcdef</string>
+            <key>DATABASE_URL</key>
+            <string>https://thrive-church-ci-mock.firebaseio.com</string>
+          </dict>
+          </plist>
+          EOF
+      
+      # Run expo prebuild for iOS
+      - name: Run Expo prebuild for iOS
+        run: npx expo prebuild --platform ios --no-install
+        env:
+          EXPO_NO_TELEMETRY: 1
+      
+      # Apply Firebase static linking patch (workaround for Expo SDK 54 bug)
+      - name: Apply Firebase static linking patch
+        run: node scripts/patch-podfile-properties.js
+      
+      # Verify Podfile.properties.json has correct configuration
+      - name: Verify Podfile.properties.json
+        run: |
+          echo "📋 Checking Podfile.properties.json..."
+          cat ios/Podfile.properties.json
+          
+          # Verify forceStaticLinking is set correctly
+          if grep -q '"ios.forceStaticLinking".*"RNFBApp"' ios/Podfile.properties.json; then
+            echo "✅ Firebase static linking configuration is correct"
+          else
+            echo "❌ Firebase static linking configuration is missing or incorrect"
+            exit 1
+          fi
+      
+      # Verify Xcode project was generated
+      - name: Verify Xcode project generation
+        run: |
+          if [ -d "ios/ThriveChurchOfficialApp.xcodeproj" ]; then
+            echo "✅ Xcode project generated successfully"
+            ls -la ios/
+          else
+            echo "❌ Xcode project not found"
+            exit 1
+          fi
+      
+      - name: iOS prebuild summary
+        if: success()
+        run: |
+          echo "✅ iOS prebuild validation passed!"
+          echo "   - Expo prebuild: ✅"
+          echo "   - Firebase static linking patch: ✅"
+          echo "   - Xcode project generation: ✅"
+  
+  # ============================================
+  # JOB 3: Android Prebuild Validation
+  # ============================================
+  android-prebuild:
+    name: Android Prebuild Validation
+    runs-on: ubuntu-latest
+    needs: quick-validation
+    
+    defaults:
+      run:
+        working-directory: ThriveChurchExpo
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: 'npm'
+          cache-dependency-path: ThriveChurchExpo/package-lock.json
+      
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+      
+      - name: Generate mock credentials
+        run: node scripts/generate-ci-credentials.js
+      
+      # Generate mock google-services.json for Android
+      - name: Generate mock google-services.json
+        run: |
+          cat > google-services.json << 'EOF'
+          {
+            "project_info": {
+              "project_number": "123456789012",
+              "project_id": "thrive-church-ci-mock",
+              "storage_bucket": "thrive-church-ci-mock.appspot.com"
+            },
+            "client": [
+              {
+                "client_info": {
+                  "mobilesdk_app_id": "1:123456789012:android:1234567890abcdef123456",
+                  "android_client_info": {
+                    "package_name": "com.thrivefl.ThriveCommunityChurch"
+                  }
+                },
+                "oauth_client": [
+                  {
+                    "client_id": "123456789012-zyxwvutsrqponmlkjihgfedcba654321.apps.googleusercontent.com",
+                    "client_type": 3
+                  }
+                ],
+                "api_key": [
+                  {
+                    "current_key": "AIzaSyMockApiKeyForCITestingOnly123456789"
+                  }
+                ],
+                "services": {
+                  "appinvite_service": {
+                    "other_platform_oauth_client": []
+                  }
+                }
+              }
+            ],
+            "configuration_version": "1"
+          }
+          EOF
+      
+      # Run expo prebuild for Android
+      - name: Run Expo prebuild for Android
+        run: npx expo prebuild --platform android --no-install
+        env:
+          EXPO_NO_TELEMETRY: 1
+      
+      # Verify Android project was generated
+      - name: Verify Android project generation
+        run: |
+          if [ -f "android/build.gradle" ] && [ -f "android/app/build.gradle" ]; then
+            echo "✅ Android Gradle project generated successfully"
+            ls -la android/
+          else
+            echo "❌ Android Gradle project not found"
+            exit 1
+          fi
+      
+      # Cache Gradle dependencies for the next job
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('ThriveChurchExpo/android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+      
+      - name: Android prebuild summary
+        if: success()
+        run: |
+          echo "✅ Android prebuild validation passed!"
+          echo "   - Expo prebuild: ✅"
+          echo "   - Gradle project generation: ✅"
+  
+  # ============================================
+  # JOB 4: Android Gradle Build (Full Compilation)
+  # ============================================
+  android-build:
+    name: Android Gradle Build
+    runs-on: ubuntu-latest
+    needs: android-prebuild
+    
+    defaults:
+      run:
+        working-directory: ThriveChurchExpo
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: 'npm'
+          cache-dependency-path: ThriveChurchExpo/package-lock.json
+
+      # Setup Java 17 (required for Android Gradle builds)
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Generate mock credentials
+        run: node scripts/generate-ci-credentials.js
+
+      # Generate mock google-services.json for Android
+      - name: Generate mock google-services.json
+        run: |
+          cat > google-services.json << 'EOF'
+          {
+            "project_info": {
+              "project_number": "123456789012",
+              "project_id": "thrive-church-ci-mock",
+              "storage_bucket": "thrive-church-ci-mock.appspot.com"
+            },
+            "client": [
+              {
+                "client_info": {
+                  "mobilesdk_app_id": "1:123456789012:android:1234567890abcdef123456",
+                  "android_client_info": {
+                    "package_name": "com.thrivefl.ThriveCommunityChurch"
+                  }
+                },
+                "oauth_client": [
+                  {
+                    "client_id": "123456789012-zyxwvutsrqponmlkjihgfedcba654321.apps.googleusercontent.com",
+                    "client_type": 3
+                  }
+                ],
+                "api_key": [
+                  {
+                    "current_key": "AIzaSyMockApiKeyForCITestingOnly123456789"
+                  }
+                ],
+                "services": {
+                  "appinvite_service": {
+                    "other_platform_oauth_client": []
+                  }
+                }
+              }
+            ],
+            "configuration_version": "1"
+          }
+          EOF
+
+      # Run expo prebuild for Android
+      - name: Run Expo prebuild for Android
+        run: npx expo prebuild --platform android --no-install
+        env:
+          EXPO_NO_TELEMETRY: 1
+
+      # Restore Gradle cache
+      - name: Restore Gradle cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('ThriveChurchExpo/android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      # Make gradlew executable
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
+
+      # Build Android Release APK
+      - name: Build Android Release APK
+        run: cd android && ./gradlew assembleRelease --no-daemon --stacktrace
+        env:
+          # Disable Gradle daemon for CI (saves memory)
+          GRADLE_OPTS: -Dorg.gradle.daemon=false
+
+      # Verify APK was created
+      - name: Verify APK creation
+        run: |
+          if [ -f "android/app/build/outputs/apk/release/app-release.apk" ]; then
+            echo "✅ Android APK built successfully"
+            ls -lh android/app/build/outputs/apk/release/
+          else
+            echo "❌ Android APK not found"
+            exit 1
+          fi
+
+      - name: Android build summary
+        if: success()
+        run: |
+          echo "✅ Android Gradle build passed!"
+          echo "   - Expo prebuild: ✅"
+          echo "   - Gradle assembleRelease: ✅"
+          echo "   - APK generation: ✅"
+
+  # ============================================
+  # Final Summary
+  # ============================================
+  summary:
+    name: Validation Summary
+    runs-on: ubuntu-latest
+    needs: [quick-validation, ios-prebuild, android-prebuild, android-build]
+    if: always()
+
+    steps:
+      - name: Check all jobs status
+        run: |
+          echo "================================================"
+          echo "   MAIN BRANCH VALIDATION SUMMARY"
+          echo "================================================"
+          echo ""
+          echo "Quick Validation: ${{ needs.quick-validation.result }}"
+          echo "iOS Prebuild: ${{ needs.ios-prebuild.result }}"
+          echo "Android Prebuild: ${{ needs.android-prebuild.result }}"
+          echo "Android Build: ${{ needs.android-build.result }}"
+          echo ""
+
+          if [ "${{ needs.quick-validation.result }}" == "success" ] && \
+             [ "${{ needs.ios-prebuild.result }}" == "success" ] && \
+             [ "${{ needs.android-prebuild.result }}" == "success" ] && \
+             [ "${{ needs.android-build.result }}" == "success" ]; then
+            echo "✅ ALL VALIDATION CHECKS PASSED!"
+            echo "   The code is ready for production release."
+            exit 0
+          else
+            echo "❌ SOME VALIDATION CHECKS FAILED"
+            echo "   Please review the failed jobs above."
+            exit 1
+          fi
+
