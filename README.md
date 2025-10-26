@@ -2,6 +2,8 @@
 
 A modern cross-platform mobile application for Thrive Community Church in Estero, FL, designed to help members and visitors stay connected with sermons, take notes, and engage with the church community.
 
+[![iOS & Android Builds](https://github.com/ThriveCommunityChurch/ThriveChurchOfficialApp_CrossPlatform/actions/workflows/validate-main.yml/badge.svg)](https://github.com/ThriveCommunityChurch/ThriveChurchOfficialApp_CrossPlatform/actions/workflows/validate-main.yml)
+
 ## 📱 Download
 Cross-platform app for iOS and Android coming soon!
 
