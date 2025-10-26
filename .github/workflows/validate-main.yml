@@ -138,22 +138,39 @@ jobs:
         run: npx expo prebuild --platform ios --no-install --clean
         env:
           EXPO_NO_TELEMETRY: 1
-      
+
       # Apply Firebase static linking patch (workaround for Expo SDK 54 bug)
       - name: Apply Firebase static linking patch
         run: node scripts/patch-podfile-properties.js
-      
+
+      # Copy react-native-track-player bridging headers
+      - name: Copy react-native-track-player bridging headers
+        run: node scripts/copy-track-player-headers.js
+
       # Verify Podfile.properties.json has correct configuration
       - name: Verify Podfile.properties.json
         run: |
           echo "📋 Checking Podfile.properties.json..."
           cat ios/Podfile.properties.json
-          
-          # Verify forceStaticLinking is set correctly
+
+          # Verify forceStaticLinking is set (as a JSON string that will be parsed by Ruby)
+          # The value should be a JSON string like: "[\"RNFBApp\",\"RNFBAnalytics\",\"RNFBMessaging\"]"
+          # This is because expo-modules-autolinking calls JSON.parse() on this value
           if grep -q '"ios.forceStaticLinking".*"RNFBApp"' ios/Podfile.properties.json; then
             echo "✅ Firebase static linking configuration is correct"
           else
             echo "❌ Firebase static linking configuration is missing or incorrect"
+            echo "   Expected: \"ios.forceStaticLinking\": \"[\\\"RNFBApp\\\",\\\"RNFBAnalytics\\\",\\\"RNFBMessaging\\\"]\""
+            exit 1
+          fi
+
+      # Verify bridging header was copied
+      - name: Verify bridging header
+        run: |
+          if [ -f "ios/RNTrackPlayer/Support/RNTrackPlayer-Bridging-Header.h" ]; then
+            echo "✅ RNTrackPlayer bridging header exists"
+          else
+            echo "❌ RNTrackPlayer bridging header not found"
             exit 1
           fi
       
@@ -174,6 +191,7 @@ jobs:
           echo "✅ iOS prebuild validation passed!"
           echo "   - Expo prebuild: ✅"
           echo "   - Firebase static linking patch: ✅"
+          echo "   - RNTrackPlayer bridging headers: ✅"
           echo "   - Xcode project generation: ✅"
   
   # ============================================
