@@ -328,6 +328,12 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      # Setup Gradle with official action for better caching
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          cache-read-only: false
+
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
@@ -380,16 +386,10 @@ jobs:
         env:
           EXPO_NO_TELEMETRY: 1
 
-      # Restore Gradle cache
-      - name: Restore Gradle cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('ThriveChurchExpo/android/gradle/wrapper/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
+      # Configure Gradle for CI (build only arm64-v8a to speed up CI)
+      - name: Configure Gradle for CI
+        run: |
+          echo "reactNativeArchitectures=arm64-v8a" >> android/gradle.properties
 
       # Make gradlew executable
       - name: Make gradlew executable
@@ -397,10 +397,10 @@ jobs:
 
       # Build Android Release APK
       - name: Build Android Release APK
-        run: cd android && ./gradlew assembleRelease --no-daemon --stacktrace
+        run: cd android && ./gradlew assembleRelease --stacktrace
         env:
-          # Disable Gradle daemon for CI (saves memory)
-          GRADLE_OPTS: -Dorg.gradle.daemon=false
+          # Increase heap size for faster builds (GitHub Actions runners have 7GB RAM)
+          GRADLE_OPTS: -Xmx4096m -XX:MaxMetaspaceSize=1024m
 
       # Verify APK was created
       - name: Verify APK creation
