@@ -193,13 +193,14 @@ jobs:
           fi
       
       # Upload iOS artifacts for the build job
+      # Note: We don't upload node_modules because binaries are platform-specific
+      # and won't work when moving from ubuntu-latest to macos-latest
       - name: Upload iOS prebuild artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ios-prebuild-artifacts
           path: |
             ThriveChurchExpo/ios/
-            ThriveChurchExpo/node_modules/
             ThriveChurchExpo/package.json
             ThriveChurchExpo/package-lock.json
           retention-days: 1
@@ -234,6 +235,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22.x'
+          cache: 'npm'
+          cache-dependency-path: ThriveChurchExpo/package-lock.json
 
       # Download prebuild artifacts from ios-prebuild job
       - name: Download iOS prebuild artifacts
@@ -241,6 +244,10 @@ jobs:
         with:
           name: ios-prebuild-artifacts
           path: ThriveChurchExpo
+
+      # Install dependencies (can't reuse from artifact due to platform differences)
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
 
       - name: Generate mock credentials
         run: node scripts/generate-ci-credentials.js
@@ -425,13 +432,14 @@ jobs:
           fi
 
       # Upload Android artifacts for the build job
+      # Note: We don't upload node_modules to keep artifact size small
+      # npm cache will make reinstallation fast in the build job
       - name: Upload Android prebuild artifacts
         uses: actions/upload-artifact@v4
         with:
           name: android-prebuild-artifacts
           path: |
             ThriveChurchExpo/android/
-            ThriveChurchExpo/node_modules/
             ThriveChurchExpo/package.json
             ThriveChurchExpo/package-lock.json
           retention-days: 1
@@ -464,6 +472,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22.x'
+          cache: 'npm'
+          cache-dependency-path: ThriveChurchExpo/package-lock.json
 
       # Setup Java 17 (required for Android Gradle builds)
       - name: Setup Java 17
@@ -484,6 +494,10 @@ jobs:
         with:
           name: android-prebuild-artifacts
           path: ThriveChurchExpo
+
+      # Install dependencies (npm cache makes this fast)
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
 
       - name: Generate mock credentials
         run: node scripts/generate-ci-credentials.js
@@ -533,11 +547,15 @@ jobs:
       # Local builds will use their own keystores (not committed to version control)
       - name: Generate debug keystore for CI
         run: |
-          keytool -genkey -v -keystore android/app/debug.keystore \
-            -storepass android -alias androiddebugkey -keypass android \
-            -keyalg RSA -keysize 2048 -validity 10000 \
-            -dname "CN=Android Debug,O=Android,C=US"
-          echo "✅ Debug keystore generated for CI build"
+          if [ ! -f "android/app/debug.keystore" ]; then
+            keytool -genkey -v -keystore android/app/debug.keystore \
+              -storepass android -alias androiddebugkey -keypass android \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+            echo "✅ Debug keystore generated for CI build"
+          else
+            echo "✅ Debug keystore already exists (from prebuild artifacts)"
+          fi
 
       # Configure Gradle for CI (build only arm64-v8a to speed up CI)
       - name: Configure Gradle for CI
