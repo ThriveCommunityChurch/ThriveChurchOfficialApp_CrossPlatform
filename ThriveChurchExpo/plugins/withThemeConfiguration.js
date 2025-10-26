@@ -68,18 +68,41 @@ const withConfigurationChangeHandler = (config) => {
       console.log('✅ Added Configuration import to MainActivity');
     }
 
-    // Find the last override method before the closing brace
-    // We'll insert our method after the last override method
-    const lastOverridePattern = /override fun \w+\([^)]*\)[^}]*\{[^}]*\}(?:\s*\})?/g;
-    const matches = [...contents.matchAll(lastOverridePattern)];
-    
-    if (matches.length === 0) {
-      console.warn('⚠️ Could not find suitable insertion point in MainActivity');
+    // Find the closing brace of the MainActivity class
+    // We'll insert our method before the closing brace
+    // First, find the class declaration
+    const classMatch = contents.match(/class MainActivity\s*:\s*ReactActivity\(\)\s*\{/);
+    if (!classMatch) {
+      console.warn('⚠️ Could not find MainActivity class declaration');
       return config;
     }
 
-    const lastMatch = matches[matches.length - 1];
-    const insertIndex = lastMatch.index + lastMatch[0].length;
+    // Find the matching closing brace for the class
+    // Start after the opening brace of the class
+    let braceCount = 1;
+    let searchIndex = classMatch.index + classMatch[0].length;
+    let classClosingBraceIndex = -1;
+
+    while (searchIndex < contents.length && braceCount > 0) {
+      if (contents[searchIndex] === '{') {
+        braceCount++;
+      } else if (contents[searchIndex] === '}') {
+        braceCount--;
+        if (braceCount === 0) {
+          classClosingBraceIndex = searchIndex;
+          break;
+        }
+      }
+      searchIndex++;
+    }
+
+    if (classClosingBraceIndex === -1) {
+      console.warn('⚠️ Could not find closing brace of MainActivity class');
+      return config;
+    }
+
+    // Insert before the closing brace of the class
+    const insertIndex = classClosingBraceIndex;
 
     // The onConfigurationChanged method to add
     const configChangeMethod = `
