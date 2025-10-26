@@ -67,20 +67,12 @@ export const usePlayer = () => {
   });
 
   // Listen to track changes
-  useTrackPlayerEvents([Event.PlaybackTrackChanged], async () => {
-    const trackIndex = await TrackPlayer.getCurrentTrack();
-    if (trackIndex !== null) {
-      const track = await TrackPlayer.getTrack(trackIndex);
-      setPlayerState(prev => ({
-        ...prev,
-        currentTrack: track || null,
-      }));
-    } else {
-      setPlayerState(prev => ({
-        ...prev,
-        currentTrack: null,
-      }));
-    }
+  useTrackPlayerEvents([Event.PlaybackActiveTrackChanged], async () => {
+    const track = await TrackPlayer.getActiveTrack();
+    setPlayerState(prev => ({
+      ...prev,
+      currentTrack: track || null,
+    }));
   });
 
   // Load current track on mount
@@ -90,20 +82,18 @@ export const usePlayer = () => {
         // Ensure player is set up before accessing it
         await setupPlayer();
 
-        const trackIndex = await TrackPlayer.getCurrentTrack();
-        if (trackIndex !== null) {
-          const track = await TrackPlayer.getTrack(trackIndex);
-          const state = await TrackPlayer.getState();
+        const track = await TrackPlayer.getActiveTrack();
+        const playbackState = await TrackPlayer.getPlaybackState();
+        const state = playbackState.state;
 
-          setPlayerState(prev => ({
-            ...prev,
-            currentTrack: track || null,
-            isPlaying: state === State.Playing,
-            isPaused: state === State.Paused,
-            isStopped: state === State.Stopped || state === State.None,
-            isLoading: state === State.Buffering || state === State.Loading,
-          }));
-        }
+        setPlayerState(prev => ({
+          ...prev,
+          currentTrack: track || null,
+          isPlaying: state === State.Playing,
+          isPaused: state === State.Paused,
+          isStopped: state === State.Stopped || state === State.None,
+          isLoading: state === State.Buffering || state === State.Loading,
+        }));
       } catch (error) {
         console.error('Error loading current track:', error);
       }

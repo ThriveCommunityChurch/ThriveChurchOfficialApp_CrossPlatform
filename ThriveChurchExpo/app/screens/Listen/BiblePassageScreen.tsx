@@ -52,8 +52,8 @@ const BiblePassageScreen: React.FC = () => {
   useEffect(() => {
     const checkPlaybackState = async () => {
       try {
-        const state = await TrackPlayer.getState();
-        const playing = state === State.Playing;
+        const playbackState = await TrackPlayer.getPlaybackState();
+        const playing = playbackState.state === State.Playing;
         setIsPlaying(playing);
 
         // Clear loading state when playback actually starts

@@ -57,6 +57,13 @@ class MainActivity : ReactActivity() {
               // For non-root activities, use the default implementation to finish them.
               super.invokeDefaultOnBackPressed()
           }
+          return
+      }
+
+      // Use the default back button implementation on Android S
+      // because it's doing more than [Activity.moveTaskToBack] in fact.
+      super.invokeDefaultOnBackPressed()
+  }
 
   /**
    * Handle configuration changes (including theme changes)
@@ -67,13 +74,5 @@ class MainActivity : ReactActivity() {
       val intent = Intent("onConfigurationChanged")
       intent.putExtra("newConfig", newConfig)
       sendBroadcast(intent)
-  }
-
-          return
-      }
-
-      // Use the default back button implementation on Android S
-      // because it's doing more than [Activity.moveTaskToBack] in fact.
-      super.invokeDefaultOnBackPressed()
   }
 }

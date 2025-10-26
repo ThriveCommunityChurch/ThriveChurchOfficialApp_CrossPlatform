@@ -32,7 +32,7 @@ export const setupPlayer = async (): Promise<void> => {
         Capability.JumpForward,
         Capability.JumpBackward,
       ],
-      compactCapabilities: [
+      notificationCapabilities: [
         Capability.Play,
         Capability.Pause,
         Capability.JumpForward,
@@ -70,13 +70,13 @@ export const playbackService = async (): Promise<void> => {
   });
 
   TrackPlayer.addEventListener(Event.RemoteJumpForward, async ({ interval }) => {
-    const position = await TrackPlayer.getPosition();
-    await TrackPlayer.seekTo(position + (interval || 15));
+    const progress = await TrackPlayer.getProgress();
+    await TrackPlayer.seekTo(progress.position + (interval || 15));
   });
 
   TrackPlayer.addEventListener(Event.RemoteJumpBackward, async ({ interval }) => {
-    const position = await TrackPlayer.getPosition();
-    await TrackPlayer.seekTo(Math.max(0, position - (interval || 15)));
+    const progress = await TrackPlayer.getProgress();
+    await TrackPlayer.seekTo(Math.max(0, progress.position - (interval || 15)));
   });
 };
 
@@ -172,8 +172,8 @@ export const seekTo = async (position: number): Promise<void> => {
 
 export const skipForward = async (seconds: number = 15): Promise<void> => {
   try {
-    const position = await TrackPlayer.getPosition();
-    await TrackPlayer.seekTo(position + seconds);
+    const progress = await TrackPlayer.getProgress();
+    await TrackPlayer.seekTo(progress.position + seconds);
   } catch (error) {
     console.error('Error skipping forward:', error);
   }
@@ -181,8 +181,8 @@ export const skipForward = async (seconds: number = 15): Promise<void> => {
 
 export const skipBackward = async (seconds: number = 15): Promise<void> => {
   try {
-    const position = await TrackPlayer.getPosition();
-    await TrackPlayer.seekTo(Math.max(0, position - seconds));
+    const progress = await TrackPlayer.getProgress();
+    await TrackPlayer.seekTo(Math.max(0, progress.position - seconds));
   } catch (error) {
     console.error('Error skipping backward:', error);
   }
@@ -190,8 +190,8 @@ export const skipBackward = async (seconds: number = 15): Promise<void> => {
 
 export const getPlaybackState = async (): Promise<State> => {
   try {
-    const state = await TrackPlayer.getState();
-    return state;
+    const playbackState = await TrackPlayer.getPlaybackState();
+    return playbackState.state;
   } catch (error) {
     console.error('Error getting playback state:', error);
     return State.None;
@@ -200,12 +200,8 @@ export const getPlaybackState = async (): Promise<State> => {
 
 export const getCurrentTrack = async () => {
   try {
-    const trackIndex = await TrackPlayer.getCurrentTrack();
-    if (trackIndex !== null) {
-      const track = await TrackPlayer.getTrack(trackIndex);
-      return track;
-    }
-    return null;
+    const track = await TrackPlayer.getActiveTrack();
+    return track || null;
   } catch (error) {
     console.error('Error getting current track:', error);
     return null;
