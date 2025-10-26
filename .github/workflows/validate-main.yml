@@ -153,14 +153,12 @@ jobs:
           echo "📋 Checking Podfile.properties.json..."
           cat ios/Podfile.properties.json
 
-          # Verify forceStaticLinking is set (as a JSON string that will be parsed by Ruby)
-          # The value should be a JSON string like: "[\"RNFBApp\",\"RNFBAnalytics\",\"RNFBMessaging\"]"
-          # This is because expo-modules-autolinking calls JSON.parse() on this value
-          if grep -q '"ios.forceStaticLinking".*"RNFBApp"' ios/Podfile.properties.json; then
+          # Verify forceStaticLinking contains RNFBApp (the value is a JSON string)
+          # The format is: "ios.forceStaticLinking": "[\"RNFBApp\",\"RNFBAnalytics\",\"RNFBMessaging\"]"
+          if grep -q '"ios.forceStaticLinking".*RNFBApp' ios/Podfile.properties.json; then
             echo "✅ Firebase static linking configuration is correct"
           else
             echo "❌ Firebase static linking configuration is missing or incorrect"
-            echo "   Expected: \"ios.forceStaticLinking\": \"[\\\"RNFBApp\\\",\\\"RNFBAnalytics\\\",\\\"RNFBMessaging\\\"]\""
             exit 1
           fi
 
