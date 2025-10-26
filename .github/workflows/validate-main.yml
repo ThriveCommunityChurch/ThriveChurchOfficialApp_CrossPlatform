@@ -386,6 +386,17 @@ jobs:
         env:
           EXPO_NO_TELEMETRY: 1
 
+      # Generate temporary debug keystore for CI builds
+      # This allows the release build to be signed with a debug key for validation purposes
+      # Local builds will use their own keystores (not committed to version control)
+      - name: Generate debug keystore for CI
+        run: |
+          keytool -genkey -v -keystore android/app/debug.keystore \
+            -storepass android -alias androiddebugkey -keypass android \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
+          echo "✅ Debug keystore generated for CI build"
+
       # Configure Gradle for CI (build only arm64-v8a to speed up CI)
       - name: Configure Gradle for CI
         run: |
