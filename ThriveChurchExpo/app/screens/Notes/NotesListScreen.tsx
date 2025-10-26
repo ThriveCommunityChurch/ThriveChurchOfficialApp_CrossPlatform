@@ -178,9 +178,27 @@ export const NotesListScreen: React.FC = () => {
         </TouchableOpacity>
       ),
     });
-  }, [navigation, isEditMode]);
+  }, [navigation, isEditMode, notes]);
+
+  /**
+   * Helper function to check if a note is unsaved/empty
+   */
+  const isUnsavedNote = (note: Note): boolean => {
+    const content = note.content.trim();
+    return content === '' || content === 'New Note';
+  };
 
   const handleAddNote = async () => {
+    // Check if there's already an unsaved note
+    const existingUnsavedNote = notes.find(isUnsavedNote);
+
+    if (existingUnsavedNote) {
+      // Navigate to the existing unsaved note instead of creating a new one
+      navigation.navigate('NoteDetail', { noteId: existingUnsavedNote.id });
+      return;
+    }
+
+    // No unsaved note exists, create a new one
     const newNote = await createNote('');
     setNotes([newNote, ...notes]);
 

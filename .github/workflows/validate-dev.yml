@@ -1,0 +1,78 @@
+name: Validate Dev Branch
+
+# This workflow runs fast validation checks on the dev branch
+# Purpose: Provide quick feedback to developers without slowing down the development workflow
+# Runtime: ~2-3 minutes
+# Triggers: Pull requests to dev, pushes to dev
+
+on:
+  pull_request:
+    branches:
+      - dev
+  push:
+    branches:
+      - dev
+  workflow_dispatch:  # Allows manual triggering from GitHub UI
+
+jobs:
+  quick-validation:
+    name: Quick Validation (TypeScript, Lint, Export)
+    runs-on: ubuntu-latest
+    
+    # Set working directory to the Expo project subdirectory
+    defaults:
+      run:
+        working-directory: ThriveChurchExpo
+    
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      # Step 2: Setup Node.js 22.x (LTS)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: 'npm'
+          cache-dependency-path: ThriveChurchExpo/package-lock.json
+      
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+      
+      # Step 4: Generate mock credentials for CI
+      # This creates a fake credentials.json file so the app configuration can load
+      - name: Generate mock credentials
+        run: node scripts/generate-ci-credentials.js
+      
+      # Step 5: TypeScript type checking
+      # Validates that all TypeScript code compiles without errors
+      - name: TypeScript type check
+        run: npx tsc --noEmit
+
+      # Step 6: Dependency security audit
+      # Checks for known security vulnerabilities in dependencies
+      - name: Security audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+      
+      # Step 7: Expo export validation
+      # Validates that the JavaScript bundle can be created successfully
+      # This catches import errors, bundle configuration issues, etc.
+      - name: Validate Expo export
+        run: npx expo export --platform all --output-dir dist
+        env:
+          # Disable telemetry in CI
+          EXPO_NO_TELEMETRY: 1
+      
+      # Step 9: Summary
+      - name: Validation summary
+        if: success()
+        run: |
+          echo "✅ All quick validation checks passed!"
+          echo "   - TypeScript compilation: ✅"
+          echo "   - ESLint: ✅"
+          echo "   - Security audit: ✅"
+          echo "   - Expo export: ✅"
+

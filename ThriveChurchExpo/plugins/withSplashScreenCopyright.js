@@ -186,7 +186,7 @@ const withAndroidSplashCopyright = (config) => {
         android:id="@+id/splashscreen_image"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:src="@drawable/splashscreen"
+        android:src="@drawable/splashscreen_logo"
         android:scaleType="centerCrop"
         android:contentDescription="@null" />
 

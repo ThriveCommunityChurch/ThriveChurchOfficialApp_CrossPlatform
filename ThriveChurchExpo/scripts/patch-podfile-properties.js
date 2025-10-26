@@ -36,9 +36,11 @@ try {
 
   // Check current value
   const currentValue = properties['ios.forceStaticLinking'];
-  console.log(`   Current value: ${currentValue}`);
+  console.log(`   Current value: ${JSON.stringify(currentValue)}`);
 
   // Update the forceStaticLinking property
+  // NOTE: This must be a JSON string (not an array) because expo-modules-autolinking
+  // calls JSON.parse() on this value in autolinking_manager.rb line 43
   const newValue = JSON.stringify(FORCE_STATIC_LINKING_PODS);
   properties['ios.forceStaticLinking'] = newValue;
 
@@ -50,7 +52,7 @@ try {
   );
 
   console.log(`   New value: ${newValue}`);
-  console.log('Successfully patched ios/Podfile.properties.json');
+  console.log('✅ Successfully patched ios/Podfile.properties.json');
   console.log('   You can now run: cd ios && pod install');
 
 } catch (error) {

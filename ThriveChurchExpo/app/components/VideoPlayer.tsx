@@ -207,10 +207,10 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   playerContainer: {
     position: 'relative',
-    backgroundColor: theme.colors.backgroundDark, // ← ONLY COLOR CHANGED
+    backgroundColor: theme.colors.background, // ← ONLY COLOR CHANGED
   },
   webView: {
-    backgroundColor: theme.colors.backgroundDark, // ← ONLY COLOR CHANGED
+    backgroundColor: theme.colors.background, // ← ONLY COLOR CHANGED
   },
   loadingOverlay: {
     position: 'absolute',
