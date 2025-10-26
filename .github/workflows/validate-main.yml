@@ -7,9 +7,12 @@ name: Validate Main Branch
 #
 # Execution Flow:
 #   1. Quick Validation (TypeScript, Expo export)
-#   2. iOS Prebuild + Android Prebuild (run in parallel)
-#   3. iOS Build + Android Build (run in parallel after both prebuilds succeed)
+#   2. iOS Prebuild (Linux) + Android Prebuild (Linux) - run in parallel
+#   3. iOS Build (macOS, uses artifacts from iOS Prebuild) + Android Build (Linux) - run in parallel
 #   4. Summary (reports overall status)
+#
+# Note: iOS prebuild runs on Linux (cheaper) and uploads artifacts.
+#       iOS build runs on macOS (required for Xcode) and downloads artifacts.
 
 on:
   pull_request:
@@ -189,6 +192,18 @@ jobs:
             exit 1
           fi
       
+      # Upload iOS artifacts for the build job
+      - name: Upload iOS prebuild artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-prebuild-artifacts
+          path: |
+            ios/
+            node_modules/
+            package.json
+            package-lock.json
+          retention-days: 1
+
       - name: iOS prebuild summary
         if: success()
         run: |
@@ -197,6 +212,7 @@ jobs:
           echo "   - Firebase static linking patch: ✅"
           echo "   - RNTrackPlayer bridging headers: ✅"
           echo "   - Xcode project generation: ✅"
+          echo "   - Artifacts uploaded: ✅"
 
   # ============================================
   # JOB 3: iOS Xcode Build (Full Compilation)
@@ -204,7 +220,7 @@ jobs:
   ios-build:
     name: iOS Xcode Build
     runs-on: macos-latest
-    needs: [ios-prebuild, android-prebuild]
+    needs: ios-prebuild
 
     defaults:
       run:
@@ -218,11 +234,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22.x'
-          cache: 'npm'
-          cache-dependency-path: ThriveChurchExpo/package-lock.json
 
-      - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+      # Download prebuild artifacts from ios-prebuild job
+      - name: Download iOS prebuild artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-prebuild-artifacts
+          path: ThriveChurchExpo
 
       - name: Generate mock credentials
         run: node scripts/generate-ci-credentials.js
@@ -268,20 +286,6 @@ jobs:
           </dict>
           </plist>
           EOF
-
-      # Run expo prebuild for iOS
-      - name: Run Expo prebuild for iOS
-        run: npx expo prebuild --platform ios --no-install
-        env:
-          EXPO_NO_TELEMETRY: 1
-
-      # Apply Firebase static linking patch
-      - name: Apply Firebase static linking patch
-        run: node scripts/patch-podfile-properties.js
-
-      # Copy react-native-track-player bridging headers
-      - name: Copy react-native-track-player bridging headers
-        run: node scripts/copy-track-player-headers.js
 
       # Cache CocoaPods
       - name: Cache CocoaPods
