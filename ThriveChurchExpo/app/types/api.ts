@@ -25,6 +25,7 @@ export interface SermonMessage {
   Summary?: string;
   Date: string;
   MessageId: string;
+  SeriesId?: string;
   WeekNum?: number;
   DownloadedOn?: number;
   LocalAudioURI?: string;

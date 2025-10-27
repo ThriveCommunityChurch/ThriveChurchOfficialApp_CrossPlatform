@@ -161,7 +161,7 @@ export const SearchScreen: React.FC = () => {
           message,
           seriesTitle: message.seriesTitle || 'Sermon',
           seriesArtUrl: message.seriesArt || '',
-          seriesId: '', // TODO: Add seriesId to message if available
+          seriesId: message.SeriesId || '',
         });
       }
     },
