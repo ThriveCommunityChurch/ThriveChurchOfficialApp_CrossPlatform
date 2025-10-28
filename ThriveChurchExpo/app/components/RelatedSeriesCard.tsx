@@ -52,6 +52,7 @@ export const RelatedSeriesCard: React.FC<RelatedSeriesCardProps> = ({
   // Display up to 5 tags from the series
   const displayTags = series.Tags?.slice(0, 5) || [];
 
+  // Always use full-size layout with metadata under image
   return (
     <TouchableOpacity
       style={styles.container}
@@ -68,7 +69,7 @@ export const RelatedSeriesCard: React.FC<RelatedSeriesCardProps> = ({
         />
 
         {/* Metadata Row */}
-        <View style={styles.metadataRow}>
+        <View style={styles.metadataRowVertical}>
           <View style={styles.metadataItem}>
             <Ionicons name="albums" size={14} color={theme.colors.textSecondary} />
             <Text style={styles.metadataText}>{messageCount} Messages</Text>
@@ -137,7 +138,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   content: {
     flex: 1,
     marginLeft: 16,
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
   },
   title: {
     fontSize: 16,
@@ -151,7 +152,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     marginBottom: 8,
     lineHeight: 18,
   },
-  metadataRow: {
+  metadataRowVertical: {
     flexDirection: 'column',
     gap: 4,
     width: 160,

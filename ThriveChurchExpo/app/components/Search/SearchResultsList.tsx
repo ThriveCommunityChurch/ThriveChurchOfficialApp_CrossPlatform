@@ -3,7 +3,7 @@
  * Displays search results using FlashList for optimal performance
  */
 
-import React, { useMemo, useRef, useEffect } from 'react';
+import React, { useMemo, useRef, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -35,6 +35,9 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
   const { theme } = useTheme();
   const styles = createStyles(theme);
 
+  // Track if FlashList has completed its first render cycle
+  const [flashListLoaded, setFlashListLoaded] = useState(false);
+
   // Animated value for skeleton shimmer effect
   const shimmerAnim = useRef(new Animated.Value(0.3)).current;
 
@@ -43,6 +46,11 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
 
   // Estimated item size for FlashList
   const estimatedItemSize = isSeries ? 280 : 200;
+
+  // Reset FlashList loaded state when results change
+  useEffect(() => {
+    setFlashListLoaded(false);
+  }, [results]);
 
   // Start shimmer animation when loading
   useEffect(() => {
@@ -68,43 +76,82 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
     }
   }, [isLoading, shimmerAnim]);
 
+  // Handle FlashList onLoad - called after first render cycle completes
+  const handleFlashListLoad = () => {
+    setFlashListLoaded(true);
+  };
+
+  // Render message skeleton that matches SearchMessageCard structure
+  const renderMessageSkeleton = (index: number) => (
+    <View key={index} style={styles.skeleton}>
+      <Animated.View style={{ opacity: shimmerAnim }}>
+        {/* Title - 2 lines */}
+        <View style={[styles.skeletonLine, { height: 20, marginBottom: 8 }]} />
+        <View style={[styles.skeletonLine, { height: 20, width: '70%', marginBottom: 12 }]} />
+
+        {/* Summary - 3 lines */}
+        <View style={[styles.skeletonLine, { height: 14, marginBottom: 6 }]} />
+        <View style={[styles.skeletonLine, { height: 14, marginBottom: 6 }]} />
+        <View style={[styles.skeletonLine, { height: 14, width: '80%', marginBottom: 12 }]} />
+
+        {/* Metadata row - speaker and date */}
+        <View style={{ flexDirection: 'row', gap: 16, marginBottom: 12 }}>
+          <View style={[styles.skeletonLine, { height: 14, width: 100 }]} />
+          <View style={[styles.skeletonLine, { height: 14, width: 80 }]} />
+        </View>
+
+        {/* Media row - audio, video, duration */}
+        <View style={{ flexDirection: 'row', gap: 16 }}>
+          <View style={[styles.skeletonLine, { height: 14, width: 60 }]} />
+          <View style={[styles.skeletonLine, { height: 14, width: 60 }]} />
+          <View style={[styles.skeletonLine, { height: 14, width: 50 }]} />
+        </View>
+      </Animated.View>
+    </View>
+  );
+
+  // Render series skeleton that matches RelatedSeriesCard structure
+  const renderSeriesSkeleton = (index: number) => (
+    <View key={index} style={[styles.skeleton, { flexDirection: 'row' }]}>
+      <Animated.View style={{ opacity: shimmerAnim }}>
+        {/* Artwork */}
+        <View style={[styles.skeletonImage, { width: 160, height: 90, marginBottom: 0 }]} />
+      </Animated.View>
+
+      <View style={{ flex: 1, marginLeft: 16 }}>
+        <Animated.View style={{ opacity: shimmerAnim }}>
+          {/* Title - 2 lines */}
+          <View style={[styles.skeletonLine, { height: 16, marginBottom: 4 }]} />
+          <View style={[styles.skeletonLine, { height: 16, width: '60%', marginBottom: 8 }]} />
+
+          {/* Summary - 2 lines */}
+          <View style={[styles.skeletonLine, { height: 13, marginBottom: 4 }]} />
+          <View style={[styles.skeletonLine, { height: 13, width: '75%', marginBottom: 8 }]} />
+
+          {/* Metadata row */}
+          <View style={{ flexDirection: 'row', gap: 12, marginBottom: 8 }}>
+            <View style={[styles.skeletonLine, { height: 12, width: 90 }]} />
+            <View style={[styles.skeletonLine, { height: 12, width: 110 }]} />
+          </View>
+
+          {/* Tags */}
+          <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap' }}>
+            <View style={[styles.skeletonLine, { height: 22, width: 70, borderRadius: 12 }]} />
+            <View style={[styles.skeletonLine, { height: 22, width: 90, borderRadius: 12 }]} />
+            <View style={[styles.skeletonLine, { height: 22, width: 60, borderRadius: 12 }]} />
+          </View>
+        </Animated.View>
+      </View>
+    </View>
+  );
+
   // Render loading skeletons with shimmer animation
   const renderLoadingSkeletons = () => {
     return (
       <View style={styles.skeletonsContainer}>
-        {[1, 2, 3, 4, 5].map((index) => (
-          <View
-            key={index}
-            style={[
-              styles.skeleton,
-              isSeries ? styles.skeletonSeries : styles.skeletonMessage,
-            ]}
-          >
-            <View style={styles.skeletonContent}>
-              <Animated.View
-                style={[
-                  styles.skeletonImage,
-                  { opacity: shimmerAnim },
-                ]}
-              />
-              <View style={styles.skeletonText}>
-                <Animated.View
-                  style={[
-                    styles.skeletonLine,
-                    { opacity: shimmerAnim },
-                  ]}
-                />
-                <Animated.View
-                  style={[
-                    styles.skeletonLine,
-                    styles.skeletonLineShort,
-                    { opacity: shimmerAnim },
-                  ]}
-                />
-              </View>
-            </View>
-          </View>
-        ))}
+        {[1, 2, 3, 4, 5].map((index) =>
+          isSeries ? renderSeriesSkeleton(index) : renderMessageSkeleton(index)
+        )}
       </View>
     );
   };
@@ -178,7 +225,7 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
     }
   };
 
-  // Show loading skeletons
+  // Show loading skeletons during API fetch
   if (isLoading) {
     return renderLoadingSkeletons();
   }
@@ -191,17 +238,25 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
   return (
     <View style={styles.container}>
       {renderHeader()}
-      <FlashList
-        key={`${searchTarget}-${results.length}`}
-        data={results}
-        renderItem={renderItem}
-        keyExtractor={keyExtractor}
-        estimatedItemSize={estimatedItemSize}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={true}
-        extraData={results}
-        removeClippedSubviews={false}
-      />
+      <View style={{ flex: 1, position: 'relative' }}>
+        <FlashList
+          key={searchTarget}
+          data={results}
+          renderItem={renderItem}
+          keyExtractor={keyExtractor}
+          estimatedItemSize={estimatedItemSize}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={true}
+          removeClippedSubviews={true}
+          onLoad={handleFlashListLoad}
+        />
+        {/* Show skeletons overlay during FlashList's first render cycle */}
+        {!flashListLoaded && (
+          <View style={styles.skeletonOverlay}>
+            {renderLoadingSkeletons()}
+          </View>
+        )}
+      </View>
     </View>
   );
 };
@@ -260,35 +315,35 @@ const createStyles = (theme: Theme) =>
     skeleton: {
       backgroundColor: theme.colors.card,
       borderRadius: 12,
-      marginBottom: 16,
-      overflow: 'hidden',
-    },
-    skeletonSeries: {
-      height: 260,
-    },
-    skeletonMessage: {
-      height: 100,
-    },
-    skeletonContent: {
       padding: 16,
+      marginBottom: 12,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      shadowColor: theme.colors.shadowDark,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
     },
     skeletonImage: {
       width: '100%',
-      height: 120,
+      height: 140,
       backgroundColor: theme.colors.border,
       borderRadius: 8,
       marginBottom: 12,
     },
-    skeletonText: {
-      gap: 8,
-    },
     skeletonLine: {
-      height: 16,
       backgroundColor: theme.colors.border,
       borderRadius: 4,
     },
-    skeletonLineShort: {
-      width: '60%',
+    skeletonOverlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: theme.colors.background,
+      zIndex: 10,
     },
   });
 
