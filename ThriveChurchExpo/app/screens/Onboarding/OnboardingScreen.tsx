@@ -8,17 +8,22 @@ import {
   FlatList,
   ViewToken,
   Image,
+  Animated,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../hooks/useTheme';
 import type { Theme } from '../../theme/types';
 import { setOnboardingCompleted } from '../../services/storage/storage';
 import { logTutorialBegin, logTutorialComplete } from '../../services/analytics/analyticsService';
 
-const { width, height } = Dimensions.get('window');
+// Responsive breakpoint: use logical width for device-independent pixels
+const SMALL_SCREEN_BREAKPOINT = 414; // iPhone Plus/XR/11 and below use icon design
 
 interface OnboardingPage {
   id: string;
   imageName: string;
+  iconName: keyof typeof Ionicons.glyphMap;
   headerText: string;
   bodyText: string;
 }
@@ -27,32 +32,203 @@ const pages: OnboardingPage[] = [
   {
     id: '1',
     imageName: 'listen_img',
-    headerText: 'Take us with you on the go!',
-    bodyText: "Whether you're traveling or under the weather, you'll never miss a sermon series with our automatic weekly updates. Download sermons for listening in the car, at work or at the gym. You can even stream your favorite messages in Full HD!",
+    iconName: 'headset',
+    headerText: 'Stream & Download Sermons',
+    bodyText: "Never miss a message! Stream sermons in Full HD or download them for offline listening. Whether you're commuting, at the gym, or traveling, take our weekly messages with you wherever you go.",
   },
   {
     id: '2',
     imageName: 'bible_img',
-    headerText: 'Read The Entire Bible!',
-    bodyText: "With the power of YouVersion and bible.com, the entire English Standard Version (ESV) of the bible is available at your fingertips. Take your bible with you, wherever you go.",
+    iconName: 'book',
+    headerText: 'Read the Bible Anywhere',
+    bodyText: "Access the complete English Standard Version (ESV) Bible powered by YouVersion. Read, search, and explore scripture with an intuitive interface designed for daily devotion and study.",
   },
   {
     id: '3',
+    imageName: 'connect_img',
+    iconName: 'people',
+    headerText: 'Stay Connected with Thrive',
+    bodyText: "Get the latest church announcements, upcoming events, and community updates. Connect with our team, submit prayer requests, and stay engaged with everything happening at Thrive Community Church.",
+  },
+  {
+    id: '4',
+    imageName: 'search_img',
+    iconName: 'search',
+    headerText: 'Search & Discover Content',
+    bodyText: "Easily find sermons by topic, speaker, or series. Use powerful search and filtering tools to discover messages that speak to your current season and spiritual journey.",
+  },
+  {
+    id: '5',
     imageName: 'final_img',
-    headerText: 'Ready To Get Started?',
-    bodyText: "Tap DONE below to dive in and experience Thrive Community Church",
+    iconName: 'heart',
+    headerText: 'Welcome to Thrive Community Church',
+    bodyText: "You're all set! Dive in and experience everything Thrive has to offer. We're excited to have you join our community and grow in faith together.",
   },
 ];
+
+// Image assets mapping - will gracefully fallback to icon design if images don't exist
+// Note: Images should be placed in ThriveChurchExpo/assets/images/onboarding/
+// Expected filenames: listen_img.png, bible_img.png, connect_img.png, search_img.png, final_img_light.png, final_img_dark.png
+
+// Pre-load all available images to avoid dynamic require issues
+const imageAssets = {
+  listen_img: require('../../../assets/images/onboarding/listen_img.png'),
+  bible_img: require('../../../assets/images/onboarding/bible_img.png'),
+  final_img_dark: require('../../../assets/images/onboarding/final_img_dark.png'),
+  // Images below don't exist yet - will be added later
+  // connect_img: require('../../../assets/images/onboarding/connect_img.png'),
+  // search_img: require('../../../assets/images/onboarding/search_img.png'),
+  // final_img_light: require('../../../assets/images/onboarding/final_img_light.png'),
+};
+
+const getImageAsset = (imageName: string, isDarkMode: boolean): any | null => {
+  try {
+    // Handle theme-aware final image
+    if (imageName === 'final_img') {
+      if (isDarkMode) {
+        return imageAssets.final_img_dark || null;
+      } else {
+        // Light mode version doesn't exist yet, return null to trigger fallback
+        return null; // Will use: imageAssets.final_img_light when available
+      }
+    }
+
+    // Handle other images
+    return (imageAssets as any)[imageName] || null;
+  } catch (error) {
+    // Image doesn't exist, return null to trigger fallback
+    return null;
+  }
+};
 
 interface OnboardingScreenProps {
   onComplete: () => void;
 }
 
+// Component: Animated Icon with Gradient Background (for small screens)
+interface AnimatedIconWithGradientProps {
+  iconName: keyof typeof Ionicons.glyphMap;
+  theme: Theme;
+  screenWidth: number;
+}
+
+const AnimatedIconWithGradient: React.FC<AnimatedIconWithGradientProps> = ({ iconName, theme, screenWidth }) => {
+  const scaleAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    // Entrance animation
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      tension: 50,
+      friction: 7,
+      useNativeDriver: true,
+    }).start();
+  }, [scaleAnim]);
+
+  // Create gradient colors from primary to a lighter version
+  const gradientColors: [string, string] = [
+    theme.colors.primary,
+    theme.colors.primaryLight,
+  ];
+
+  const iconSize = screenWidth * 0.25; // 25% of screen width
+  const containerSize = screenWidth * 0.5; // 50% of screen width
+
+  return (
+    <Animated.View
+      style={{
+        transform: [{ scale: scaleAnim }],
+      }}
+    >
+      <LinearGradient
+        colors={gradientColors}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{
+          width: containerSize,
+          height: containerSize,
+          borderRadius: containerSize / 2,
+          alignItems: 'center',
+          justifyContent: 'center',
+          shadowColor: theme.colors.shadowDark,
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 8,
+          elevation: 8,
+        }}
+      >
+        <Ionicons
+          name={iconName}
+          size={iconSize}
+          color={theme.colors.textInverse}
+        />
+      </LinearGradient>
+    </Animated.View>
+  );
+};
+
+// Component: Image with Fallback (for large screens)
+interface ImageWithFallbackProps {
+  imageName: string;
+  iconName: keyof typeof Ionicons.glyphMap;
+  theme: Theme;
+  screenWidth: number;
+}
+
+const ImageWithFallback: React.FC<ImageWithFallbackProps> = ({ imageName, iconName, theme, screenWidth }) => {
+  const [imageError, setImageError] = useState(false);
+  const imageSource = getImageAsset(imageName, theme.isDark);
+
+  // If image doesn't exist or fails to load, show the icon design
+  if (!imageSource || imageError) {
+    console.log(`[ImageWithFallback] Falling back to icon for "${imageName}" (isDark: ${theme.isDark}) - imageSource:`, !!imageSource, 'imageError:', imageError);
+    return <AnimatedIconWithGradient iconName={iconName} theme={theme} screenWidth={screenWidth} />;
+  }
+
+  console.log(`[ImageWithFallback] Rendering image for "${imageName}" (isDark: ${theme.isDark})`);
+
+  return (
+    <Image
+      source={imageSource}
+      style={{
+        width: screenWidth * 0.6,
+        height: screenWidth * 0.6,
+        borderRadius: 20,
+      }}
+      resizeMode="contain"
+      onError={() => setImageError(true)}
+    />
+  );
+};
+
 export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
   const { theme } = useTheme();
-  const styles = createStyles(theme);
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
+
+  // Track screen dimensions dynamically
+  const [screenDimensions, setScreenDimensions] = useState(() => {
+    const { width, height } = Dimensions.get('window');
+    return { width, height };
+  });
+
+  const styles = createStyles(theme, screenDimensions.width, screenDimensions.height);
+  const isSmallScreen = screenDimensions.width < SMALL_SCREEN_BREAKPOINT;
+
+  // Listen for dimension changes (e.g., rotation)
+  useEffect(() => {
+    // Log initial dimensions for debugging
+    console.log('[Onboarding] Screen dimensions:', screenDimensions);
+    console.log('[Onboarding] Is small screen?', isSmallScreen);
+    console.log('[Onboarding] Breakpoint:', SMALL_SCREEN_BREAKPOINT);
+
+    const subscription = Dimensions.addEventListener('change', ({ window }) => {
+      console.log('[Onboarding] Dimensions changed:', window);
+      setScreenDimensions({ width: window.width, height: window.height });
+    });
+
+    return () => subscription?.remove();
+  }, [screenDimensions, isSmallScreen]);
 
   // Log tutorial begin on mount
   useEffect(() => {
@@ -100,13 +276,26 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
   }).current;
 
   const renderPage = useCallback(({ item }: { item: OnboardingPage }) => {
+    console.log(`[renderPage] Rendering "${item.headerText}" - isSmallScreen:`, isSmallScreen);
     return (
       <View style={styles.page}>
         <View style={styles.imageContainer}>
-          {/* Placeholder for image - in production, use actual images */}
-          <View style={styles.imagePlaceholder}>
-            <Text style={[theme.typography.h1 as any, { color: theme.colors.primary }]}>📱</Text>
-          </View>
+          {isSmallScreen ? (
+            // Small screens: Animated Icon with Gradient Background
+            <AnimatedIconWithGradient
+              iconName={item.iconName}
+              theme={theme}
+              screenWidth={screenDimensions.width}
+            />
+          ) : (
+            // Large screens: Display images (with fallback to icon design)
+            <ImageWithFallback
+              imageName={item.imageName}
+              iconName={item.iconName}
+              theme={theme}
+              screenWidth={screenDimensions.width}
+            />
+          )}
         </View>
 
         <View style={styles.textContainer}>
@@ -119,7 +308,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
         </View>
       </View>
     );
-  }, [theme]);
+  }, [theme, isSmallScreen, screenDimensions.width]);
 
   const renderDots = useCallback(() => {
     return (
@@ -193,7 +382,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
   );
 }
 
-const createStyles = (theme: Theme) => StyleSheet.create({
+const createStyles = (theme: Theme, width: number, height: number) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background, // ← ONLY COLOR CHANGED
@@ -206,10 +395,10 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     paddingHorizontal: 32,
   },
   imageContainer: {
-    flex: 1,
+    flex: 0.7,
     alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 60,
+    justifyContent: 'flex-end',
+    marginTop: 40,
   },
   imagePlaceholder: {
     width: width * 0.6,
@@ -220,7 +409,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     justifyContent: 'center',
   },
   textContainer: {
-    flex: 1,
+    flex: 1.3,
     alignItems: 'center',
     justifyContent: 'flex-start',
     paddingTop: 40,
