@@ -356,16 +356,6 @@ export default function NowPlayingScreen() {
             </Text>
           </TouchableOpacity>
         </View>
-
-        {/* Status Indicator */}
-        {player.isLoading && (
-          <Text style={[
-            isTablet ? theme.typography.body as any : theme.typography.caption as any,
-            { textAlign: 'center', color: theme.colors.textSecondary, marginTop: isTablet ? 24 : 16 }
-          ]}>
-            Buffering...
-          </Text>
-        )}
       </View>
     </View>
   );
