@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -34,13 +34,25 @@ export const ProgressSlider: React.FC<ProgressSliderProps> = ({
   const styles = createStyles(theme);
   const [sliderWidth, setSliderWidth] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [dragValue, setDragValue] = useState(value);
 
   // Use theme colors as defaults if not provided
   const minTrackColor = minimumTrackTintColor || theme.colors.primary;
   const maxTrackColor = maximumTrackTintColor || theme.colors.card;
   const thumbColor = thumbTintColor || theme.colors.primary;
 
-  const progress = maximumValue > 0 ? value / maximumValue : 0;
+  // Sync dragValue with external value when NOT dragging
+  // This keeps the slider in sync with playback position during normal playback
+  useEffect(() => {
+    if (!isDragging) {
+      setDragValue(value);
+    }
+  }, [value, isDragging]);
+
+  // Use dragValue while dragging (uncontrolled), otherwise use external value (controlled)
+  // This prevents the slider from fighting against incoming prop updates during drag
+  const currentValue = isDragging ? dragValue : value;
+  const progress = maximumValue > 0 ? currentValue / maximumValue : 0;
 
   const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
@@ -54,14 +66,19 @@ export const ProgressSlider: React.FC<ProgressSliderProps> = ({
       handleTouch(evt);
     },
     onPanResponderRelease: (evt: GestureResponderEvent) => {
-      setIsDragging(false);
       const newValue = calculateValue(evt.nativeEvent.locationX);
+      setIsDragging(false);
+      // Reset dragValue to sync with external value after drag completes
+      setDragValue(newValue);
       onSlidingComplete?.(newValue);
     },
   });
 
   const handleTouch = (evt: GestureResponderEvent) => {
     const newValue = calculateValue(evt.nativeEvent.locationX);
+    // Update internal drag value immediately for responsive UI
+    setDragValue(newValue);
+    // Notify parent of the change
     onValueChange?.(newValue);
   };
 
