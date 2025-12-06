@@ -10,6 +10,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as rssParser from 'react-native-rss-parser';
 import { FlashList } from '@shopify/flash-list';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 import { setCurrentScreen, logViewAnnouncements } from '../../services/analytics/analyticsService';
 
@@ -34,9 +35,10 @@ interface RSSCardProps {
   item: RSSItem;
   onPress: (item: RSSItem) => void;
   theme: Theme;
+  t: (key: string) => string;
 }
 
-const RSSCard: React.FC<RSSCardProps> = ({ item, onPress, theme }) => {
+const RSSCard: React.FC<RSSCardProps> = ({ item, onPress, theme, t }) => {
   const styles = createStyles(theme);
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
@@ -88,7 +90,7 @@ const RSSCard: React.FC<RSSCardProps> = ({ item, onPress, theme }) => {
         <View style={styles.cardContent}>
           <View style={styles.textContainer}>
             <Text style={styles.title} numberOfLines={2}>
-              {item.title || 'Untitled'}
+              {item.title || t('connect.rss.untitled')}
             </Text>
             <Text style={styles.date}>
               {formatDate(item.pubDate)}
@@ -103,6 +105,7 @@ const RSSCard: React.FC<RSSCardProps> = ({ item, onPress, theme }) => {
 
 export default function RSSScreen() {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme);
   const navigation = useNavigation<NavigationProp>();
   const [loading, setLoading] = React.useState(true);
@@ -132,10 +135,10 @@ export default function RSSScreen() {
       })
       .catch((err) => {
         console.error('RSS Feed parsing failed:', err);
-        setError('Unable to load announcements. Please try again later.');
+        setError(t('connect.rss.errorMessage'));
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [t]);
 
   const handleItemPress = (item: RSSItem) => {
     const date = item.pubDate ? new Date(item.pubDate).toLocaleDateString('en-US', {
@@ -146,14 +149,14 @@ export default function RSSScreen() {
     }) : '';
 
     navigation.navigate('RSSDetail', {
-      title: item.title || 'Announcement',
+      title: item.title || t('connect.rss.announcement'),
       content: item.content || item.contentSnippet || '',
       date,
     });
   };
 
   const renderItem = ({ item }: { item: RSSItem }) => (
-    <RSSCard item={item} onPress={handleItemPress} theme={theme} />
+    <RSSCard item={item} onPress={handleItemPress} theme={theme} t={t} />
   );
 
   const keyExtractor = (item: RSSItem, index: number) =>

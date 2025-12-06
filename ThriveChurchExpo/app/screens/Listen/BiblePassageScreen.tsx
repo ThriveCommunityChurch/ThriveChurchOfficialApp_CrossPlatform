@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import TrackPlayer, { State } from 'react-native-track-player';
 import BiblePassageReader from '../../components/BiblePassageReader';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 import { SermonMessage } from '../../types/api';
 import { setCurrentScreen, logViewBible, logPlayBibleAudio } from '../../services/analytics/analyticsService';
@@ -34,6 +35,7 @@ const BiblePassageScreen: React.FC = () => {
   const navigation = useNavigation<BiblePassageScreenNavigationProp>();
   const route = useRoute<BiblePassageScreenRouteProp>();
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme);
 
   const { message, seriesTitle } = route.params;
@@ -78,7 +80,7 @@ const BiblePassageScreen: React.FC = () => {
 
   const handlePlayAudio = useCallback(async () => {
     if (!message.PassageRef) {
-      Alert.alert('Error', 'No Bible passage reference available');
+      Alert.alert(t('biblePassage.error'), t('biblePassage.noPassageReference'));
       return;
     }
 
@@ -89,9 +91,9 @@ const BiblePassageScreen: React.FC = () => {
       const apiStatus = esvApiService.getApiStatus();
       if (!apiStatus.isConfigured) {
         Alert.alert(
-          'ESV API Not Configured',
-          'To listen to Bible audio, you need to:\n\n1. Get a free API key from api.esv.org\n2. Add it to your app configuration\n\nThe ESV API is free for non-commercial use.',
-          [{ text: 'OK' }]
+          t('biblePassage.esvApiNotConfigured'),
+          t('biblePassage.esvApiMessage'),
+          [{ text: t('biblePassage.ok') }]
         );
         return;
       }
@@ -128,12 +130,12 @@ const BiblePassageScreen: React.FC = () => {
       console.error('Error playing Bible audio:', error);
       setIsLoadingAudio(false); // Clear loading state on error
       Alert.alert(
-        'Audio Playback Error',
-        'Unable to play Bible audio. Please check your internet connection and try again.',
-        [{ text: 'OK' }]
+        t('biblePassage.audioPlaybackError'),
+        t('biblePassage.unableToPlayAudio'),
+        [{ text: t('biblePassage.ok') }]
       );
     }
-  }, [message]);
+  }, [message, t]);
 
   const handleStopAudio = useCallback(async () => {
     try {
@@ -156,8 +158,8 @@ const BiblePassageScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>No Bible passage available</Text>
-          <Text style={styles.errorSubtext}>This sermon doesn't have a Bible passage reference</Text>
+          <Text style={styles.errorText}>{t('biblePassage.noPassageAvailable')}</Text>
+          <Text style={styles.errorSubtext}>{t('biblePassage.noPassageMessage')}</Text>
         </View>
       </SafeAreaView>
     );

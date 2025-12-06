@@ -9,6 +9,7 @@ import {
   Image,
 } from 'react-native';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 import { SermonMessage } from '../../types/api';
 import { getAllDownloadedMessages } from '../../services/storage/storage';
@@ -97,6 +98,7 @@ const DownloadItem: React.FC<DownloadItemProps> = ({ item, onPress, theme }) => 
 
 export default function DownloadsScreen() {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const [downloads, setDownloads] = useState<SermonMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -131,24 +133,24 @@ export default function DownloadsScreen() {
   const handleMessagePress = useCallback((message: SermonMessage) => {
     Alert.alert(
       message.Title,
-      'Please select an action',
+      t('listen.downloads.selectAction'),
       [
         {
-          text: 'Listen',
+          text: t('listen.downloads.listen'),
           onPress: () => handleListen(message),
         },
         {
-          text: 'Remove Download',
+          text: t('listen.downloads.removeDownload'),
           style: 'destructive',
           onPress: () => handleDelete(message),
         },
         {
-          text: 'Cancel',
+          text: t('common.cancel'),
           style: 'cancel',
         },
       ]
     );
-  }, []);
+  }, [t]);
 
   const handleListen = useCallback(async (message: SermonMessage) => {
     try {
@@ -160,21 +162,21 @@ export default function DownloadsScreen() {
       });
     } catch (error) {
       console.error('Error playing downloaded message:', error);
-      Alert.alert('Error', 'Failed to play audio. Please try again.');
+      Alert.alert(t('common.error'), t('listen.downloads.errorPlayAudio'));
     }
-  }, [player]);
+  }, [player, t]);
 
   const handleDelete = useCallback(async (message: SermonMessage) => {
     Alert.alert(
-      'Remove Download',
-      `Are you sure you want to remove "${message.Title}"?`,
+      t('listen.downloads.removeTitle'),
+      t('listen.downloads.removeMessage', { title: message.Title }),
       [
         {
-          text: 'Cancel',
+          text: t('common.cancel'),
           style: 'cancel',
         },
         {
-          text: 'Remove',
+          text: t('listen.downloads.remove'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -182,13 +184,13 @@ export default function DownloadsScreen() {
               await loadDownloads();
             } catch (error) {
               console.error('Error deleting download:', error);
-              Alert.alert('Error', 'Failed to remove download. Please try again.');
+              Alert.alert(t('common.error'), t('listen.downloads.errorRemove'));
             }
           },
         },
       ]
     );
-  }, [loadDownloads]);
+  }, [loadDownloads, t]);
 
   const renderDownloadItem = useCallback(({ item }: { item: SermonMessage }) => {
     return <DownloadItem item={item} onPress={handleMessagePress} theme={theme} />;
@@ -197,13 +199,13 @@ export default function DownloadsScreen() {
   const renderEmptyState = useCallback(() => (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}>
       <Text style={[theme.typography.h2 as any, { textAlign: 'center', marginBottom: 16 }]}>
-        No Downloads
+        {t('listen.downloads.empty')}
       </Text>
       <Text style={[theme.typography.body as any, { textAlign: 'center', color: theme.colors.textTertiary }]}>
-        Downloaded sermons will appear here for offline listening
+        {t('listen.downloads.emptyDescription')}
       </Text>
     </View>
-  ), [theme]);
+  ), [theme, t]);
 
   if (loading) {
     return (

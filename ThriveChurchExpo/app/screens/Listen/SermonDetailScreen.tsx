@@ -17,6 +17,7 @@ import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useQuery } from '@tanstack/react-query';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 import { SermonMessage, SermonSeries } from '../../types/api';
 import { api } from '../../services/api/client';
@@ -42,6 +43,7 @@ export const SermonDetailScreen: React.FC = () => {
   const { message, seriesTitle, seriesArtUrl, seriesId } = route.params;
   const player = usePlayer();
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme);
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
@@ -166,13 +168,13 @@ export const SermonDetailScreen: React.FC = () => {
       });
     } catch (error) {
       console.error('Error playing audio:', error);
-      Alert.alert('Error', 'Failed to play audio. Please check your connection and try again.');
+      Alert.alert(t('common.error'), t('listen.sermon.errorPlayAudio'));
     }
-  }, [player, message, displaySeriesTitle, displaySeriesArtUrl, downloaded]);
+  }, [player, message, displaySeriesTitle, displaySeriesArtUrl, downloaded, t]);
 
   const handlePlayVideo = useCallback(() => {
     if (!message.VideoUrl) {
-      Alert.alert('No Video', 'This sermon does not have a video available.');
+      Alert.alert(t('listen.sermon.noVideo'), t('listen.sermon.noVideoMessage'));
       return;
     }
 
@@ -180,11 +182,11 @@ export const SermonDetailScreen: React.FC = () => {
       message,
       seriesTitle: displaySeriesTitle,
     });
-  }, [navigation, message, displaySeriesTitle]);
+  }, [navigation, message, displaySeriesTitle, t]);
 
   const handleReadPassage = useCallback(() => {
     if (!message.PassageRef) {
-      Alert.alert('No Passage', 'This sermon does not have a Bible passage reference.');
+      Alert.alert(t('listen.sermon.noPassage'), t('listen.sermon.noPassageMessage'));
       return;
     }
 
@@ -192,11 +194,11 @@ export const SermonDetailScreen: React.FC = () => {
       message,
       seriesTitle: displaySeriesTitle,
     });
-  }, [navigation, message, displaySeriesTitle]);
+  }, [navigation, message, displaySeriesTitle, t]);
 
   const handleDownload = useCallback(async () => {
     if (!message.AudioUrl) {
-      Alert.alert('Error', 'No audio available for download');
+      Alert.alert(t('common.error'), t('listen.sermon.noAudioDownload'));
       return;
     }
 
@@ -222,39 +224,39 @@ export const SermonDetailScreen: React.FC = () => {
       // Track sermon download event
       await logDownloadSermon(message.MessageId, message.Title);
 
-      Alert.alert('Success', 'Sermon downloaded successfully');
+      Alert.alert(t('common.success'), t('listen.sermon.downloadSuccess'));
     } catch (error) {
       console.error('Download error:', error);
-      Alert.alert('Download Failed', 'Failed to download sermon. Please try again.');
+      Alert.alert(t('common.error'), t('listen.sermon.downloadFailed'));
     } finally {
       setDownloading(false);
       setDownloadProgress(0);
     }
-  }, [message, displaySeriesTitle, displaySeriesArtUrl]);
+  }, [message, displaySeriesTitle, displaySeriesArtUrl, t]);
 
   const handleDeleteDownload = useCallback(async () => {
     Alert.alert(
-      'Remove Download',
-      'Are you sure you want to remove this downloaded sermon?',
+      t('listen.sermon.removeDownloadTitle'),
+      t('listen.sermon.removeDownloadMessage'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Remove',
+          text: t('listen.sermon.remove'),
           style: 'destructive',
           onPress: async () => {
             try {
               await deleteDownload(message.MessageId);
               setDownloaded(false);
-              Alert.alert('Success', 'Download removed successfully');
+              Alert.alert(t('common.success'), t('listen.sermon.removeSuccess'));
             } catch (error) {
               console.error('Delete error:', error);
-              Alert.alert('Error', 'Failed to remove download');
+              Alert.alert(t('common.error'), t('listen.sermon.removeFailed'));
             }
           },
         },
       ]
     );
-  }, [message.MessageId]);
+  }, [message.MessageId, t]);
 
   const hasAudio = !!message.AudioUrl;
   const hasVideo = !!message.VideoUrl;
@@ -311,7 +313,7 @@ export const SermonDetailScreen: React.FC = () => {
                             activeOpacity={0.8}
                           >
                             <Ionicons name="play" size={20} color={theme.colors.textInverse} />
-                            <Text style={styles.tabletHeroPrimaryButtonText}>Play Audio</Text>
+                            <Text style={styles.tabletHeroPrimaryButtonText}>{t('listen.sermon.playAudio')}</Text>
                           </TouchableOpacity>
                         )}
 
@@ -322,7 +324,7 @@ export const SermonDetailScreen: React.FC = () => {
                             activeOpacity={0.8}
                           >
                             <Ionicons name="videocam" size={20} color={theme.colors.textInverse} />
-                            <Text style={styles.tabletHeroSecondaryButtonText}>Watch Video</Text>
+                            <Text style={styles.tabletHeroSecondaryButtonText}>{t('listen.sermon.playVideo')}</Text>
                           </TouchableOpacity>
                         )}
                       </View>
@@ -340,7 +342,7 @@ export const SermonDetailScreen: React.FC = () => {
                         activeOpacity={0.8}
                       >
                         <Ionicons name="play" size={20} color={theme.colors.textInverse} />
-                        <Text style={styles.tabletHeroPrimaryButtonText}>Play Audio</Text>
+                        <Text style={styles.tabletHeroPrimaryButtonText}>{t('listen.sermon.playAudio')}</Text>
                       </TouchableOpacity>
                     )}
 
@@ -351,7 +353,7 @@ export const SermonDetailScreen: React.FC = () => {
                         activeOpacity={0.8}
                       >
                         <Ionicons name="videocam" size={20} color={theme.colors.textInverse} />
-                        <Text style={styles.tabletHeroSecondaryButtonText}>Watch Video</Text>
+                        <Text style={styles.tabletHeroSecondaryButtonText}>{t('listen.sermon.playVideo')}</Text>
                       </TouchableOpacity>
                     )}
                   </View>
@@ -366,13 +368,13 @@ export const SermonDetailScreen: React.FC = () => {
           <View style={styles.tabletSidebar}>
             {/* Metadata Cards */}
             <View style={styles.tabletMetadataSection}>
-              <Text style={styles.tabletSectionTitle}>Details</Text>
+              <Text style={styles.tabletSectionTitle}>{t('listen.sermon.details')}</Text>
 
               {/* Week Card */}
               <View style={styles.tabletMetadataCard}>
                 <Ionicons name="calendar-outline" size={20} color={theme.colors.primary} />
                 <View style={styles.tabletMetadataCardContent}>
-                  <Text style={styles.tabletMetadataLabel}>Week</Text>
+                  <Text style={styles.tabletMetadataLabel}>{t('listen.sermon.week')}</Text>
                   <Text style={styles.tabletMetadataValue}>{messageWithWeek.WeekNum ?? '—'}</Text>
                 </View>
               </View>
@@ -382,7 +384,7 @@ export const SermonDetailScreen: React.FC = () => {
                 <View style={styles.tabletMetadataCard}>
                   <Ionicons name="person" size={20} color={theme.colors.primary} />
                   <View style={styles.tabletMetadataCardContent}>
-                    <Text style={styles.tabletMetadataLabel}>Speaker</Text>
+                    <Text style={styles.tabletMetadataLabel}>{t('listen.speaker')}</Text>
                     <Text style={styles.tabletMetadataValue}>{message.Speaker}</Text>
                   </View>
                 </View>
@@ -393,7 +395,7 @@ export const SermonDetailScreen: React.FC = () => {
                 <View style={styles.tabletMetadataCard}>
                   <Ionicons name="calendar" size={20} color={theme.colors.primary} />
                   <View style={styles.tabletMetadataCardContent}>
-                    <Text style={styles.tabletMetadataLabel}>Date</Text>
+                    <Text style={styles.tabletMetadataLabel}>{t('listen.sermon.date')}</Text>
                     <Text style={styles.tabletMetadataValue}>{formatDate(message.Date)}</Text>
                   </View>
                 </View>
@@ -404,7 +406,7 @@ export const SermonDetailScreen: React.FC = () => {
                 <View style={styles.tabletMetadataCard}>
                   <Ionicons name="time" size={20} color={theme.colors.primary} />
                   <View style={styles.tabletMetadataCardContent}>
-                    <Text style={styles.tabletMetadataLabel}>Duration</Text>
+                    <Text style={styles.tabletMetadataLabel}>{t('listen.sermon.duration')}</Text>
                     <Text style={styles.tabletMetadataValue}>{formatDuration(message.AudioDuration)}</Text>
                   </View>
                 </View>
@@ -431,7 +433,7 @@ export const SermonDetailScreen: React.FC = () => {
               >
                 <Ionicons name="book" size={24} color={theme.colors.primary} />
                 <View style={styles.tabletSidebarPassageContent}>
-                  <Text style={styles.tabletSidebarPassageLabel}>Scripture</Text>
+                  <Text style={styles.tabletSidebarPassageLabel}>{t('listen.scripture')}</Text>
                   <Text style={styles.tabletSidebarPassageText}>{message.PassageRef}</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
@@ -443,7 +445,7 @@ export const SermonDetailScreen: React.FC = () => {
               {downloaded && (
                 <View style={styles.tabletDownloadedBadge}>
                   <Ionicons name="checkmark-circle" size={20} color={theme.colors.success} />
-                  <Text style={styles.tabletDownloadedText}>Downloaded</Text>
+                  <Text style={styles.tabletDownloadedText}>{t('listen.sermon.downloaded')}</Text>
                 </View>
               )}
 
@@ -472,7 +474,7 @@ export const SermonDetailScreen: React.FC = () => {
                         color={theme.colors.text}
                       />
                       <Text style={styles.tabletDownloadButtonText}>
-                        {downloaded ? 'Remove Download' : 'Download'}
+                        {downloaded ? t('listen.sermon.removeDownload') : t('listen.sermon.download')}
                       </Text>
                     </>
                   )}
@@ -486,7 +488,7 @@ export const SermonDetailScreen: React.FC = () => {
             {/* Summary Section */}
             {message.Summary && (
               <View style={styles.tabletSection}>
-                <Text style={styles.tabletSectionTitle}>About This Message</Text>
+                <Text style={styles.tabletSectionTitle}>{t('listen.aboutThisMessage')}</Text>
                 <View style={styles.tabletSummaryCard}>
                   <Text style={styles.tabletSummaryText}>{message.Summary}</Text>
                 </View>
@@ -543,7 +545,7 @@ export const SermonDetailScreen: React.FC = () => {
           {/* Week Badge */}
           <View style={styles.weekBadge}>
             <Text style={styles.weekNumber}>{messageWithWeek.WeekNum ?? '—'}</Text>
-            <Text style={styles.weekLabel}>Week</Text>
+            <Text style={styles.weekLabel}>{t('listen.sermon.week')}</Text>
           </View>
 
           {/* Sermon Title */}
@@ -598,7 +600,7 @@ export const SermonDetailScreen: React.FC = () => {
             >
               <Ionicons name="book" size={24} color={theme.colors.primary} />
               <View style={styles.passageContent}>
-                <Text style={styles.passageLabel}>Scripture Reference</Text>
+                <Text style={styles.passageLabel}>{t('listen.scriptureReference')}</Text>
                 <Text style={styles.passageText}>{message.PassageRef}</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
@@ -608,7 +610,7 @@ export const SermonDetailScreen: React.FC = () => {
           {/* Summary Section */}
           {message.Summary && (
             <View style={styles.summaryCard}>
-              <Text style={styles.summaryLabel}>About This Message</Text>
+              <Text style={styles.summaryLabel}>{t('listen.aboutThisMessage')}</Text>
               <Text style={styles.summaryText}>{message.Summary}</Text>
             </View>
           )}
@@ -637,7 +639,7 @@ export const SermonDetailScreen: React.FC = () => {
           {downloaded && (
             <View style={styles.downloadedBadge}>
               <Ionicons name="checkmark-circle" size={18} color={theme.colors.success} />
-              <Text style={styles.downloadedText}>Downloaded</Text>
+              <Text style={styles.downloadedText}>{t('listen.sermon.downloaded')}</Text>
             </View>
           )}
 
@@ -651,7 +653,7 @@ export const SermonDetailScreen: React.FC = () => {
                 activeOpacity={0.8}
               >
                 <Ionicons name="play" size={24} color={theme.colors.textInverse} />
-                <Text style={styles.primaryButtonText}>Play Audio</Text>
+                <Text style={styles.primaryButtonText}>{t('listen.sermon.playAudio')}</Text>
               </TouchableOpacity>
             )}
 
@@ -695,7 +697,7 @@ export const SermonDetailScreen: React.FC = () => {
                         color={theme.colors.text}
                       />
                       <Text style={styles.secondaryButtonText}>
-                        {downloaded ? 'Remove' : 'Download'}
+                        {downloaded ? t('listen.sermon.remove') : t('listen.sermon.download')}
                       </Text>
                     </>
                   )}
@@ -714,7 +716,7 @@ export const SermonDetailScreen: React.FC = () => {
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
         <Text style={[styles.summaryText, { marginTop: 16 }]}>
-          Loading sermon details...
+          {t('listen.sermon.loadingDetails')}
         </Text>
       </View>
     );

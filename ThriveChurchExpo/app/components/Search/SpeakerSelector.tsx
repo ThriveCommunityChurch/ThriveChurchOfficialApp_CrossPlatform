@@ -19,6 +19,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { useQuery } from '@tanstack/react-query';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 import { getSpeakers } from '../../services/api/sermonSearchService';
 
@@ -34,6 +35,7 @@ export const SpeakerSelector: React.FC<SpeakerSelectorProps> = ({
   onClearSpeaker,
 }) => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme);
   const [modalVisible, setModalVisible] = useState(false);
   const [searchText, setSearchText] = useState('');
@@ -124,7 +126,7 @@ export const SpeakerSelector: React.FC<SpeakerSelectorProps> = ({
       <TouchableOpacity style={styles.selectSpeakerButton} onPress={handleOpenModal} activeOpacity={0.7}>
         <Ionicons name="person-add-outline" size={24} color={theme.colors.primary} />
         <Text style={styles.selectSpeakerButtonText}>
-          {selectedSpeaker ? 'Change Speaker' : 'Select Speaker'}
+          {selectedSpeaker ? t('components.speakerSelector.changeSpeaker') : t('components.speakerSelector.selectSpeaker')}
         </Text>
       </TouchableOpacity>
 
@@ -138,7 +140,7 @@ export const SpeakerSelector: React.FC<SpeakerSelectorProps> = ({
         <View style={styles.modalContainer}>
           {/* Modal Header */}
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Select Speaker</Text>
+            <Text style={styles.modalTitle}>{t('components.speakerSelector.modalTitle')}</Text>
             <TouchableOpacity onPress={handleCloseModal} style={styles.modalCloseButton}>
               <Ionicons name="close" size={28} color={theme.colors.text} />
             </TouchableOpacity>
@@ -154,7 +156,7 @@ export const SpeakerSelector: React.FC<SpeakerSelectorProps> = ({
             />
             <TextInput
               style={styles.modalSearchInput}
-              placeholder="Search speakers..."
+              placeholder={t('components.speakerSelector.searchPlaceholder')}
               placeholderTextColor={theme.colors.textTertiary}
               value={searchText}
               onChangeText={setSearchText}
@@ -175,14 +177,14 @@ export const SpeakerSelector: React.FC<SpeakerSelectorProps> = ({
               // Loading State
               <View style={styles.modalLoadingState}>
                 <ActivityIndicator size="large" color={theme.colors.primary} />
-                <Text style={styles.modalLoadingText}>Loading speakers...</Text>
+                <Text style={styles.modalLoadingText}>{t('components.speakerSelector.loading')}</Text>
               </View>
             ) : isError ? (
               // Error State
               <View style={styles.modalErrorState}>
                 <Ionicons name="alert-circle-outline" size={48} color={theme.colors.error} />
-                <Text style={styles.modalErrorText}>Failed to load speakers</Text>
-                <Text style={styles.modalErrorSubtext}>Please try again later</Text>
+                <Text style={styles.modalErrorText}>{t('components.speakerSelector.loadFailed')}</Text>
+                <Text style={styles.modalErrorSubtext}>{t('components.speakerSelector.tryAgainLater')}</Text>
               </View>
             ) : (
               // Speakers List
@@ -197,10 +199,10 @@ export const SpeakerSelector: React.FC<SpeakerSelectorProps> = ({
                   <View style={styles.modalEmptyState}>
                     <Ionicons name="search-outline" size={48} color={theme.colors.textTertiary} />
                     <Text style={styles.modalEmptyText}>
-                      {searchText ? 'No speakers found' : 'No speakers available'}
+                      {searchText ? t('components.speakerSelector.noSpeakersFound') : t('components.speakerSelector.noSpeakersAvailable')}
                     </Text>
                     <Text style={styles.modalEmptySubtext}>
-                      {searchText ? 'Try a different search term' : 'Check back later'}
+                      {searchText ? t('components.speakerSelector.tryDifferentSearch') : t('components.speakerSelector.checkBackLater')}
                     </Text>
                   </View>
                 }

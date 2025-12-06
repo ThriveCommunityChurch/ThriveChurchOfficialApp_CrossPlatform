@@ -19,6 +19,7 @@ import { Note } from '../../types/notes';
 import { getNotes, createNote, deleteNote } from '../../services/storage/storage';
 import { setCurrentScreen, logCreateNote } from '../../services/analytics/analyticsService';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 
 type NotesStackParamList = {
@@ -34,9 +35,10 @@ interface NoteCardProps {
   onDelete: (note: Note) => void;
   isEditMode: boolean;
   theme: Theme;
+  t: (key: string) => string;
 }
 
-const NoteCard: React.FC<NoteCardProps> = ({ note, onPress, onDelete, isEditMode, theme }) => {
+const NoteCard: React.FC<NoteCardProps> = ({ note, onPress, onDelete, isEditMode, theme, t }) => {
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
   const styles = createStyles(theme);
 
@@ -59,11 +61,11 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onPress, onDelete, isEditMode
   // Extract title and preview from content
   const getDisplayText = () => {
     const content = note.content.trim();
-    
+
     if (!content || content === 'New Note') {
       return {
-        title: 'New Note',
-        preview: 'Tap to start writing...',
+        title: t('notes.newNote'),
+        preview: t('notes.list.tapToStart'),
         isEmpty: true,
       };
     }
@@ -73,7 +75,7 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onPress, onDelete, isEditMode
     const remainingLines = lines.slice(1).join(' ').trim();
 
     return {
-      title: firstLine || 'Note',
+      title: firstLine || t('notes.list.note'),
       preview: remainingLines || null,
       isEmpty: false,
     };
@@ -118,7 +120,7 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onPress, onDelete, isEditMode
             style={styles.deleteButton}
             onPress={() => onDelete(note)}
           >
-            <Text style={styles.deleteButtonText}>Delete</Text>
+            <Text style={styles.deleteButtonText}>{t('notes.list.delete')}</Text>
           </TouchableOpacity>
         )}
       </Animated.View>
@@ -129,6 +131,7 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onPress, onDelete, isEditMode
 export const NotesListScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme);
   const [notes, setNotes] = useState<Note[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -165,7 +168,7 @@ export const NotesListScreen: React.FC = () => {
           style={styles.headerButton}
         >
           <Text style={styles.headerButtonText}>
-            {isEditMode ? 'Done' : 'Edit'}
+            {isEditMode ? t('notes.list.done') : t('notes.list.edit')}
           </Text>
         </TouchableOpacity>
       ),
@@ -178,7 +181,7 @@ export const NotesListScreen: React.FC = () => {
         </TouchableOpacity>
       ),
     });
-  }, [navigation, isEditMode, notes]);
+  }, [navigation, isEditMode, notes, t]);
 
   /**
    * Helper function to check if a note is unsaved/empty
@@ -214,14 +217,14 @@ export const NotesListScreen: React.FC = () => {
     }
   };
 
-  const handleDeleteNote = (note: Note) => {
+  const handleDeleteNote = useCallback((note: Note) => {
     Alert.alert(
-      'Delete Note',
-      'Are you sure you want to delete this note?',
+      t('notes.list.deleteTitle'),
+      t('notes.list.deleteMessage'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('notes.list.delete'),
           style: 'destructive',
           onPress: async () => {
             await deleteNote(note.id);
@@ -230,7 +233,7 @@ export const NotesListScreen: React.FC = () => {
         },
       ]
     );
-  };
+  }, [t, loadNotes]);
 
   const renderNote = ({ item }: { item: Note }) => (
     <NoteCard
@@ -239,6 +242,7 @@ export const NotesListScreen: React.FC = () => {
       onDelete={handleDeleteNote}
       isEditMode={isEditMode}
       theme={theme}
+      t={t}
     />
   );
 

@@ -5,6 +5,7 @@ import FastImage from 'react-native-fast-image';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { api } from '../../services/api/client';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import OfflineBanner from '../../components/OfflineBanner';
 import { SermonSeriesSummary, SermonsSummaryPagedResponse } from '../../types/api';
 import { setCurrentScreen } from '../../services/analytics/analyticsService';
@@ -78,6 +79,7 @@ const SeriesRow = React.memo<SeriesRowProps>(({ row, cardWidth, cardHeight, onSe
 export default function ListenScreen({ onSeriesPress }: ListenScreenProps) {
   const { width, height } = useWindowDimensions();
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const isTablet = Math.min(width, height) >= 768;
   const isLandscape = width > height;
 
@@ -204,10 +206,10 @@ export default function ListenScreen({ onSeriesPress }: ListenScreenProps) {
       <View style={{ flex: 1, backgroundColor: theme.colors.background, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}>
         <OfflineBanner />
         <Text style={[theme.typography.h2 as any, { textAlign: 'center', marginBottom: 16 }]}>
-          An error occurred while loading content
+          {t('listen.error')}
         </Text>
         <Text style={[theme.typography.body as any, { textAlign: 'center', color: theme.colors.textTertiary }]}>
-          Check your internet connection and try again
+          {t('listen.errorMessage')}
         </Text>
       </View>
     );

@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { View, Text, TouchableOpacity, AppState, AppStateStatus, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/useTheme';
+import { useTranslation } from '../hooks/useTranslation';
 import type { Theme } from '../theme/types';
 import OfflineBanner from '../components/OfflineBanner';
 import { linking } from './linking';
@@ -99,6 +100,8 @@ const createNavigationTheme = (theme: Theme): NavigationTheme => {
 };
 
 function ListenStackNavigator({ theme }: { theme: Theme }) {
+  const { t } = useTranslation();
+
   return (
     <ListenStack.Navigator
       screenOptions={{
@@ -110,12 +113,12 @@ function ListenStackNavigator({ theme }: { theme: Theme }) {
       <ListenStack.Screen
         name="ListenHome"
         options={({ navigation }) => ({
-          title: 'Listen',
+          title: t('navigation.listen'),
           headerLeft: () => (
             <TouchableOpacity
               onPress={() => navigation.navigate('Search')}
               style={{ marginLeft: 16 }}
-              accessibilityLabel="Search"
+              accessibilityLabel={t('listen.search.title')}
               accessibilityRole="button"
             >
               <Ionicons name="search" size={24} color={theme.colors.text} />
@@ -126,7 +129,7 @@ function ListenStackNavigator({ theme }: { theme: Theme }) {
               <TouchableOpacity
                 onPress={() => navigation.navigate('NowPlaying')}
                 style={{ marginRight: 16 }}
-                accessibilityLabel="Now Playing"
+                accessibilityLabel={t('navigation.nowPlaying')}
                 accessibilityRole="button"
               >
                 <Ionicons name="play-circle" size={24} color={theme.colors.text} />
@@ -134,14 +137,14 @@ function ListenStackNavigator({ theme }: { theme: Theme }) {
               <TouchableOpacity
                 onPress={() => navigation.navigate('RecentlyPlayed')}
                 style={{ marginRight: 16 }}
-                accessibilityLabel="Recently Played"
+                accessibilityLabel={t('navigation.recentlyPlayed')}
                 accessibilityRole="button"
               >
                 <Ionicons name="time-outline" size={24} color={theme.colors.text} />
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => navigation.navigate('Downloads')}
-                accessibilityLabel="Downloads"
+                accessibilityLabel={t('listen.downloads.title')}
                 accessibilityRole="button"
               >
                 <Ionicons name="download-outline" size={24} color={theme.colors.text} />
@@ -165,16 +168,16 @@ function ListenStackNavigator({ theme }: { theme: Theme }) {
         name="Search"
         component={SearchScreen}
         options={{
-          title: 'Search',
-          headerBackTitle: 'Listen',
+          title: t('listen.search.title'),
+          headerBackTitle: t('navigation.listen'),
           headerTitleAlign: 'center',
         }}
       />
       <ListenStack.Screen
         name="SeriesDetail"
         options={({ route }: any) => ({
-          title: route.params?.seriesTitle || 'Series',
-          headerBackTitle: 'Listen'
+          title: route.params?.seriesTitle || t('navigation.series'),
+          headerBackTitle: t('navigation.listen')
         })}
       >
         {({ route }: any) => (
@@ -188,8 +191,8 @@ function ListenStackNavigator({ theme }: { theme: Theme }) {
         name="SermonDetail"
         component={SermonDetailScreen}
         options={{
-          title: 'Sermon',
-          headerBackTitle: 'Series',
+          title: t('navigation.sermon'),
+          headerBackTitle: t('navigation.series'),
           headerTitleAlign: 'center',
         }}
       />
@@ -197,8 +200,8 @@ function ListenStackNavigator({ theme }: { theme: Theme }) {
         name="NowPlaying"
         component={NowPlayingScreen}
         options={{
-          title: 'Now Playing',
-          headerBackTitle: 'Listen',
+          title: t('navigation.nowPlaying'),
+          headerBackTitle: t('navigation.listen'),
           headerTitleAlign: 'center',
         }}
       />
@@ -206,8 +209,8 @@ function ListenStackNavigator({ theme }: { theme: Theme }) {
         name="RecentlyPlayed"
         component={RecentlyPlayedScreen}
         options={{
-          title: 'Recently Played',
-          headerBackTitle: 'Listen',
+          title: t('navigation.recentlyPlayed'),
+          headerBackTitle: t('navigation.listen'),
           headerTitleAlign: 'center',
         }}
       />
@@ -215,8 +218,8 @@ function ListenStackNavigator({ theme }: { theme: Theme }) {
         name="Downloads"
         component={DownloadsScreen}
         options={{
-          title: 'Downloads',
-          headerBackTitle: 'Listen',
+          title: t('listen.downloads.title'),
+          headerBackTitle: t('navigation.listen'),
           headerTitleAlign: 'center',
         }}
       />
@@ -239,6 +242,8 @@ function ListenStackNavigator({ theme }: { theme: Theme }) {
 }
 
 function BibleStackNavigator({ theme }: { theme: Theme }) {
+  const { t } = useTranslation();
+
   return (
     <BibleStack.Navigator
       screenOptions={{
@@ -251,15 +256,15 @@ function BibleStackNavigator({ theme }: { theme: Theme }) {
         name="BibleSelection"
         component={BibleSelectionScreen}
         options={{
-          title: 'Bible',
+          title: t('navigation.bible'),
         }}
       />
       <BibleStack.Screen
         name="BookList"
         component={BookListScreen}
         options={({ route }: any) => ({
-          title: route.params?.title || 'Bible',
-          headerBackTitle: 'Bible',
+          title: route.params?.title || t('navigation.bible'),
+          headerBackTitle: t('navigation.bible'),
         })}
       />
     </BibleStack.Navigator>
@@ -267,6 +272,8 @@ function BibleStackNavigator({ theme }: { theme: Theme }) {
 }
 
 function NotesStackNavigator({ theme }: { theme: Theme }) {
+  const { t } = useTranslation();
+
   return (
     <NotesStack.Navigator
       screenOptions={{
@@ -279,15 +286,15 @@ function NotesStackNavigator({ theme }: { theme: Theme }) {
         name="NotesList"
         component={NotesListScreen}
         options={{
-          title: 'Notes',
+          title: t('navigation.notes'),
         }}
       />
       <NotesStack.Screen
         name="NoteDetail"
         component={NoteDetailScreen}
         options={{
-          title: 'Notes',
-          headerBackTitle: 'Notes',
+          title: t('navigation.notes'),
+          headerBackTitle: t('navigation.notes'),
         }}
       />
     </NotesStack.Navigator>
@@ -295,6 +302,8 @@ function NotesStackNavigator({ theme }: { theme: Theme }) {
 }
 
 function ConnectStackNavigator({ theme }: { theme: Theme }) {
+  const { t } = useTranslation();
+
   return (
     <ConnectStack.Navigator
       screenOptions={{
@@ -307,31 +316,31 @@ function ConnectStackNavigator({ theme }: { theme: Theme }) {
         name="ConnectHome"
         component={ConnectScreen}
         options={{
-          title: 'Connect',
+          title: t('navigation.connect'),
         }}
       />
       <ConnectStack.Screen
         name="RSSAnnouncements"
         component={RSSScreen}
         options={{
-          title: 'Announcements',
-          headerBackTitle: 'Connect',
+          title: t('connect.announcements.title'),
+          headerBackTitle: t('navigation.connect'),
         }}
       />
       <ConnectStack.Screen
         name="RSSDetail"
         component={RSSDetailScreen}
         options={({ route }: any) => ({
-          title: route.params?.date || 'Announcement',
-          headerBackTitle: 'Announcements',
+          title: route.params?.date || t('connect.announcements.announcement'),
+          headerBackTitle: t('connect.announcements.title'),
         })}
       />
       <ConnectStack.Screen
         name="WebViewForm"
         component={WebViewScreen}
         options={({ route }: any) => ({
-          title: route.params?.title || 'Form',
-          headerBackTitle: 'Connect',
+          title: route.params?.title || t('navigation.form'),
+          headerBackTitle: t('navigation.connect'),
         })}
       />
     </ConnectStack.Navigator>
@@ -339,6 +348,8 @@ function ConnectStackNavigator({ theme }: { theme: Theme }) {
 }
 
 function MoreStackNavigator({ theme }: { theme: Theme }) {
+  const { t } = useTranslation();
+
   return (
     <MoreStack.Navigator
       screenOptions={{
@@ -351,23 +362,23 @@ function MoreStackNavigator({ theme }: { theme: Theme }) {
         name="MoreHome"
         component={MoreScreen}
         options={{
-          title: 'More',
+          title: t('navigation.more'),
         }}
       />
       <MoreStack.Screen
         name="Settings"
         component={SettingsScreen}
         options={{
-          title: 'Settings',
-          headerBackTitle: 'More',
+          title: t('navigation.settings'),
+          headerBackTitle: t('navigation.more'),
         }}
       />
       <MoreStack.Screen
         name="WebView"
         component={WebViewScreen}
         options={({ route }: any) => ({
-          title: route.params?.title || 'Page',
-          headerBackTitle: 'More',
+          title: route.params?.title || t('navigation.page'),
+          headerBackTitle: t('navigation.more'),
         })}
       />
     </MoreStack.Navigator>
@@ -376,6 +387,7 @@ function MoreStackNavigator({ theme }: { theme: Theme }) {
 
 export function RootNavigator() {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [isCheckingOnboarding, setIsCheckingOnboarding] = useState(true);
   const navigationRef = useRef<any>(null);
@@ -491,6 +503,7 @@ export function RootNavigator() {
           name="Listen"
           options={{
             headerShown: false,
+            tabBarLabel: t('navigation.listen'),
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="headset" size={size} color={color} />
             ),
@@ -502,6 +515,7 @@ export function RootNavigator() {
           name="Bible"
           options={{
             headerShown: false,
+            tabBarLabel: t('navigation.bible'),
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="book" size={size} color={color} />
             ),
@@ -513,6 +527,7 @@ export function RootNavigator() {
           name="Notes"
           options={{
             headerShown: false,
+            tabBarLabel: t('navigation.notes'),
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="create" size={size} color={color} />
             ),
@@ -524,6 +539,7 @@ export function RootNavigator() {
           name="Connect"
           options={{
             headerShown: false,
+            tabBarLabel: t('navigation.connect'),
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="people" size={size} color={color} />
             ),
@@ -535,6 +551,7 @@ export function RootNavigator() {
           name="More"
           options={{
             headerShown: false,
+            tabBarLabel: t('navigation.more'),
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="ellipsis-horizontal" size={size} color={color} />
             ),

@@ -1,0 +1,501 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "ok": "OK",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "done": "Done",
+    "close": "Close",
+    "back": "Back",
+    "prev": "PREV",
+    "next": "Next",
+    "skip": "Skip",
+    "getStarted": "Get Started",
+    "offline": "You are offline",
+    "noConnection": "No internet connection",
+    "tryAgain": "Try again",
+    "somethingWentWrong": "Something went wrong",
+    "checkConnection": "Check your internet connection and try again"
+  },
+  "navigation": {
+    "listen": "Listen",
+    "bible": "Bible",
+    "notes": "Notes",
+    "connect": "Connect",
+    "more": "More",
+    "settings": "Settings",
+    "nowPlaying": "Now Playing",
+    "recentlyPlayed": "Recently Played",
+    "downloads": "Downloads",
+    "search": "Search",
+    "series": "Series",
+    "sermon": "Sermon",
+    "announcements": "Announcements",
+    "announcement": "Announcement",
+    "form": "Form",
+    "page": "Page"
+  },
+  "onboarding": {
+    "page1Header": "Stream & Download Sermons",
+    "page1Body": "Never miss a message! Stream sermons in Full HD or download them for offline listening. Whether you're commuting, at the gym, or traveling, take our weekly messages with you wherever you go.",
+    "page2Header": "Read the Bible Anywhere",
+    "page2Body": "Access the complete English Standard Version (ESV) Bible powered by YouVersion. Read, search, and explore scripture with an intuitive interface designed for daily devotion and study.",
+    "page3Header": "Stay Connected with Thrive",
+    "page3Body": "Get the latest church announcements, upcoming events, and community updates. Connect with our team, submit prayer requests, and stay engaged with everything happening at Thrive Community Church.",
+    "page4Header": "Search & Discover Content",
+    "page4Body": "Easily find sermons by topic, speaker, or series. Use powerful search and filtering tools to discover messages that speak to your current season and spiritual journey.",
+    "page5Header": "Welcome to Thrive Community Church",
+    "page5Body": "You're all set! Dive in and experience everything Thrive has to offer. We're excited to have you join our community and grow in faith together.",
+    "skip": "Skip",
+    "next": "NEXT",
+    "done": "DONE"
+  },
+  "settings": {
+    "title": "Settings",
+    "loadingSettings": "Loading settings...",
+    "bibleTranslation": {
+      "title": "Bible Translation",
+      "label": "Translation"
+    },
+    "language": {
+      "title": "Language",
+      "label": "App Language",
+      "english": "English",
+      "englishDescription": "Display the app in English",
+      "enFullDescription": "English (United States)",
+      "spanish": "Spanish",
+      "spanishDescription": "Mostrar la aplicación en español",
+      "esFullDescription": "Spanish (Español)"
+    },
+    "appearance": {
+      "title": "Appearance",
+      "label": "Theme",
+      "auto": "Auto",
+      "autoDescription": "Match system settings",
+      "light": "Light",
+      "lightDescription": "Light mode",
+      "dark": "Dark",
+      "darkDescription": "Dark mode"
+    },
+    "system": {
+      "title": "System",
+      "deviceSettings": "Device Settings",
+      "deviceSettingsDescription": "Open device settings"
+    },
+    "alerts": {
+      "unableToOpenSettings": "Unable to Open Settings",
+      "unableToOpenSettingsMessage": "Could not open device settings. Please try again."
+    }
+  },
+  "listen": {
+    "title": "Listen",
+    "currentSeries": "Current Series",
+    "loading": "Loading content...",
+    "error": "An error occurred while loading content",
+    "errorMessage": "Check your internet connection and try again",
+    "noContent": "No content available",
+    "speakers": "Speakers",
+    "speaker": "Speaker",
+    "noSpeakers": "No speakers listed",
+    "topics": "Topics",
+    "noTopics": "No topics tagged",
+    "messages": "Messages",
+    "aboutThisMessage": "About This Message",
+    "scripture": "Scripture",
+    "scriptureReference": "Scripture Reference",
+    "sermon": {
+      "details": "Details",
+      "week": "Week",
+      "date": "Date",
+      "duration": "Duration",
+      "playAudio": "Play Audio",
+      "playVideo": "Play Video",
+      "download": "Download",
+      "downloaded": "Downloaded",
+      "remove": "Remove",
+      "removeDownload": "Remove Download",
+      "loadingDetails": "Loading sermon details...",
+      "errorPlayAudio": "Failed to play audio. Please check your connection and try again.",
+      "noVideo": "No Video",
+      "noVideoMessage": "This sermon does not have a video available.",
+      "noPassage": "No Passage",
+      "noPassageMessage": "This sermon does not have a Bible passage reference.",
+      "noAudioDownload": "No audio available for download",
+      "downloadSuccess": "Sermon downloaded successfully",
+      "downloadFailed": "Failed to download sermon. Please try again.",
+      "removeDownloadTitle": "Remove Download",
+      "removeDownloadMessage": "Are you sure you want to remove this downloaded sermon?",
+      "removeSuccess": "Download removed successfully",
+      "removeFailed": "Failed to remove download"
+    },
+    "search": {
+      "title": "Search",
+      "placeholder": "Search sermons...",
+      "selectSpeaker": "Select Speaker",
+      "selectTopics": "Select Topics",
+      "results": "Results",
+      "noResults": "No results found",
+      "loadingSpeakers": "Loading speakers...",
+      "errorLoadingSpeakers": "Failed to load speakers",
+      "tryAgainLater": "Please try again later",
+      "emptySpeaker": "Select a speaker to see their messages",
+      "emptySpeakerSubtext": "Choose a speaker to view all their sermon messages",
+      "emptyTags": "Select tags to search for content",
+      "emptyTagsSubtext": "Choose one or more topics to find related messages and series"
+    },
+    "downloads": {
+      "title": "Downloads",
+      "empty": "No Downloads",
+      "emptyDescription": "Downloaded sermons will appear here for offline listening",
+      "listen": "Listen",
+      "removeDownload": "Remove Download",
+      "selectAction": "Please select an action",
+      "errorPlayAudio": "Failed to play audio. Please try again.",
+      "removeTitle": "Remove Download",
+      "removeMessage": "Are you sure you want to remove \"{title}\"?",
+      "remove": "Remove",
+      "errorRemove": "Failed to remove download. Please try again."
+    },
+    "recentlyPlayed": {
+      "title": "Recently Played",
+      "empty": "No Recently Played",
+      "emptyDescription": "Sermons you listen to will appear here",
+      "listen": "Listen",
+      "watchHD": "Watch in HD",
+      "read": "Read",
+      "selectAction": "Please select an action",
+      "errorPlayAudio": "Failed to play audio. Please try again.",
+      "clearAll": "Clear All",
+      "clearAllTitle": "Clear Recently Played",
+      "clearAllMessage": "Are you sure you want to clear your recently played history?",
+      "clear": "Clear",
+      "sermon": "sermon",
+      "sermons": "sermons"
+    }
+  },
+  "bible": {
+    "title": "Bible",
+    "oldTestament": "Old Testament",
+    "newTestament": "New Testament",
+    "loading": "Loading passage...",
+    "error": "Failed to load Bible passage",
+    "noReference": "No passage reference provided",
+    "apiConfig": {
+      "title": "ESV API Configuration",
+      "message": "To use the Bible feature, you need to configure the ESV API key in the app settings."
+    },
+    "selection": {
+      "subtitle": "Choose a book order",
+      "traditionalTitle": "Traditional Order",
+      "traditionalDescription": "Browse books in biblical order\nGenesis → Malachi → Matthew → Revelation",
+      "alphabeticalTitle": "Alphabetical Order",
+      "alphabeticalDescription": "Browse books from A to Z\nActs → Amos → Colossians → Daniel",
+      "traditionalNavTitle": "Bible - Traditional",
+      "alphabeticalNavTitle": "Bible - Alphabetical"
+    }
+  },
+  "notes": {
+    "title": "Notes",
+    "newNote": "New Note",
+    "empty": "No notes yet",
+    "emptyDescription": "Create a note to get started",
+    "placeholder": "Start typing your note...",
+    "deleteConfirm": "Delete Note",
+    "deleteConfirmMessage": "Are you sure you want to delete this note?",
+    "deleteButton": "Delete",
+    "cancelButton": "Cancel",
+    "list": {
+      "edit": "Edit",
+      "done": "Done",
+      "delete": "Delete",
+      "note": "Note",
+      "tapToStart": "Tap to start writing...",
+      "deleteTitle": "Delete Note",
+      "deleteMessage": "Are you sure you want to delete this note?"
+    },
+    "detail": {
+      "placeholder": "Start typing...",
+      "emptyNote": "Empty Note",
+      "emptyNoteMessage": "There is no content to share.",
+      "shareError": "Error",
+      "shareErrorMessage": "Unable to share note. Please try again."
+    }
+  },
+  "connect": {
+    "title": "Connect",
+    "getDirections": "Get Directions",
+    "contactUs": "Contact Us",
+    "contactUsTitle": "Contact us",
+    "contactUsMessage": "Please select an option",
+    "announcements": "Announcements",
+    "loading": "Loading announcements...",
+    "error": "Failed to load announcements",
+    "empty": "No announcements available",
+    "menu": {
+      "contactTitle": "Contact us",
+      "contactSubtitle": "Email, call, or submit prayer requests",
+      "directionsTitle": "Get directions",
+      "announcementsTitle": "Announcements",
+      "announcementsSubtitle": "Latest church news and updates",
+      "smallGroupTitle": "Join a small group",
+      "smallGroupSubtitle": "Connect with others in community",
+      "serveTitle": "Serve",
+      "serveSubtitle": "Find ways to get involved",
+      "loadingConfigs": "Loading configurations...",
+      "emptyTitle": "No menu items available",
+      "emptySubtitle": "Pull down to refresh configurations",
+      "refreshTitle": "Pull to refresh configs",
+      "refreshError": "Error",
+      "refreshErrorMessage": "Failed to refresh configurations. Please try again."
+    },
+    "contact": {
+      "title": "Contact us",
+      "message": "Please select an option",
+      "emailUs": "Email us",
+      "callUs": "Call us",
+      "prayerRequest": "Submit a prayer request",
+      "prayerRequestTitle": "Prayer request",
+      "cancel": "Cancel",
+      "emailError": "Error",
+      "emailErrorMessage": "Unable to open email client",
+      "phoneError": "Error",
+      "phoneErrorMessage": "Unable to make phone call",
+      "mapsError": "Error",
+      "mapsErrorMessage": "Unable to open maps"
+    },
+    "rss": {
+      "untitled": "Untitled",
+      "announcement": "Announcement",
+      "errorMessage": "Unable to load announcements. Please try again later."
+    }
+  },
+  "more": {
+    "title": "More",
+    "menu": {
+      "imNewTitle": "I'm New",
+      "imNewSubtitle": "Learn about our church and community",
+      "giveTitle": "Give",
+      "giveSubtitle": "Support our mission and ministry",
+      "socialTitle": "Social",
+      "socialSubtitle": "Follow us on social media",
+      "teamTitle": "Meet the team",
+      "teamSubtitle": "Get to know our staff and leadership",
+      "bibleTitle": "Bible",
+      "bibleSubtitle": "Read scripture with YouVersion integration",
+      "settingsTitle": "Settings",
+      "settingsSubtitle": "Manage app preferences and notifications",
+      "sendLogsTitle": "Send Logs",
+      "sendLogsSubtitle": "Send diagnostic information to support",
+      "aboutTitle": "About",
+      "aboutSubtitle": "App version and information"
+    },
+    "give": {
+      "error": "Error",
+      "errorMessage": "Unable to open the giving page. Please try again later."
+    },
+    "social": {
+      "title": "Social",
+      "message": "Please select an option",
+      "facebook": "Facebook",
+      "instagram": "Instagram",
+      "x": "X",
+      "cancel": "Cancel",
+      "downloadAlert": "Alert",
+      "downloadFacebook": "You need to download the Facebook app first",
+      "downloadInstagram": "You need to download the Instagram app first",
+      "downloadX": "You need to download the X app first",
+      "download": "Download"
+    },
+    "sendLogs": {
+      "title": "Send Logs to Support",
+      "message": "Please describe any issues you're experiencing with the app:",
+      "subject": "Thrive {{platform}} - ID: {{feedbackId}}",
+      "deviceInfoError": "Error",
+      "deviceInfoErrorMessage": "Unable to retrieve device information. Please try again.",
+      "exportError": "Error",
+      "exportErrorMessage": "Unable to create log file. Please try again.",
+      "unableToSend": "Unable to Send Logs",
+      "noEmailIOS": "No email app is configured on this device. Please install and configure the Mail app or another email client to send logs.",
+      "noEmailAndroid": "No email app is installed on this device. Please install an email app (such as Gmail) to send logs.",
+      "genericError": "Error",
+      "genericErrorSimulator": "Unable to send logs. Email functionality is not available on simulators. Please test on a physical device.",
+      "genericErrorIOS": "Unable to send logs. Please make sure the Mail app is configured on your device, or try using another email app.",
+      "genericErrorAndroid": "Unable to send logs. Please make sure you have an email app installed and configured on your device.",
+      "unexpectedError": "Error",
+      "unexpectedErrorMessage": "An unexpected error occurred. Please try again later.",
+      "ok": "OK"
+    },
+    "about": {
+      "title": "About Thrive Church App",
+      "message": "Version: {{version}} (Build {{buildNumber}})\n\n©{{year}} Thrive Community Church\n\nThis app helps you stay connected with our church community, access sermons, take notes, and more.",
+      "ok": "OK"
+    }
+  },
+  "player": {
+    "play": "Play",
+    "pause": "Pause",
+    "forward": "Forward",
+    "rewind": "Rewind",
+    "speed": "Speed",
+    "error": "Playback error",
+    "loading": "Loading audio..."
+  },
+  "alerts": {
+    "unableToOpen": "Unable to Open",
+    "installYouVersion": "Please install the YouVersion Bible app to view this passage.",
+    "errorOpeningPassage": "Unable to open Bible passage. Please try again."
+  },
+  "components": {
+    "sermonCard": {
+      "week": "Week",
+      "accessibilityHint": "Tap to play or view sermon options",
+      "audioAvailable": "Audio available",
+      "audioNotAvailable": "Audio not available",
+      "audio": "Audio",
+      "videoAvailable": "Video available",
+      "videoNotAvailable": "Video not available",
+      "video": "Video",
+      "downloading": "Downloading",
+      "downloaded": "Downloaded"
+    },
+    "bibleReader": {
+      "noReference": "No passage reference provided",
+      "loadFailed": "Failed to load Bible passage",
+      "loading": "Loading passage...",
+      "unableToLoad": "Unable to Load Passage",
+      "retry": "Retry",
+      "setupInfo": "Setup Info",
+      "close": "Close",
+      "noPassageFound": "No Passage Found",
+      "couldNotFind": "Could not find text for \"{{reference}}\"",
+      "apiConfigTitle": "ESV API Configuration",
+      "apiConfigMessage": "To use Bible passage reading, you need to:\n\n1. Get a free API key from api.esv.org\n2. Add it to your app configuration\n\nThe ESV API is free for non-commercial use."
+    },
+    "videoPlayer": {
+      "loadFailed": "Failed to load video",
+      "videoNotFound": "Video not found or has been removed",
+      "embedNotAllowed": "Video cannot be played in embedded players",
+      "invalidUrl": "Invalid video URL",
+      "playbackError": "Video playback error occurred",
+      "loading": "Loading video...",
+      "unavailable": "Video Unavailable",
+      "unavailableMessage": "This video cannot be played at the moment",
+      "retry": "Retry",
+      "invalidVideoUrl": "Invalid video URL",
+      "unableToExtract": "Unable to extract video ID from: {{url}}",
+      "openInYouTube": "Open in YouTube",
+      "openInYouTubeMessage": "Would you like to open this video in the YouTube app?",
+      "open": "Open"
+    },
+    "relatedSeries": {
+      "currentSeries": "Current Series",
+      "messages": "Messages",
+      "message": "Message",
+      "title": "Related Series"
+    },
+    "speakerSelector": {
+      "changeSpeaker": "Change Speaker",
+      "selectSpeaker": "Select Speaker",
+      "modalTitle": "Select Speaker",
+      "searchPlaceholder": "Search speakers...",
+      "loading": "Loading speakers...",
+      "loadFailed": "Failed to load speakers",
+      "tryAgainLater": "Please try again later",
+      "noSpeakersFound": "No speakers found",
+      "noSpeakersAvailable": "No speakers available",
+      "tryDifferentSearch": "Try a different search term",
+      "checkBackLater": "Check back later"
+    },
+    "tagSelector": {
+      "tag": "tag",
+      "tags": "tags",
+      "selected": "selected",
+      "clearAll": "Clear All",
+      "selectTags": "Select Tags",
+      "addMoreTags": "Add More Tags",
+      "modalTitle": "Select Tags",
+      "searchPlaceholder": "Search tags...",
+      "noTagsFound": "No tags found",
+      "tryDifferentSearch": "Try a different search term",
+      "done": "Done"
+    },
+    "searchMessageCard": {
+      "accessibilityHint": "Tap to play or view sermon options",
+      "audio": "Audio",
+      "video": "Video"
+    },
+    "searchResultsList": {
+      "noResults": "No results found",
+      "tryDifferentTags": "Try selecting different tags",
+      "series": "Series",
+      "messages": "Messages",
+      "found": "Found"
+    },
+    "searchTypeToggle": {
+      "series": "Series",
+      "messages": "Messages",
+      "speaker": "Speaker",
+      "seriesAccessibility": "Search for sermon series",
+      "messagesAccessibility": "Search for sermon messages",
+      "speakerAccessibility": "Search for messages by speaker"
+    }
+  },
+  "nowPlaying": {
+    "title": "Now Playing",
+    "noAudioPlaying": "No Audio Playing",
+    "selectSermon": "Select a sermon to start listening",
+    "week": "Week"
+  },
+  "videoPlayer": {
+    "title": "Video Player",
+    "videoError": "Video Error",
+    "close": "Close",
+    "openInYouTube": "Open in YouTube",
+    "error": "Error",
+    "unableToOpenYouTube": "Unable to open YouTube",
+    "noVideoAvailable": "No video available",
+    "noVideoMessage": "This sermon doesn't have a video"
+  },
+  "biblePassage": {
+    "title": "Bible Passage",
+    "error": "Error",
+    "noPassageReference": "No Bible passage reference available",
+    "esvApiNotConfigured": "ESV API Not Configured",
+    "esvApiMessage": "To listen to Bible audio, you need to:\n\n1. Get a free API key from api.esv.org\n2. Add it to your app configuration\n\nThe ESV API is free for non-commercial use.",
+    "ok": "OK",
+    "audioPlaybackError": "Audio Playback Error",
+    "unableToPlayAudio": "Unable to play Bible audio. Please check your internet connection and try again.",
+    "noPassageAvailable": "No Bible passage available",
+    "noPassageMessage": "This sermon doesn't have a Bible passage reference"
+  },
+  "rssDetail": {
+    "error": "Error",
+    "unableToOpenLink": "Unable to open link"
+  },
+  "webView": {
+    "error": "Error",
+    "unableToOpenLink": "Unable to open link",
+    "errorLoadingPage": "Error Loading Page",
+    "errorLoadingMessage": "Unable to load the page. Please check your internet connection and try again.",
+    "ok": "OK"
+  },
+  "bibleLinks": {
+    "unableToOpen": "Unable to Open",
+    "installYouVersion": "Please install the YouVersion Bible app or check your internet connection.",
+    "error": "Error",
+    "unableToOpenPassage": "Unable to open Bible passage. Please try again.",
+    "ok": "OK"
+  },
+  "esvApi": {
+    "noReferenceProvided": "No passage reference provided",
+    "apiKeyNotConfigured": "ESV API key not configured. Please add your ESV API key to use Bible passage reading.",
+    "noPassageFound": "No passage text found for this reference",
+    "fetchFailed": "Failed to fetch Bible passage"
+  }
+}
+

@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 import { SermonMessage } from '../../types/api';
 import { getRecentlyPlayed, clearRecentlyPlayed } from '../../services/storage/storage';
@@ -20,6 +21,7 @@ import { setCurrentScreen } from '../../services/analytics/analyticsService';
 export default function RecentlyPlayedScreen() {
   const navigation = useNavigation();
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const [recentlyPlayed, setRecentlyPlayed] = useState<SermonMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -59,35 +61,35 @@ export default function RecentlyPlayedScreen() {
     const options = [];
 
     options.push({
-      text: 'Listen',
+      text: t('listen.recentlyPlayed.listen'),
       onPress: () => handleListen(message, isDownloaded),
     });
 
     if (message.VideoUrl) {
       options.push({
-        text: 'Watch in HD',
+        text: t('listen.recentlyPlayed.watchHD'),
         onPress: () => handleWatch(message),
       });
     }
 
     if (message.PassageRef) {
       options.push({
-        text: `Read ${message.PassageRef}`,
+        text: `${t('listen.recentlyPlayed.read')} ${message.PassageRef}`,
         onPress: () => handleReadPassage(message),
       });
     }
 
     options.push({
-      text: 'Cancel',
+      text: t('common.cancel'),
       style: 'cancel',
     });
 
     Alert.alert(
       message.Title,
-      'Please select an action',
+      t('listen.recentlyPlayed.selectAction'),
       options as any
     );
-  }, []);
+  }, [t]);
 
   const handleListen = useCallback(async (message: SermonMessage, isDownloaded: boolean) => {
     try {
@@ -99,13 +101,13 @@ export default function RecentlyPlayedScreen() {
       });
     } catch (error) {
       console.error('Error playing message:', error);
-      Alert.alert('Error', 'Failed to play audio. Please try again.');
+      Alert.alert(t('common.error'), t('listen.recentlyPlayed.errorPlayAudio'));
     }
-  }, [player]);
+  }, [player, t]);
 
   const handleWatch = useCallback((message: SermonMessage) => {
     if (!message.VideoUrl) {
-      Alert.alert('No Video', 'This sermon does not have a video available.');
+      Alert.alert(t('listen.sermon.noVideo'), t('listen.sermon.noVideoMessage'));
       return;
     }
 
@@ -114,11 +116,11 @@ export default function RecentlyPlayedScreen() {
       message,
       seriesTitle: message.seriesTitle,
     });
-  }, [navigation]);
+  }, [navigation, t]);
 
   const handleReadPassage = useCallback((message: SermonMessage) => {
     if (!message.PassageRef) {
-      Alert.alert('No Passage', 'This sermon does not have a Bible passage reference.');
+      Alert.alert(t('listen.sermon.noPassage'), t('listen.sermon.noPassageMessage'));
       return;
     }
 
@@ -127,19 +129,19 @@ export default function RecentlyPlayedScreen() {
       message,
       seriesTitle: message.seriesTitle,
     });
-  }, [navigation]);
+  }, [navigation, t]);
 
   const handleClearAll = useCallback(() => {
     Alert.alert(
-      'Clear Recently Played',
-      'Are you sure you want to clear your recently played history?',
+      t('listen.recentlyPlayed.clearAllTitle'),
+      t('listen.recentlyPlayed.clearAllMessage'),
       [
         {
-          text: 'Cancel',
+          text: t('common.cancel'),
           style: 'cancel',
         },
         {
-          text: 'Clear',
+          text: t('listen.recentlyPlayed.clear'),
           style: 'destructive',
           onPress: async () => {
             await clearRecentlyPlayed();
@@ -148,7 +150,7 @@ export default function RecentlyPlayedScreen() {
         },
       ]
     );
-  }, [loadRecentlyPlayed]);
+  }, [loadRecentlyPlayed, t]);
 
   const formatDate = (timestamp?: number): string => {
     if (!timestamp) return '';
@@ -236,13 +238,13 @@ export default function RecentlyPlayedScreen() {
   const renderEmptyState = useCallback(() => (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}>
       <Text style={[theme.typography.h2 as any, { textAlign: 'center', marginBottom: 16 }]}>
-        No Recently Played
+        {t('listen.recentlyPlayed.empty')}
       </Text>
       <Text style={[theme.typography.body as any, { textAlign: 'center', color: theme.colors.textTertiary }]}>
-        Sermons you listen to will appear here
+        {t('listen.recentlyPlayed.emptyDescription')}
       </Text>
     </View>
-  ), [theme]);
+  ), [theme, t]);
 
   const renderHeader = useCallback(() => {
     if (recentlyPlayed.length === 0) return null;
@@ -257,16 +259,16 @@ export default function RecentlyPlayedScreen() {
         alignItems: 'center',
       }}>
         <Text style={[theme.typography.body as any, { color: theme.colors.textSecondary }]}>
-          {recentlyPlayed.length} {recentlyPlayed.length === 1 ? 'sermon' : 'sermons'}
+          {recentlyPlayed.length} {recentlyPlayed.length === 1 ? t('listen.recentlyPlayed.sermon') : t('listen.recentlyPlayed.sermons')}
         </Text>
         <TouchableOpacity onPress={handleClearAll}>
           <Text style={[theme.typography.body as any, { color: theme.colors.primary }]}>
-            Clear All
+            {t('listen.recentlyPlayed.clearAll')}
           </Text>
         </TouchableOpacity>
       </View>
     );
-  }, [recentlyPlayed.length, handleClearAll, theme]);
+  }, [recentlyPlayed.length, handleClearAll, theme, t]);
 
   if (loading) {
     return (

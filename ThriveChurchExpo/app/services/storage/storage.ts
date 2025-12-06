@@ -3,6 +3,7 @@ import { SermonMessage } from '../../types/api';
 import { Note } from '../../types/notes';
 import { ConfigSetting } from '../../types/config';
 import { BibleTranslation, ThemeMode, DEFAULT_BIBLE_TRANSLATION } from '../../types/settings';
+import { Language } from '../i18n/types';
 
 // Storage wrapper using AsyncStorage
 // All operations are async to properly handle AsyncStorage's async nature
@@ -42,6 +43,7 @@ export const StorageKeys = {
   NOTES: 'notes',
   THEME_MODE: 'themeMode',
   BIBLE_TRANSLATION: 'bibleTranslation',
+  LANGUAGE: 'language',
 } as const;
 
 // Recently Played Functions
@@ -502,5 +504,27 @@ export const setBibleTranslation = async (translation: BibleTranslation): Promis
     await AsyncStorage.setItem(StorageKeys.BIBLE_TRANSLATION, JSON.stringify(translation));
   } catch (error) {
     console.error('Error saving Bible translation:', error);
+  }
+};
+
+export const getLanguage = async (): Promise<Language | null> => {
+  if (!isStorageAvailable()) return null;
+
+  try {
+    const data = await AsyncStorage.getItem(StorageKeys.LANGUAGE);
+    return (data as Language) || null;
+  } catch (error) {
+    console.error('Error reading language:', error);
+    return null;
+  }
+};
+
+export const setLanguage = async (language: Language): Promise<void> => {
+  if (!isStorageAvailable()) return;
+
+  try {
+    await AsyncStorage.setItem(StorageKeys.LANGUAGE, language);
+  } catch (error) {
+    console.error('Error saving language:', error);
   }
 };

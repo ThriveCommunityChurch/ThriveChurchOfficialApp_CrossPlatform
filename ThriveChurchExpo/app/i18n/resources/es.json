@@ -1,0 +1,501 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "retry": "Reintentar",
+    "cancel": "Cancelar",
+    "ok": "Aceptar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "done": "Listo",
+    "close": "Cerrar",
+    "back": "Atrás",
+    "prev": "ANTERIOR",
+    "next": "Siguiente",
+    "skip": "Omitir",
+    "getStarted": "Comenzar",
+    "offline": "Sin conexión",
+    "noConnection": "Sin conexión a internet",
+    "tryAgain": "Intentar de nuevo",
+    "somethingWentWrong": "Algo salió mal",
+    "checkConnection": "Verifica tu conexión a internet e intenta de nuevo"
+  },
+  "navigation": {
+    "listen": "Escuchar",
+    "bible": "Biblia",
+    "notes": "Notas",
+    "connect": "Conectar",
+    "more": "Más",
+    "settings": "Ajustes",
+    "nowPlaying": "Reproduciendo",
+    "recentlyPlayed": "Reproducidos Recientemente",
+    "downloads": "Descargas",
+    "search": "Buscar",
+    "series": "Serie",
+    "sermon": "Sermón",
+    "announcements": "Anuncios",
+    "announcement": "Anuncio",
+    "form": "Formulario",
+    "page": "Página"
+  },
+  "onboarding": {
+    "page1Header": "Transmite y Descarga Sermones",
+    "page1Body": "¡Nunca te pierdas un mensaje! Transmite sermones en Full HD o descárgalos para escuchar sin conexión. Ya sea que estés viajando, en el gimnasio o de viaje, lleva nuestros mensajes semanales contigo a donde vayas.",
+    "page2Header": "Lee la Biblia en Cualquier Lugar",
+    "page2Body": "Accede a la Biblia completa en Versión Estándar en Inglés (ESV) impulsada por YouVersion. Lee, busca y explora las escrituras con una interfaz intuitiva diseñada para la devoción y el estudio diario.",
+    "page3Header": "Mantente Conectado con Thrive",
+    "page3Body": "Obtén los últimos anuncios de la iglesia, eventos próximos y actualizaciones de la comunidad. Conéctate con nuestro equipo, envía peticiones de oración y mantente comprometido con todo lo que sucede en Thrive Community Church.",
+    "page4Header": "Busca y Descubre Contenido",
+    "page4Body": "Encuentra fácilmente sermones por tema, orador o serie. Usa herramientas poderosas de búsqueda y filtrado para descubrir mensajes que hablen a tu temporada actual y viaje espiritual.",
+    "page5Header": "Bienvenido a Thrive Community Church",
+    "page5Body": "¡Estás listo! Sumérgete y experimenta todo lo que Thrive tiene para ofrecer. Estamos emocionados de tenerte en nuestra comunidad y crecer en fe juntos.",
+    "skip": "Saltar",
+    "next": "SIGUIENTE",
+    "done": "LISTO"
+  },
+  "settings": {
+    "title": "Ajustes",
+    "loadingSettings": "Cargando ajustes...",
+    "bibleTranslation": {
+      "title": "Traducción de la Biblia",
+      "label": "Traducción"
+    },
+    "language": {
+      "title": "Idioma",
+      "label": "Idioma de la Aplicación",
+      "english": "Inglés",
+      "englishDescription": "Mostrar la aplicación en inglés",
+      "enFullDescription": "Inglés (English)",
+      "spanish": "Español",
+      "spanishDescription": "Mostrar la aplicación en español",
+      "esFullDescription": "Español (Spanish)"
+    },
+    "appearance": {
+      "title": "Apariencia",
+      "label": "Tema",
+      "auto": "Automático",
+      "autoDescription": "Coincidir con la configuración del sistema",
+      "light": "Claro",
+      "lightDescription": "Modo claro",
+      "dark": "Oscuro",
+      "darkDescription": "Modo oscuro"
+    },
+    "system": {
+      "title": "Sistema",
+      "deviceSettings": "Configuración del Dispositivo",
+      "deviceSettingsDescription": "Abrir configuración del dispositivo"
+    },
+    "alerts": {
+      "unableToOpenSettings": "No se Puede Abrir la Configuración",
+      "unableToOpenSettingsMessage": "No se pudo abrir la configuración del dispositivo. Por favor, intenta de nuevo."
+    }
+  },
+  "listen": {
+    "title": "Escuchar",
+    "currentSeries": "Serie Actual",
+    "loading": "Cargando contenido...",
+    "error": "Ocurrió un error al cargar el contenido",
+    "errorMessage": "Verifica tu conexión a internet e intenta de nuevo",
+    "noContent": "No hay contenido disponible",
+    "speakers": "Oradores",
+    "speaker": "Orador",
+    "noSpeakers": "No hay oradores listados",
+    "topics": "Temas",
+    "noTopics": "No hay temas etiquetados",
+    "messages": "Mensajes",
+    "aboutThisMessage": "Acerca de Este Mensaje",
+    "scripture": "Escritura",
+    "scriptureReference": "Referencia Bíblica",
+    "sermon": {
+      "details": "Detalles",
+      "week": "Semana",
+      "date": "Fecha",
+      "duration": "Duración",
+      "playAudio": "Reproducir Audio",
+      "playVideo": "Reproducir Video",
+      "download": "Descargar",
+      "downloaded": "Descargado",
+      "remove": "Eliminar",
+      "removeDownload": "Eliminar Descarga",
+      "loadingDetails": "Cargando detalles del sermón...",
+      "errorPlayAudio": "Error al reproducir audio. Verifica tu conexión e intenta de nuevo.",
+      "noVideo": "Sin Video",
+      "noVideoMessage": "Este sermón no tiene un video disponible.",
+      "noPassage": "Sin Pasaje",
+      "noPassageMessage": "Este sermón no tiene una referencia de pasaje bíblico.",
+      "noAudioDownload": "No hay audio disponible para descargar",
+      "downloadSuccess": "Sermón descargado exitosamente",
+      "downloadFailed": "Error al descargar el sermón. Por favor, intenta de nuevo.",
+      "removeDownloadTitle": "Eliminar Descarga",
+      "removeDownloadMessage": "¿Estás seguro de que deseas eliminar este sermón descargado?",
+      "removeSuccess": "Descarga eliminada exitosamente",
+      "removeFailed": "Error al eliminar la descarga"
+    },
+    "search": {
+      "title": "Buscar",
+      "placeholder": "Buscar sermones...",
+      "selectSpeaker": "Seleccionar Orador",
+      "selectTopics": "Seleccionar Temas",
+      "results": "Resultados",
+      "noResults": "No se encontraron resultados",
+      "loadingSpeakers": "Cargando oradores...",
+      "errorLoadingSpeakers": "Error al cargar oradores",
+      "tryAgainLater": "Por favor, intenta de nuevo más tarde",
+      "emptySpeaker": "Selecciona un orador para ver sus mensajes",
+      "emptySpeakerSubtext": "Elige un orador para ver todos sus mensajes de sermones",
+      "emptyTags": "Selecciona etiquetas para buscar contenido",
+      "emptyTagsSubtext": "Elige uno o más temas para encontrar mensajes y series relacionados"
+    },
+    "downloads": {
+      "title": "Descargas",
+      "empty": "Sin Descargas",
+      "emptyDescription": "Los sermones descargados aparecerán aquí para escuchar sin conexión",
+      "listen": "Escuchar",
+      "removeDownload": "Eliminar Descarga",
+      "selectAction": "Por favor, selecciona una acción",
+      "errorPlayAudio": "Error al reproducir audio. Por favor, intenta de nuevo.",
+      "removeTitle": "Eliminar Descarga",
+      "removeMessage": "¿Estás seguro de que deseas eliminar \"{title}\"?",
+      "remove": "Eliminar",
+      "errorRemove": "Error al eliminar descarga. Por favor, intenta de nuevo."
+    },
+    "recentlyPlayed": {
+      "title": "Reproducidos Recientemente",
+      "empty": "Sin Reproducidos Recientemente",
+      "emptyDescription": "Los sermones que escuches aparecerán aquí",
+      "listen": "Escuchar",
+      "watchHD": "Ver en HD",
+      "read": "Leer",
+      "selectAction": "Por favor, selecciona una acción",
+      "errorPlayAudio": "Error al reproducir audio. Por favor, intenta de nuevo.",
+      "clearAll": "Limpiar Todo",
+      "clearAllTitle": "Limpiar Reproducidos Recientemente",
+      "clearAllMessage": "¿Estás seguro de que deseas limpiar tu historial de reproducción?",
+      "clear": "Limpiar",
+      "sermon": "sermón",
+      "sermons": "sermones"
+    }
+  },
+  "bible": {
+    "title": "Biblia",
+    "oldTestament": "Antiguo Testamento",
+    "newTestament": "Nuevo Testamento",
+    "loading": "Cargando pasaje...",
+    "error": "Error al cargar el pasaje bíblico",
+    "noReference": "No se proporcionó referencia del pasaje",
+    "apiConfig": {
+      "title": "Configuración de la API de ESV",
+      "message": "Para usar la función de la Biblia, necesitas configurar la clave de API de ESV en la configuración de la aplicación."
+    },
+    "selection": {
+      "subtitle": "Elige un orden de libros",
+      "traditionalTitle": "Orden Tradicional",
+      "traditionalDescription": "Navega los libros en orden bíblico\nGénesis → Malaquías → Mateo → Apocalipsis",
+      "alphabeticalTitle": "Orden Alfabético",
+      "alphabeticalDescription": "Navega los libros de la A a la Z\nHechos → Amós → Colosenses → Daniel",
+      "traditionalNavTitle": "Biblia - Tradicional",
+      "alphabeticalNavTitle": "Biblia - Alfabético"
+    }
+  },
+  "notes": {
+    "title": "Notas",
+    "newNote": "Nueva Nota",
+    "empty": "Aún no hay notas",
+    "emptyDescription": "Crea una nota para comenzar",
+    "placeholder": "Comienza a escribir tu nota...",
+    "deleteConfirm": "Eliminar Nota",
+    "deleteConfirmMessage": "¿Estás seguro de que quieres eliminar esta nota?",
+    "deleteButton": "Eliminar",
+    "cancelButton": "Cancelar",
+    "list": {
+      "edit": "Editar",
+      "done": "Listo",
+      "delete": "Eliminar",
+      "note": "Nota",
+      "tapToStart": "Toca para comenzar a escribir...",
+      "deleteTitle": "Eliminar Nota",
+      "deleteMessage": "¿Estás seguro de que deseas eliminar esta nota?"
+    },
+    "detail": {
+      "placeholder": "Comienza a escribir...",
+      "emptyNote": "Nota Vacía",
+      "emptyNoteMessage": "No hay contenido para compartir.",
+      "shareError": "Error",
+      "shareErrorMessage": "No se pudo compartir la nota. Por favor, intenta de nuevo."
+    }
+  },
+  "connect": {
+    "title": "Conectar",
+    "getDirections": "Obtener Direcciones",
+    "contactUs": "Contáctanos",
+    "contactUsTitle": "Contáctanos",
+    "contactUsMessage": "Por favor, selecciona una opción",
+    "announcements": "Anuncios",
+    "loading": "Cargando anuncios...",
+    "error": "Error al cargar anuncios",
+    "empty": "No hay anuncios disponibles",
+    "menu": {
+      "contactTitle": "Contáctanos",
+      "contactSubtitle": "Envía un correo, llama o envía peticiones de oración",
+      "directionsTitle": "Obtener direcciones",
+      "announcementsTitle": "Anuncios",
+      "announcementsSubtitle": "Últimas noticias y actualizaciones de la iglesia",
+      "smallGroupTitle": "Únete a un grupo pequeño",
+      "smallGroupSubtitle": "Conéctate con otros en comunidad",
+      "serveTitle": "Servir",
+      "serveSubtitle": "Encuentra formas de involucrarte",
+      "loadingConfigs": "Cargando configuraciones...",
+      "emptyTitle": "No hay elementos de menú disponibles",
+      "emptySubtitle": "Desliza hacia abajo para actualizar configuraciones",
+      "refreshTitle": "Desliza para actualizar configuraciones",
+      "refreshError": "Error",
+      "refreshErrorMessage": "Error al actualizar configuraciones. Por favor, intenta de nuevo."
+    },
+    "contact": {
+      "title": "Contáctanos",
+      "message": "Por favor selecciona una opción",
+      "emailUs": "Envíanos un correo",
+      "callUs": "Llámanos",
+      "prayerRequest": "Enviar una petición de oración",
+      "prayerRequestTitle": "Petición de oración",
+      "cancel": "Cancelar",
+      "emailError": "Error",
+      "emailErrorMessage": "No se puede abrir el cliente de correo",
+      "phoneError": "Error",
+      "phoneErrorMessage": "No se puede realizar la llamada telefónica",
+      "mapsError": "Error",
+      "mapsErrorMessage": "No se puede abrir mapas"
+    },
+    "rss": {
+      "untitled": "Sin título",
+      "announcement": "Anuncio",
+      "errorMessage": "No se pueden cargar los anuncios. Por favor, intenta de nuevo más tarde."
+    }
+  },
+  "more": {
+    "title": "Más",
+    "menu": {
+      "imNewTitle": "Soy Nuevo",
+      "imNewSubtitle": "Aprende sobre nuestra iglesia y comunidad",
+      "giveTitle": "Dar",
+      "giveSubtitle": "Apoya nuestra misión y ministerio",
+      "socialTitle": "Social",
+      "socialSubtitle": "Síguenos en las redes sociales",
+      "teamTitle": "Conoce al equipo",
+      "teamSubtitle": "Conoce a nuestro personal y liderazgo",
+      "bibleTitle": "Biblia",
+      "bibleSubtitle": "Lee las escrituras con integración de YouVersion",
+      "settingsTitle": "Configuración",
+      "settingsSubtitle": "Administra las preferencias y notificaciones de la aplicación",
+      "sendLogsTitle": "Enviar Registros",
+      "sendLogsSubtitle": "Enviar información de diagnóstico al soporte",
+      "aboutTitle": "Acerca de",
+      "aboutSubtitle": "Versión e información de la aplicación"
+    },
+    "give": {
+      "error": "Error",
+      "errorMessage": "No se puede abrir la página de donaciones. Por favor, intenta de nuevo más tarde."
+    },
+    "social": {
+      "title": "Social",
+      "message": "Por favor selecciona una opción",
+      "facebook": "Facebook",
+      "instagram": "Instagram",
+      "x": "X",
+      "cancel": "Cancelar",
+      "downloadAlert": "Alerta",
+      "downloadFacebook": "Necesitas descargar la aplicación de Facebook primero",
+      "downloadInstagram": "Necesitas descargar la aplicación de Instagram primero",
+      "downloadX": "Necesitas descargar la aplicación de X primero",
+      "download": "Descargar"
+    },
+    "sendLogs": {
+      "title": "Enviar Registros al Soporte",
+      "message": "Por favor describe cualquier problema que estés experimentando con la aplicación:",
+      "subject": "Thrive {{platform}} - ID: {{feedbackId}}",
+      "deviceInfoError": "Error",
+      "deviceInfoErrorMessage": "No se puede obtener la información del dispositivo. Por favor, intenta de nuevo.",
+      "exportError": "Error",
+      "exportErrorMessage": "No se puede crear el archivo de registro. Por favor, intenta de nuevo.",
+      "unableToSend": "No se Pueden Enviar Registros",
+      "noEmailIOS": "No hay una aplicación de correo configurada en este dispositivo. Por favor instala y configura la aplicación Mail u otro cliente de correo para enviar registros.",
+      "noEmailAndroid": "No hay una aplicación de correo instalada en este dispositivo. Por favor instala una aplicación de correo (como Gmail) para enviar registros.",
+      "genericError": "Error",
+      "genericErrorSimulator": "No se pueden enviar registros. La funcionalidad de correo no está disponible en simuladores. Por favor prueba en un dispositivo físico.",
+      "genericErrorIOS": "No se pueden enviar registros. Por favor asegúrate de que la aplicación Mail esté configurada en tu dispositivo, o intenta usar otra aplicación de correo.",
+      "genericErrorAndroid": "No se pueden enviar registros. Por favor asegúrate de tener una aplicación de correo instalada y configurada en tu dispositivo.",
+      "unexpectedError": "Error",
+      "unexpectedErrorMessage": "Ocurrió un error inesperado. Por favor, intenta de nuevo más tarde.",
+      "ok": "OK"
+    },
+    "about": {
+      "title": "Acerca de la Aplicación Thrive Church",
+      "message": "Versión: {{version}} (Build {{buildNumber}})\n\n©{{year}} Thrive Community Church\n\nEsta aplicación te ayuda a mantenerte conectado con nuestra comunidad de la iglesia, acceder a sermones, tomar notas y más.",
+      "ok": "OK"
+    }
+  },
+  "player": {
+    "play": "Reproducir",
+    "pause": "Pausar",
+    "forward": "Adelantar",
+    "rewind": "Retroceder",
+    "speed": "Velocidad",
+    "error": "Error de reproducción",
+    "loading": "Cargando audio..."
+  },
+  "alerts": {
+    "unableToOpen": "No se Puede Abrir",
+    "installYouVersion": "Por favor, instala la aplicación de la Biblia YouVersion para ver este pasaje.",
+    "errorOpeningPassage": "No se puede abrir el pasaje bíblico. Por favor, intenta de nuevo."
+  },
+  "components": {
+    "sermonCard": {
+      "week": "Semana",
+      "accessibilityHint": "Toca para reproducir o ver opciones del sermón",
+      "audioAvailable": "Audio disponible",
+      "audioNotAvailable": "Audio no disponible",
+      "audio": "Audio",
+      "videoAvailable": "Video disponible",
+      "videoNotAvailable": "Video no disponible",
+      "video": "Video",
+      "downloading": "Descargando",
+      "downloaded": "Descargado"
+    },
+    "bibleReader": {
+      "noReference": "No se proporcionó referencia del pasaje",
+      "loadFailed": "No se pudo cargar el pasaje bíblico",
+      "loading": "Cargando pasaje...",
+      "unableToLoad": "No se Puede Cargar el Pasaje",
+      "retry": "Reintentar",
+      "setupInfo": "Información de Configuración",
+      "close": "Cerrar",
+      "noPassageFound": "No se Encontró el Pasaje",
+      "couldNotFind": "No se pudo encontrar el texto para \"{{reference}}\"",
+      "apiConfigTitle": "Configuración de la API de ESV",
+      "apiConfigMessage": "Para usar la lectura de pasajes bíblicos, necesitas:\n\n1. Obtener una clave API gratuita de api.esv.org\n2. Agregarla a la configuración de tu aplicación\n\nLa API de ESV es gratuita para uso no comercial."
+    },
+    "videoPlayer": {
+      "loadFailed": "No se pudo cargar el video",
+      "videoNotFound": "Video no encontrado o ha sido eliminado",
+      "embedNotAllowed": "El video no se puede reproducir en reproductores integrados",
+      "invalidUrl": "URL de video inválida",
+      "playbackError": "Ocurrió un error de reproducción de video",
+      "loading": "Cargando video...",
+      "unavailable": "Video No Disponible",
+      "unavailableMessage": "Este video no se puede reproducir en este momento",
+      "retry": "Reintentar",
+      "invalidVideoUrl": "URL de video inválida",
+      "unableToExtract": "No se puede extraer el ID del video de: {{url}}",
+      "openInYouTube": "Abrir en YouTube",
+      "openInYouTubeMessage": "¿Te gustaría abrir este video en la aplicación de YouTube?",
+      "open": "Abrir"
+    },
+    "relatedSeries": {
+      "currentSeries": "Serie Actual",
+      "messages": "Mensajes",
+      "message": "Mensaje",
+      "title": "Series Relacionadas"
+    },
+    "speakerSelector": {
+      "changeSpeaker": "Cambiar Orador",
+      "selectSpeaker": "Seleccionar Orador",
+      "modalTitle": "Seleccionar Orador",
+      "searchPlaceholder": "Buscar oradores...",
+      "loading": "Cargando oradores...",
+      "loadFailed": "No se pudieron cargar los oradores",
+      "tryAgainLater": "Por favor, inténtalo de nuevo más tarde",
+      "noSpeakersFound": "No se encontraron oradores",
+      "noSpeakersAvailable": "No hay oradores disponibles",
+      "tryDifferentSearch": "Intenta con un término de búsqueda diferente",
+      "checkBackLater": "Vuelve más tarde"
+    },
+    "tagSelector": {
+      "tag": "etiqueta",
+      "tags": "etiquetas",
+      "selected": "seleccionadas",
+      "clearAll": "Borrar Todo",
+      "selectTags": "Seleccionar Etiquetas",
+      "addMoreTags": "Agregar Más Etiquetas",
+      "modalTitle": "Seleccionar Etiquetas",
+      "searchPlaceholder": "Buscar etiquetas...",
+      "noTagsFound": "No se encontraron etiquetas",
+      "tryDifferentSearch": "Intenta con un término de búsqueda diferente",
+      "done": "Listo"
+    },
+    "searchMessageCard": {
+      "accessibilityHint": "Toca para reproducir o ver opciones del sermón",
+      "audio": "Audio",
+      "video": "Video"
+    },
+    "searchResultsList": {
+      "noResults": "No se encontraron resultados",
+      "tryDifferentTags": "Intenta seleccionar diferentes etiquetas",
+      "series": "Series",
+      "messages": "Mensajes",
+      "found": "Encontrados"
+    },
+    "searchTypeToggle": {
+      "series": "Series",
+      "messages": "Mensajes",
+      "speaker": "Orador",
+      "seriesAccessibility": "Buscar series de sermones",
+      "messagesAccessibility": "Buscar mensajes de sermones",
+      "speakerAccessibility": "Buscar mensajes por orador"
+    }
+  },
+  "nowPlaying": {
+    "title": "Reproduciendo Ahora",
+    "noAudioPlaying": "No Hay Audio Reproduciéndose",
+    "selectSermon": "Selecciona un sermón para comenzar a escuchar",
+    "week": "Semana"
+  },
+  "videoPlayer": {
+    "title": "Reproductor de Video",
+    "videoError": "Error de Video",
+    "close": "Cerrar",
+    "openInYouTube": "Abrir en YouTube",
+    "error": "Error",
+    "unableToOpenYouTube": "No se puede abrir YouTube",
+    "noVideoAvailable": "No hay video disponible",
+    "noVideoMessage": "Este sermón no tiene video"
+  },
+  "biblePassage": {
+    "title": "Pasaje Bíblico",
+    "error": "Error",
+    "noPassageReference": "No hay referencia de pasaje bíblico disponible",
+    "esvApiNotConfigured": "API de ESV No Configurada",
+    "esvApiMessage": "Para escuchar audio bíblico, necesitas:\n\n1. Obtener una clave API gratuita de api.esv.org\n2. Agregarla a la configuración de tu aplicación\n\nLa API de ESV es gratuita para uso no comercial.",
+    "ok": "OK",
+    "audioPlaybackError": "Error de Reproducción de Audio",
+    "unableToPlayAudio": "No se puede reproducir el audio bíblico. Por favor verifica tu conexión a internet e intenta de nuevo.",
+    "noPassageAvailable": "No hay pasaje bíblico disponible",
+    "noPassageMessage": "Este sermón no tiene una referencia de pasaje bíblico"
+  },
+  "rssDetail": {
+    "error": "Error",
+    "unableToOpenLink": "No se puede abrir el enlace"
+  },
+  "webView": {
+    "error": "Error",
+    "unableToOpenLink": "No se puede abrir el enlace",
+    "errorLoadingPage": "Error al Cargar la Página",
+    "errorLoadingMessage": "No se puede cargar la página. Por favor verifica tu conexión a internet e intenta de nuevo.",
+    "ok": "OK"
+  },
+  "bibleLinks": {
+    "unableToOpen": "No se Puede Abrir",
+    "installYouVersion": "Por favor instala la aplicación YouVersion Bible o verifica tu conexión a internet.",
+    "error": "Error",
+    "unableToOpenPassage": "No se puede abrir el pasaje bíblico. Por favor intenta de nuevo.",
+    "ok": "OK"
+  },
+  "esvApi": {
+    "noReferenceProvided": "No se proporcionó referencia del pasaje",
+    "apiKeyNotConfigured": "La clave API de ESV no está configurada. Por favor agrega tu clave API de ESV para usar la lectura de pasajes bíblicos.",
+    "noPassageFound": "No se encontró texto del pasaje para esta referencia",
+    "fetchFailed": "Error al obtener el pasaje bíblico"
+  }
+}
+

@@ -19,6 +19,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 import { MessageTag, getTagDisplayLabel } from '../../types/messageTag';
 
@@ -34,6 +35,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
   onClearAll,
 }) => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme);
   const [modalVisible, setModalVisible] = useState(false);
   const [searchText, setSearchText] = useState('');
@@ -107,10 +109,10 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
         <View style={styles.selectedTagsContainer}>
           <View style={styles.selectedTagsHeader}>
             <Text style={styles.selectedTagsCount}>
-              {selectedTags.length} {selectedTags.length === 1 ? 'tag' : 'tags'} selected
+              {selectedTags.length} {selectedTags.length === 1 ? t('components.tagSelector.tag') : t('components.tagSelector.tags')} {t('components.tagSelector.selected')}
             </Text>
             <TouchableOpacity onPress={onClearAll} style={styles.clearAllButton}>
-              <Text style={styles.clearAllText}>Clear All</Text>
+              <Text style={styles.clearAllText}>{t('components.tagSelector.clearAll')}</Text>
             </TouchableOpacity>
           </View>
           <ScrollView
@@ -139,7 +141,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
       <TouchableOpacity style={styles.addTagsButton} onPress={handleOpenModal} activeOpacity={0.7}>
         <Ionicons name="add-circle-outline" size={24} color={theme.colors.primary} />
         <Text style={styles.addTagsButtonText}>
-          {selectedTags.length === 0 ? 'Select Tags' : 'Add More Tags'}
+          {selectedTags.length === 0 ? t('components.tagSelector.selectTags') : t('components.tagSelector.addMoreTags')}
         </Text>
       </TouchableOpacity>
 
@@ -153,7 +155,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
         <View style={styles.modalContainer}>
           {/* Modal Header */}
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Select Tags</Text>
+            <Text style={styles.modalTitle}>{t('components.tagSelector.modalTitle')}</Text>
             <TouchableOpacity onPress={handleCloseModal} style={styles.modalCloseButton}>
               <Ionicons name="close" size={28} color={theme.colors.text} />
             </TouchableOpacity>
@@ -169,7 +171,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
             />
             <TextInput
               style={styles.modalSearchInput}
-              placeholder="Search tags..."
+              placeholder={t('components.tagSelector.searchPlaceholder')}
               placeholderTextColor={theme.colors.textTertiary}
               value={searchText}
               onChangeText={setSearchText}
@@ -188,7 +190,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
           {selectedTags.length > 0 && (
             <View style={styles.modalSelectedCount}>
               <Text style={styles.modalSelectedCountText}>
-                {selectedTags.length} {selectedTags.length === 1 ? 'tag' : 'tags'} selected
+                {selectedTags.length} {selectedTags.length === 1 ? t('components.tagSelector.tag') : t('components.tagSelector.tags')} {t('components.tagSelector.selected')}
               </Text>
             </View>
           )}
@@ -205,8 +207,8 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
               ListEmptyComponent={
                 <View style={styles.modalEmptyState}>
                   <Ionicons name="search-outline" size={48} color={theme.colors.textTertiary} />
-                  <Text style={styles.modalEmptyText}>No tags found</Text>
-                  <Text style={styles.modalEmptySubtext}>Try a different search term</Text>
+                  <Text style={styles.modalEmptyText}>{t('components.tagSelector.noTagsFound')}</Text>
+                  <Text style={styles.modalEmptySubtext}>{t('components.tagSelector.tryDifferentSearch')}</Text>
                 </View>
               }
             />
@@ -219,7 +221,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
               onPress={handleCloseModal}
               activeOpacity={0.8}
             >
-              <Text style={styles.modalDoneButtonText}>Done</Text>
+              <Text style={styles.modalDoneButtonText}>{t('components.tagSelector.done')}</Text>
             </TouchableOpacity>
           </View>
         </View>

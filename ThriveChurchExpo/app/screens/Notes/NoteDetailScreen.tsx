@@ -20,6 +20,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { getNote, updateNote } from '../../services/storage/storage';
 import { setCurrentScreen, logShareNote, logCustomEvent } from '../../services/analytics/analyticsService';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 
 type NotesStackParamList = {
@@ -35,6 +36,7 @@ export const NoteDetailScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const { noteId } = route.params;
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme);
 
   const [content, setContent] = useState('');
@@ -82,7 +84,7 @@ export const NoteDetailScreen: React.FC = () => {
         </TouchableOpacity>
       ),
     });
-  }, [navigation, content]);
+  }, [navigation, content, t]);
 
   const handleTextChange = (text: string) => {
     setContent(text);
@@ -105,7 +107,7 @@ export const NoteDetailScreen: React.FC = () => {
 
   const handleShare = async () => {
     if (!content || content.trim() === '') {
-      Alert.alert('Empty Note', 'There is no content to share.');
+      Alert.alert(t('notes.detail.emptyNote'), t('notes.detail.emptyNoteMessage'));
       return;
     }
 
@@ -118,7 +120,7 @@ export const NoteDetailScreen: React.FC = () => {
       await logShareNote(noteId);
     } catch (error) {
       console.error('Error sharing note:', error);
-      Alert.alert('Error', 'Unable to share note. Please try again.');
+      Alert.alert(t('notes.detail.shareError'), t('notes.detail.shareErrorMessage'));
     }
   };
 
@@ -145,7 +147,7 @@ export const NoteDetailScreen: React.FC = () => {
           value={content}
           onChangeText={handleTextChange}
           multiline
-          placeholder="Start typing..."
+          placeholder={t('notes.detail.placeholder')}
           placeholderTextColor="#999999"
           textAlignVertical="top"
           autoCapitalize="sentences"

@@ -4,7 +4,7 @@
  * Matches iOS behavior: loads configs on app startup
  */
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { initializeConfigs, hasConfigs } from '../services/api/configService';
 
 interface ConfigContextValue {
@@ -83,13 +83,13 @@ export const ConfigProvider: React.FC<ConfigProviderProps> = ({ children }) => {
     loadConfigs(false);
   }, [loadConfigs]);
 
-  const value: ConfigContextValue = {
+  const value: ConfigContextValue = useMemo(() => ({
     isInitialized,
     isLoading,
     error,
     hasConfigs: configsExist,
     refetchConfigs,
-  };
+  }), [isInitialized, isLoading, error, configsExist, refetchConfigs]);
 
   return (
     <ConfigContext.Provider value={value}>

@@ -15,6 +15,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../../services/api/client';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 import OfflineBanner from '../../components/OfflineBanner';
 import { SermonSeries, SermonMessage } from '../../types/api';
@@ -31,6 +32,7 @@ interface SeriesDetailScreenProps {
 export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDetailScreenProps) {
   const navigation = useNavigation();
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme);
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
@@ -130,10 +132,10 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
       <View style={{ flex: 1, backgroundColor: theme.colors.backgroundSecondary, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}>
         <OfflineBanner />
         <Text style={[theme.typography.h2 as any, { textAlign: 'center', marginBottom: 16 }]}>
-          Error loading series
+          {t('listen.error')}
         </Text>
         <Text style={[theme.typography.body as any, { textAlign: 'center', color: theme.colors.textTertiary }]}>
-          Please try again later
+          {t('common.tryAgain')}
         </Text>
       </View>
     );
@@ -181,7 +183,7 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
                     {isCurrentSeries && (
                       <View style={styles.tabletCurrentBadge}>
                         <Ionicons name="radio-button-on" size={12} color={theme.colors.success} />
-                        <Text style={styles.tabletCurrentBadgeText}>Current Series</Text>
+                        <Text style={styles.tabletCurrentBadgeText}>{t('listen.currentSeries')}</Text>
                       </View>
                     )}
 
@@ -207,7 +209,7 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
           <View style={styles.tabletSidebar}>
             {/* Speakers Section */}
             <View style={styles.tabletSidebarSection}>
-              <Text style={styles.tabletSidebarTitle}>Speakers</Text>
+              <Text style={styles.tabletSidebarTitle}>{t('listen.speakers')}</Text>
 
               {/* Get unique speakers from messages */}
               {Array.from(new Set(series.Messages.map(m => m.Speaker).filter(Boolean))).map((speaker, index) => (
@@ -217,7 +219,7 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
                   </View>
                   <View style={styles.tabletSpeakerInfo}>
                     <Text style={styles.tabletSpeakerName}>{speaker}</Text>
-                    <Text style={styles.tabletSpeakerRole}>Speaker</Text>
+                    <Text style={styles.tabletSpeakerRole}>{t('listen.speaker')}</Text>
                   </View>
                 </View>
               ))}
@@ -226,14 +228,14 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
               {Array.from(new Set(series.Messages.map(m => m.Speaker).filter(Boolean))).length === 0 && (
                 <View style={styles.tabletEmptyState}>
                   <Ionicons name="person-outline" size={32} color={theme.colors.border} />
-                  <Text style={styles.tabletEmptyStateText}>No speakers listed</Text>
+                  <Text style={styles.tabletEmptyStateText}>{t('listen.noSpeakers')}</Text>
                 </View>
               )}
             </View>
 
             {/* Topics Section */}
             <View style={styles.tabletSidebarSection}>
-              <Text style={styles.tabletSidebarTitle}>Topics</Text>
+              <Text style={styles.tabletSidebarTitle}>{t('listen.topics')}</Text>
 
               {/* Display actual tags from API */}
               {series.Tags && series.Tags.length > 0 ? (
@@ -248,7 +250,7 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
               ) : (
                 <View style={styles.tabletEmptyState}>
                   <Ionicons name="pricetags-outline" size={32} color={theme.colors.border} />
-                  <Text style={styles.tabletEmptyStateText}>No topics tagged</Text>
+                  <Text style={styles.tabletEmptyStateText}>{t('listen.noTopics')}</Text>
                 </View>
               )}
             </View>
@@ -256,7 +258,7 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
 
           {/* Right Main Content - Messages */}
           <View style={styles.tabletMainContent}>
-            <Text style={styles.tabletSectionTitle}>Messages</Text>
+            <Text style={styles.tabletSectionTitle}>{t('listen.messages')}</Text>
 
             <View style={styles.tabletMessagesGrid}>
               {series.Messages.map((message, index) => {
@@ -311,7 +313,7 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
         {/* Current Series Label */}
         {isCurrentSeries && (
           <Text style={styles.phoneCurrentLabel}>
-            Current Series
+            {t('listen.currentSeries')}
           </Text>
         )}
 
@@ -326,7 +328,7 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
         {/* Tags Section - Limited to 4 tags on mobile */}
         {series.Tags && series.Tags.length > 0 && (
           <View style={styles.phoneTagsSection}>
-            <Text style={styles.phoneTagsLabel}>Topics</Text>
+            <Text style={styles.phoneTagsLabel}>{t('listen.topics')}</Text>
             <View style={styles.phoneTagsContainer}>
               {series.Tags.slice(0, 4).map((tag, index) => (
                 <View key={index} style={styles.phoneTag}>

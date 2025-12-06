@@ -22,6 +22,7 @@ import type { ConfigSetting } from '../../types/config';
 import { exportLogsToFile, logError, logInfo } from '../../services/logging/logger';
 import { setCurrentScreen, logOpenSocial, logCustomEvent } from '../../services/analytics/analyticsService';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 
 interface MoreMenuItem {
@@ -34,6 +35,7 @@ interface MoreMenuItem {
 export const MoreScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<any>>();
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme);
   const [menuItems, setMenuItems] = useState<MoreMenuItem[]>([]);
 
@@ -60,8 +62,8 @@ export const MoreScreen: React.FC = () => {
     if (imNewConfig) {
       items.push({
         id: 'imnew',
-        title: "I'm New",
-        subtitle: 'Learn about our church and community',
+        title: t('more.menu.imNewTitle'),
+        subtitle: t('more.menu.imNewSubtitle'),
         action: () => handleImNew(imNewConfig),
       });
     }
@@ -70,8 +72,8 @@ export const MoreScreen: React.FC = () => {
     if (giveConfig) {
       items.push({
         id: 'give',
-        title: 'Give',
-        subtitle: 'Support our mission and ministry',
+        title: t('more.menu.giveTitle'),
+        subtitle: t('more.menu.giveSubtitle'),
         action: () => handleGive(giveConfig),
       });
     }
@@ -80,8 +82,8 @@ export const MoreScreen: React.FC = () => {
     if (fbPageIdConfig || fbSocialConfig || igUsernameConfig || igSocialConfig || twUsernameConfig || twSocialConfig) {
       items.push({
         id: 'social',
-        title: 'Social',
-        subtitle: 'Follow us on social media',
+        title: t('more.menu.socialTitle'),
+        subtitle: t('more.menu.socialSubtitle'),
         action: () => handleSocial(),
       });
     }
@@ -90,8 +92,8 @@ export const MoreScreen: React.FC = () => {
     if (teamConfig) {
       items.push({
         id: 'team',
-        title: 'Meet the team',
-        subtitle: 'Get to know our staff and leadership',
+        title: t('more.menu.teamTitle'),
+        subtitle: t('more.menu.teamSubtitle'),
         action: () => handleTeam(teamConfig),
       });
     }
@@ -99,59 +101,59 @@ export const MoreScreen: React.FC = () => {
     // Bible (always show)
     items.push({
       id: 'bible',
-      title: 'Bible',
-      subtitle: 'Read scripture with YouVersion integration',
+      title: t('more.menu.bibleTitle'),
+      subtitle: t('more.menu.bibleSubtitle'),
       action: () => handleBible(),
     });
 
     // Settings (always show)
     items.push({
       id: 'settings',
-      title: 'Settings',
-      subtitle: 'Manage app preferences and notifications',
+      title: t('more.menu.settingsTitle'),
+      subtitle: t('more.menu.settingsSubtitle'),
       action: () => handleSettings(),
     });
 
     // Send Logs (always show)
     items.push({
       id: 'sendlogs',
-      title: 'Send Logs',
-      subtitle: 'Send diagnostic information to support',
+      title: t('more.menu.sendLogsTitle'),
+      subtitle: t('more.menu.sendLogsSubtitle'),
       action: () => handleSendLogs(),
     });
 
     // About (always show)
     items.push({
       id: 'about',
-      title: 'About',
-      subtitle: 'App version and information',
+      title: t('more.menu.aboutTitle'),
+      subtitle: t('more.menu.aboutSubtitle'),
       action: () => handleAbout(),
     });
 
     setMenuItems(items);
-  }, [navigation]);
+  }, [navigation, t]);
 
   useEffect(() => {
     loadMenuItems();
   }, [loadMenuItems]);
 
   // Handler functions
-  const handleImNew = (config: ConfigSetting) => {
+  const handleImNew = useCallback((config: ConfigSetting) => {
     navigation.navigate('WebView', {
       url: config.Value,
-      title: "I'm New",
+      title: t('more.menu.imNewTitle'),
     });
-  };
+  }, [navigation, t]);
 
-  const handleGive = (config: ConfigSetting) => {
+  const handleGive = useCallback((config: ConfigSetting) => {
     // MUST open in external browser per App Store policy
     Linking.openURL(config.Value).catch((err) => {
       console.error('Error opening Give URL:', err);
-      Alert.alert('Error', 'Unable to open the giving page. Please try again later.');
+      Alert.alert(t('more.give.error'), t('more.give.errorMessage'));
     });
-  };
+  }, [t]);
 
-  const handleSocial = async () => {
+  const handleSocial = useCallback(async () => {
     const fbPageIdConfig = await getConfigSetting(ConfigKeys.FB_PAGE_ID);
     const fbSocialConfig = await getConfigSetting(ConfigKeys.FB_SOCIAL);
     const igUsernameConfig = await getConfigSetting(ConfigKeys.IG_USERNAME);
@@ -164,38 +166,38 @@ export const MoreScreen: React.FC = () => {
 
     // Facebook
     if (fbPageIdConfig) {
-      options.push('Facebook');
+      options.push(t('more.social.facebook'));
       handlers.push(() => openFacebook(fbPageIdConfig.Value));
     } else if (fbSocialConfig) {
-      options.push('Facebook');
+      options.push(t('more.social.facebook'));
       handlers.push(() => Linking.openURL(fbSocialConfig.Value));
     }
 
     // Instagram
     if (igUsernameConfig) {
-      options.push('Instagram');
+      options.push(t('more.social.instagram'));
       handlers.push(() => openInstagram(igUsernameConfig.Value));
     } else if (igSocialConfig) {
-      options.push('Instagram');
+      options.push(t('more.social.instagram'));
       handlers.push(() => Linking.openURL(igSocialConfig.Value));
     }
 
     // X (Twitter)
     if (twUsernameConfig) {
-      options.push('X');
+      options.push(t('more.social.x'));
       handlers.push(() => openTwitter(twUsernameConfig.Value));
     } else if (twSocialConfig) {
-      options.push('X');
+      options.push(t('more.social.x'));
       handlers.push(() => Linking.openURL(twSocialConfig.Value));
     }
 
-    options.push('Cancel');
+    options.push(t('more.social.cancel'));
 
     if (Platform.OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions(
         {
-          title: 'Social',
-          message: 'Please select an option',
+          title: t('more.social.title'),
+          message: t('more.social.message'),
           options,
           cancelButtonIndex: options.length - 1,
         },
@@ -208,20 +210,20 @@ export const MoreScreen: React.FC = () => {
     } else {
       // Android - use Alert
       Alert.alert(
-        'Social',
-        'Please select an option',
+        t('more.social.title'),
+        t('more.social.message'),
         [
           ...handlers.map((handler, index) => ({
             text: options[index],
             onPress: handler,
           })),
-          { text: 'Cancel', style: 'cancel' },
+          { text: t('more.social.cancel'), style: 'cancel' },
         ]
       );
     }
-  };
+  }, [t]);
 
-  const openFacebook = async (pageId: string) => {
+  const openFacebook = useCallback(async (pageId: string) => {
     const appURL = `fb://profile/${pageId}`;
     const webURL = `https://facebook.com/${pageId}`;
 
@@ -232,12 +234,12 @@ export const MoreScreen: React.FC = () => {
       } else {
         // Prompt to download Facebook app
         Alert.alert(
-          'Alert',
-          'You need to download the Facebook app first',
+          t('more.social.downloadAlert'),
+          t('more.social.downloadFacebook'),
           [
-            { text: 'Cancel', style: 'destructive' },
+            { text: t('more.social.cancel'), style: 'destructive' },
             {
-              text: 'Download',
+              text: t('more.social.download'),
               onPress: () => {
                 const storeURL = Platform.OS === 'ios'
                   ? 'itms-apps://itunes.apple.com/app/id284882215'
@@ -252,9 +254,9 @@ export const MoreScreen: React.FC = () => {
       // Fallback to web
       Linking.openURL(webURL);
     }
-  };
+  }, [t]);
 
-  const openInstagram = async (username: string) => {
+  const openInstagram = useCallback(async (username: string) => {
     const appURL = `instagram://user?username=${username}`;
     const webURL = `https://instagram.com/${username}`;
 
@@ -264,12 +266,12 @@ export const MoreScreen: React.FC = () => {
         await Linking.openURL(appURL);
       } else {
         Alert.alert(
-          'Alert',
-          'You need to download the Instagram app first',
+          t('more.social.downloadAlert'),
+          t('more.social.downloadInstagram'),
           [
-            { text: 'Cancel', style: 'destructive' },
+            { text: t('more.social.cancel'), style: 'destructive' },
             {
-              text: 'Download',
+              text: t('more.social.download'),
               onPress: () => {
                 const storeURL = Platform.OS === 'ios'
                   ? 'itms-apps://itunes.apple.com/app/id389801252'
@@ -283,9 +285,9 @@ export const MoreScreen: React.FC = () => {
     } catch (error) {
       Linking.openURL(webURL);
     }
-  };
+  }, [t]);
 
-  const openTwitter = async (username: string) => {
+  const openTwitter = useCallback(async (username: string) => {
     const appURL = `twitter://user?screen_name=${username}`;
     const webURL = `https://twitter.com/${username}`;
 
@@ -295,12 +297,12 @@ export const MoreScreen: React.FC = () => {
         await Linking.openURL(appURL);
       } else {
         Alert.alert(
-          'Alert',
-          'You need to download the X app first',
+          t('more.social.downloadAlert'),
+          t('more.social.downloadX'),
           [
-            { text: 'Cancel', style: 'destructive' },
+            { text: t('more.social.cancel'), style: 'destructive' },
             {
-              text: 'Download',
+              text: t('more.social.download'),
               onPress: () => {
                 const storeURL = Platform.OS === 'ios'
                   ? 'itms-apps://itunes.apple.com/app/id409789998'
@@ -314,14 +316,14 @@ export const MoreScreen: React.FC = () => {
     } catch (error) {
       Linking.openURL(webURL);
     }
-  };
+  }, [t]);
 
-  const handleTeam = (config: ConfigSetting) => {
+  const handleTeam = useCallback((config: ConfigSetting) => {
     navigation.navigate('WebView', {
       url: config.Value,
-      title: 'Meet the team',
+      title: t('more.menu.teamTitle'),
     });
-  };
+  }, [navigation, t]);
 
   const handleBible = () => {
     // Navigate to Bible tab
@@ -332,7 +334,7 @@ export const MoreScreen: React.FC = () => {
     navigation.navigate('Settings');
   };
 
-  const handleSendLogs = async () => {
+  const handleSendLogs = useCallback(async () => {
     try {
       // Check if we're on a simulator (simulators often can't send emails)
       const isEmulator = !Device.isDevice;
@@ -360,9 +362,9 @@ export const MoreScreen: React.FC = () => {
         await logError(errorMsg);
 
         Alert.alert(
-          'Error',
-          'Unable to retrieve device information. Please try again.',
-          [{ text: 'OK' }]
+          t('more.sendLogs.deviceInfoError'),
+          t('more.sendLogs.deviceInfoErrorMessage'),
+          [{ text: t('more.sendLogs.ok') }]
         );
         return;
       }
@@ -384,19 +386,22 @@ export const MoreScreen: React.FC = () => {
         await logError(errorMsg);
 
         Alert.alert(
-          'Error',
-          'Unable to create log file. Please try again.',
-          [{ text: 'OK' }]
+          t('more.sendLogs.exportError'),
+          t('more.sendLogs.exportErrorMessage'),
+          [{ text: t('more.sendLogs.ok') }]
         );
         return;
       }
 
       // Prepare share options for email only
       const shareOptions: any = {
-        title: 'Send Logs to Support',
-        message: 'Please describe any issues you\'re experiencing with the app:',
+        title: t('more.sendLogs.title'),
+        message: t('more.sendLogs.message'),
         url: `file://${logFilePath}`,
-        subject: `Thrive ${Platform.OS === 'ios' ? 'iOS' : 'Android'} - ID: ${feedbackId}`,
+        subject: t('more.sendLogs.subject', {
+          platform: Platform.OS === 'ios' ? 'iOS' : 'Android',
+          feedbackId
+        }),
         email: 'wyatt@thrive-fl.org',
         social: Share.Social.EMAIL,
         type: 'text/plain',
@@ -439,11 +444,11 @@ export const MoreScreen: React.FC = () => {
             await logError(errorMsg);
 
             Alert.alert(
-              'Unable to Send Logs',
+              t('more.sendLogs.unableToSend'),
               Platform.OS === 'ios'
-                ? 'No email app is configured on this device. Please install and configure the Mail app or another email client to send logs.'
-                : 'No email app is installed on this device. Please install an email app (such as Gmail) to send logs.',
-              [{ text: 'OK' }]
+                ? t('more.sendLogs.noEmailIOS')
+                : t('more.sendLogs.noEmailAndroid'),
+              [{ text: t('more.sendLogs.ok') }]
             );
             return;
           }
@@ -455,20 +460,20 @@ export const MoreScreen: React.FC = () => {
         await logError(errorMsg);
 
         // Show user-friendly error message
-        let alertMessage = 'Unable to send logs. ';
+        let alertMessage: string;
 
         if (isEmulator) {
-          alertMessage += 'Email functionality is not available on simulators. Please test on a physical device.';
+          alertMessage = t('more.sendLogs.genericErrorSimulator');
         } else if (Platform.OS === 'ios') {
-          alertMessage += 'Please make sure the Mail app is configured on your device, or try using another email app.';
+          alertMessage = t('more.sendLogs.genericErrorIOS');
         } else {
-          alertMessage += 'Please make sure you have an email app installed and configured on your device.';
+          alertMessage = t('more.sendLogs.genericErrorAndroid');
         }
 
         Alert.alert(
-          'Error',
+          t('more.sendLogs.genericError'),
           alertMessage,
-          [{ text: 'OK' }]
+          [{ text: t('more.sendLogs.ok') }]
         );
       }
     } catch (error) {
@@ -484,26 +489,26 @@ export const MoreScreen: React.FC = () => {
       }
 
       Alert.alert(
-        'Error',
-        'An unexpected error occurred. Please try again later.',
-        [{ text: 'OK' }]
+        t('more.sendLogs.unexpectedError'),
+        t('more.sendLogs.unexpectedErrorMessage'),
+        [{ text: t('more.sendLogs.ok') }]
       );
     }
-  };
+  }, [t]);
 
-  const handleAbout = () => {
+  const handleAbout = useCallback(() => {
     const version = Application.nativeApplicationVersion || '1.0.0';
     const buildNumber = Application.nativeBuildVersion || '1';
     const year = new Date().getFullYear();
 
-    const message = `Version: ${version} (Build ${buildNumber})\n\n©${year} Thrive Community Church\n\nThis app helps you stay connected with our church community, access sermons, take notes, and more.`;
+    const message = t('more.about.message', { version, buildNumber, year });
 
     if (Platform.OS === 'ios') {
-      Alert.alert('About Thrive Church App', message, [{ text: 'OK', style: 'cancel' }]);
+      Alert.alert(t('more.about.title'), message, [{ text: t('more.about.ok'), style: 'cancel' }]);
     } else {
-      Alert.alert('About Thrive Church App', message, [{ text: 'OK' }]);
+      Alert.alert(t('more.about.title'), message, [{ text: t('more.about.ok') }]);
     }
-  };
+  }, [t]);
 
   const renderItem = ({ item }: { item: MoreMenuItem }) => (
     <MoreMenuCard item={item} theme={theme} />

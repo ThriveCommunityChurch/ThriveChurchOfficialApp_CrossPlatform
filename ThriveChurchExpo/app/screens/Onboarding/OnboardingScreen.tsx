@@ -13,6 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 import { setOnboardingCompleted } from '../../services/storage/storage';
 import { logTutorialBegin, logTutorialComplete } from '../../services/analytics/analyticsService';
@@ -28,41 +29,42 @@ interface OnboardingPage {
   bodyText: string;
 }
 
-const pages: OnboardingPage[] = [
+// Function to get pages with translations
+const getPages = (t: (key: string) => string): OnboardingPage[] => [
   {
     id: '1',
     imageName: 'listen_img',
     iconName: 'headset',
-    headerText: 'Stream & Download Sermons',
-    bodyText: "Never miss a message! Stream sermons in Full HD or download them for offline listening. Whether you're commuting, at the gym, or traveling, take our weekly messages with you wherever you go.",
+    headerText: t('onboarding.page1Header'),
+    bodyText: t('onboarding.page1Body'),
   },
   {
     id: '2',
     imageName: 'bible_img',
     iconName: 'book',
-    headerText: 'Read the Bible Anywhere',
-    bodyText: "Access the complete English Standard Version (ESV) Bible powered by YouVersion. Read, search, and explore scripture with an intuitive interface designed for daily devotion and study.",
+    headerText: t('onboarding.page2Header'),
+    bodyText: t('onboarding.page2Body'),
   },
   {
     id: '3',
     imageName: 'connect_img',
     iconName: 'people',
-    headerText: 'Stay Connected with Thrive',
-    bodyText: "Get the latest church announcements, upcoming events, and community updates. Connect with our team, submit prayer requests, and stay engaged with everything happening at Thrive Community Church.",
+    headerText: t('onboarding.page3Header'),
+    bodyText: t('onboarding.page3Body'),
   },
   {
     id: '4',
     imageName: 'search_img',
     iconName: 'search',
-    headerText: 'Search & Discover Content',
-    bodyText: "Easily find sermons by topic, speaker, or series. Use powerful search and filtering tools to discover messages that speak to your current season and spiritual journey.",
+    headerText: t('onboarding.page4Header'),
+    bodyText: t('onboarding.page4Body'),
   },
   {
     id: '5',
     imageName: 'final_img',
     iconName: 'heart',
-    headerText: 'Welcome to Thrive Community Church',
-    bodyText: "You're all set! Dive in and experience everything Thrive has to offer. We're excited to have you join our community and grow in faith together.",
+    headerText: t('onboarding.page5Header'),
+    bodyText: t('onboarding.page5Body'),
   },
 ];
 
@@ -203,8 +205,12 @@ const ImageWithFallback: React.FC<ImageWithFallbackProps> = ({ imageName, iconNa
 
 export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
+
+  // Get pages with translations
+  const pages = getPages(t);
 
   // Track screen dimensions dynamically
   const [screenDimensions, setScreenDimensions] = useState(() => {
@@ -356,7 +362,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
               currentIndex === 0 && styles.disabledButtonText,
             ]}
           >
-            {currentIndex > 0 ? 'PREV' : ''}
+            {currentIndex > 0 ? t('common.prev') : ''}
           </Text>
         </TouchableOpacity>
 
@@ -365,7 +371,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
           onPress={handleSkip}
         >
           <Text style={[theme.typography.caption as any, styles.skipButtonText]}>
-            Skip
+            {t('onboarding.skip')}
           </Text>
         </TouchableOpacity>
 
@@ -374,7 +380,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
           onPress={handleNext}
         >
           <Text style={[theme.typography.body as any, styles.nextButtonText]}>
-            {currentIndex === pages.length - 1 ? 'DONE' : 'NEXT'}
+            {currentIndex === pages.length - 1 ? t('onboarding.done') : t('onboarding.next')}
           </Text>
         </TouchableOpacity>
       </View>

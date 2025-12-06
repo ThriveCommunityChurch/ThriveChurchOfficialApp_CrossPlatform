@@ -35,10 +35,13 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useTheme } from './useTheme';
+import { useTranslation } from './useTranslation';
 import {
   getBibleTranslation,
   setBibleTranslation,
   getThemeMode,
+  getLanguage,
+  setLanguage as saveLanguage,
 } from '../services/storage/storage';
 import type {
   UserSettings,
@@ -47,6 +50,7 @@ import type {
   DEFAULT_SETTINGS,
 } from '../types/settings';
 import { DEFAULT_SETTINGS as DEFAULTS } from '../types/settings';
+import type { Language } from '../i18n/types';
 
 /**
  * Return type for useSettings hook
@@ -60,6 +64,8 @@ export interface UseSettingsReturn {
   updateBibleTranslation: (translation: BibleTranslation) => Promise<void>;
   /** Update theme mode preference */
   updateThemeMode: (mode: ThemeMode) => Promise<void>;
+  /** Update language preference */
+  updateLanguage: (language: Language) => Promise<void>;
 }
 
 /**
@@ -73,29 +79,34 @@ export interface UseSettingsReturn {
 export const useSettings = (): UseSettingsReturn => {
   // Settings state - initialized with defaults
   const [settings, setSettings] = useState<UserSettings>(DEFAULTS);
-  
+
   // Loading state - true until initial load completes
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Get setThemeMode from ThemeProvider for real-time theme updates
   const { setThemeMode } = useTheme();
+
+  // Get setLanguage from I18nProvider for real-time language updates
+  const { setLanguage } = useTranslation();
 
   // Load settings from AsyncStorage on mount
   useEffect(() => {
     const loadSettings = async () => {
       try {
         setIsLoading(true);
-        
-        // Load both settings in parallel
-        const [bibleTranslation, themeMode] = await Promise.all([
+
+        // Load all settings in parallel
+        const [bibleTranslation, themeMode, language] = await Promise.all([
           getBibleTranslation(),
           getThemeMode(),
+          getLanguage(),
         ]);
 
         // Update settings state with loaded values
         setSettings({
           bibleTranslation,
           themeMode,
+          language: language || DEFAULTS.language,
         });
       } catch (error) {
         console.error('Error loading settings:', error);
@@ -133,7 +144,7 @@ export const useSettings = (): UseSettingsReturn => {
   /**
    * Update theme mode preference
    * Updates local state, persists to AsyncStorage, and updates ThemeProvider
-   * 
+   *
    * @param mode - New theme mode ('auto', 'light', or 'dark')
    */
   const updateThemeMode = useCallback(async (mode: ThemeMode) => {
@@ -155,11 +166,37 @@ export const useSettings = (): UseSettingsReturn => {
     }
   }, [setThemeMode]);
 
+  /**
+   * Update language preference
+   * Updates local state, persists to AsyncStorage, and updates I18nProvider
+   *
+   * @param language - New language ('en' or 'es')
+   */
+  const updateLanguage = useCallback(async (language: Language) => {
+    try {
+      // Update local state immediately for responsive UI
+      setSettings(prev => ({
+        ...prev,
+        language,
+      }));
+
+      // Update I18nProvider for real-time language change
+      // This also persists to AsyncStorage via I18nProvider's handleSetLanguage
+      if (setLanguage) {
+        await setLanguage(language);
+      }
+    } catch (error) {
+      console.error('Error updating language:', error);
+      // Could revert state here if needed, but we'll keep the optimistic update
+    }
+  }, [setLanguage]);
+
   return {
     settings,
     isLoading,
     updateBibleTranslation,
     updateThemeMode,
+    updateLanguage,
   };
 };
 

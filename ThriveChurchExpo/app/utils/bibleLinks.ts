@@ -4,6 +4,7 @@
  */
 
 import { Linking, Alert } from 'react-native';
+import i18next from 'i18next';
 import { getYouVersionUrl } from '../data/bibleBooks';
 import { getBibleTranslation } from '../services/storage/storage';
 import { DEFAULT_BIBLE_TRANSLATION } from '../types/settings';
@@ -35,17 +36,17 @@ export const openBibleBook = async (slug: string, bookName: string): Promise<voi
     } else {
       // Fallback: show alert if URL can't be opened
       Alert.alert(
-        'Unable to Open',
-        'Please install the YouVersion Bible app or check your internet connection.',
-        [{ text: 'OK' }]
+        i18next.t('bibleLinks.unableToOpen'),
+        i18next.t('bibleLinks.installYouVersion'),
+        [{ text: i18next.t('bibleLinks.ok') }]
       );
     }
   } catch (error) {
     console.error('Error opening Bible book:', error);
     Alert.alert(
-      'Error',
-      'Unable to open Bible passage. Please try again.',
-      [{ text: 'OK' }]
+      i18next.t('bibleLinks.error'),
+      i18next.t('bibleLinks.unableToOpenPassage'),
+      [{ text: i18next.t('bibleLinks.ok') }]
     );
   }
 };

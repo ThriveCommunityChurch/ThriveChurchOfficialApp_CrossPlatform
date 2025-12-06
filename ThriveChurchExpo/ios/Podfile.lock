@@ -239,6 +239,8 @@ PODS:
     - ExpoModulesCore
   - ExpoLinearGradient (15.0.7):
     - ExpoModulesCore
+  - ExpoLocalization (17.0.7):
+    - ExpoModulesCore
   - ExpoModulesCore (3.0.20):
     - hermes-engine
     - RCTRequired
@@ -2354,6 +2356,7 @@ DEPENDENCIES:
   - ExpoFont (from `../node_modules/expo/node_modules/expo-font/ios`)
   - ExpoKeepAwake (from `../node_modules/expo/node_modules/expo-keep-awake/ios`)
   - ExpoLinearGradient (from `../node_modules/expo-linear-gradient/ios`)
+  - ExpoLocalization (from `../node_modules/expo-localization/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
   - ExpoSharing (from `../node_modules/expo-sharing/ios`)
   - ExpoSplashScreen (from `../node_modules/expo-splash-screen/ios`)
@@ -2496,6 +2499,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo/node_modules/expo-keep-awake/ios"
   ExpoLinearGradient:
     :path: "../node_modules/expo-linear-gradient/ios"
+  ExpoLocalization:
+    :path: "../node_modules/expo-localization/ios"
   ExpoModulesCore:
     :path: "../node_modules/expo-modules-core"
   ExpoSharing:
@@ -2691,6 +2696,7 @@ SPEC CHECKSUMS:
   ExpoFont: 86ceec09ffed1c99cfee36ceb79ba149074901b5
   ExpoKeepAwake: 1a2e820692e933c94a565ec3fbbe38ac31658ffe
   ExpoLinearGradient: a464898cb95153125e3b81894fd479bcb1c7dd27
+  ExpoLocalization: b852a5d8ec14c5349c1593eca87896b5b3ebfcca
   ExpoModulesCore: 985eeb30e8b94ca0765030c94bc23948469c3dba
   ExpoSharing: 032c01bb034319e2374badf082ae935be866d2e9
   ExpoSplashScreen: cbb839de72110dea1851dd3e85080b7923af2540

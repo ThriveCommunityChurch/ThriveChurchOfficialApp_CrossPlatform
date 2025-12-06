@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 import { usePlayer } from '../../hooks/usePlayer';
 import { AudioWaveform } from '../../components/AudioWaveform';
@@ -62,6 +63,7 @@ const SCALE = {
 export default function NowPlayingScreen() {
   const player = usePlayer();
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme);
   const [isSeeking, setIsSeeking] = useState(false);
   const [seekPosition, setSeekPosition] = useState(0);
@@ -187,10 +189,10 @@ export default function NowPlayingScreen() {
       <View style={styles.container}>
         <View style={styles.emptyState}>
           <Text style={[theme.typography.h2 as any, { textAlign: 'center', marginBottom: 16 }]}>
-            No Audio Playing
+            {t('nowPlaying.noAudioPlaying')}
           </Text>
           <Text style={[theme.typography.body as any, { textAlign: 'center', color: theme.colors.textTertiary }]}>
-            Select a sermon to start listening
+            {t('nowPlaying.selectSermon')}
           </Text>
         </View>
       </View>
@@ -284,7 +286,7 @@ export default function NowPlayingScreen() {
               ]}
             >
               {seriesTitle}
-              {weekNum ? ` - Week ${weekNum}` : ''}
+              {weekNum ? ` - ${t('nowPlaying.week')} ${weekNum}` : ''}
             </Text>
           )}
         </View>
