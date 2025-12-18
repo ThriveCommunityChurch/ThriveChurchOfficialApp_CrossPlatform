@@ -1,6 +1,6 @@
 /**
  * SearchTypeToggle Component
- * Segmented control to toggle between 'Messages' and 'Series' search targets
+ * Segmented control to toggle between 'Series', 'Messages', and 'Speaker' search targets
  * Features smooth animated transition between states
  */
 
@@ -29,13 +29,27 @@ export const SearchTypeToggle: React.FC<SearchTypeToggleProps> = ({
   const { theme } = useTheme();
   const styles = createStyles(theme);
 
-  // Animated value for smooth transition (0 = Series, 1 = Message)
-  const slideAnim = useRef(new Animated.Value(value === SearchTarget.Series ? 0 : 1)).current;
+  // Helper function to get animation value for current search target
+  const getAnimationValue = (target: SearchTarget): number => {
+    switch (target) {
+      case SearchTarget.Series:
+        return 0;
+      case SearchTarget.Message:
+        return 1;
+      case SearchTarget.Speaker:
+        return 2;
+      default:
+        return 0;
+    }
+  };
+
+  // Animated value for smooth transition (0 = Series, 1 = Message, 2 = Speaker)
+  const slideAnim = useRef(new Animated.Value(getAnimationValue(value))).current;
 
   // Animate when value changes
   useEffect(() => {
     Animated.timing(slideAnim, {
-      toValue: value === SearchTarget.Series ? 0 : 1,
+      toValue: getAnimationValue(value),
       duration: 200,
       useNativeDriver: false, // Can't use native driver for backgroundColor
     }).start();
@@ -82,7 +96,7 @@ export const SearchTypeToggle: React.FC<SearchTypeToggleProps> = ({
       <TouchableOpacity
         style={[
           styles.button,
-          styles.rightButton,
+          styles.middleButton,
           value === SearchTarget.Message && styles.activeButton,
         ]}
         onPress={() => handlePress(SearchTarget.Message)}
@@ -98,6 +112,28 @@ export const SearchTypeToggle: React.FC<SearchTypeToggleProps> = ({
           ]}
         >
           Messages
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[
+          styles.button,
+          styles.rightButton,
+          value === SearchTarget.Speaker && styles.activeButton,
+        ]}
+        onPress={() => handlePress(SearchTarget.Speaker)}
+        activeOpacity={0.7}
+        accessibilityLabel="Search for messages by speaker"
+        accessibilityRole="button"
+        accessibilityState={{ selected: value === SearchTarget.Speaker }}
+      >
+        <Text
+          style={[
+            styles.buttonText,
+            value === SearchTarget.Speaker && styles.activeButtonText,
+          ]}
+        >
+          Speaker
         </Text>
       </TouchableOpacity>
     </View>
@@ -122,6 +158,9 @@ const createStyles = (theme: Theme) =>
     leftButton: {
       marginRight: 1,
     },
+    middleButton: {
+      marginHorizontal: 1,
+    },
     rightButton: {
       marginLeft: 1,
     },
@@ -129,7 +168,7 @@ const createStyles = (theme: Theme) =>
       backgroundColor: theme.colors.primary,
     },
     buttonText: {
-      fontSize: 15,
+      fontSize: 14, // Reduced from 15 to fit 3 buttons
       fontWeight: '600',
       fontFamily: Platform.OS === 'ios' ? 'Avenir-Medium' : 'Lato-Semibold',
       color: theme.colors.textSecondary,

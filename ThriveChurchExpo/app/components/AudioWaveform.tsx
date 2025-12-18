@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useRef } from 'react';
+import React, { useMemo, useEffect, useRef, memo, useCallback } from 'react';
 import { View, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { useTheme } from '../hooks/useTheme';
 import type { Theme } from '../theme/types';
@@ -10,15 +10,17 @@ interface AudioWaveformProps {
   amplitudes?: number[]; // Optional: real amplitude data from audio analysis
   isLoading?: boolean; // Optional: show loading state while extracting waveform
   height?: number; // Optional: custom height for the waveform (default: 60)
+  isSeeking?: boolean; // Optional: skip updates during active seeking for better performance
 }
 
-export const AudioWaveform: React.FC<AudioWaveformProps> = ({
+const AudioWaveformComponent: React.FC<AudioWaveformProps> = ({
   progress,
   duration,
   onSeek,
   amplitudes,
   isLoading = false,
   height = 60,
+  isSeeking = false,
 }) => {
   const { theme } = useTheme();
   const styles = createStyles(theme);
@@ -83,12 +85,40 @@ export const AudioWaveform: React.FC<AudioWaveformProps> = ({
     return bars;
   }, []);
 
-  const handlePress = (index: number) => {
+  // Memoize handlePress to avoid recreating on every render
+  const handlePress = useCallback((index: number) => {
     if (onSeek && duration > 0 && !showSkeleton) {
       const position = (index / waveformBars.length) * duration;
       onSeek(position);
     }
-  };
+  }, [onSeek, duration, showSkeleton, waveformBars.length]);
+
+  // Memoize the rendered bars to avoid recalculating on every render
+  // Only recalculate when progress, waveformBars, or theme colors change
+  // IMPORTANT: This must be called before any conditional returns to satisfy Rules of Hooks
+  const renderedBars = useMemo(() => {
+    return waveformBars.map((barHeight, index) => {
+      const isPlayed = index / waveformBars.length <= progress;
+      return (
+        <TouchableOpacity
+          key={index}
+          style={styles.barContainer}
+          onPress={() => handlePress(index)}
+          activeOpacity={0.7}
+        >
+          <View
+            style={[
+              styles.bar,
+              {
+                height: `${barHeight * 100}%`,
+                backgroundColor: isPlayed ? theme.colors.primary : theme.colors.textTertiary,
+              },
+            ]}
+          />
+        </TouchableOpacity>
+      );
+    });
+  }, [progress, waveformBars, theme.colors.primary, theme.colors.textTertiary, styles, handlePress]);
 
   // Show skeleton waveform while loading or waiting for amplitude data
   if (showSkeleton) {
@@ -114,30 +144,49 @@ export const AudioWaveform: React.FC<AudioWaveformProps> = ({
 
   return (
     <View style={[styles.container, { height }]}>
-      {waveformBars.map((barHeight, index) => {
-        const isPlayed = index / waveformBars.length <= progress;
-        return (
-          <TouchableOpacity
-            key={index}
-            style={styles.barContainer}
-            onPress={() => handlePress(index)}
-            activeOpacity={0.7}
-          >
-            <View
-              style={[
-                styles.bar,
-                {
-                  height: `${barHeight * 100}%`,
-                  backgroundColor: isPlayed ? theme.colors.primary : theme.colors.card,
-                },
-              ]}
-            />
-          </TouchableOpacity>
-        );
-      })}
+      {renderedBars}
     </View>
   );
 };
+
+// Memoize the component to prevent unnecessary re-renders
+// Only re-render if progress changes by >= 0.5% or other props change meaningfully
+export const AudioWaveform = memo(AudioWaveformComponent, (prevProps, nextProps) => {
+  // Always re-render if loading state changes
+  if (prevProps.isLoading !== nextProps.isLoading) {
+    return false;
+  }
+
+  // Always re-render if amplitudes change (new track loaded)
+  if (prevProps.amplitudes !== nextProps.amplitudes) {
+    return false;
+  }
+
+  // Always re-render if duration changes (new track)
+  if (prevProps.duration !== nextProps.duration) {
+    return false;
+  }
+
+  // Always re-render if height changes
+  if (prevProps.height !== nextProps.height) {
+    return false;
+  }
+
+  // Skip updates during active seeking for better performance
+  if (nextProps.isSeeking) {
+    return true; // Don't re-render
+  }
+
+  // Only re-render if progress changes by >= 0.5% (0.005)
+  // This reduces re-renders from 60fps to ~2fps during playback
+  const progressDiff = Math.abs(nextProps.progress - prevProps.progress);
+  if (progressDiff < 0.005) {
+    return true; // Don't re-render (props are "equal")
+  }
+
+  // Re-render for significant progress changes
+  return false;
+});
 
 const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
@@ -157,7 +206,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 1,
+    paddingHorizontal: 0, // Removed padding to support high bar counts (240-480 bars)
   },
   bar: {
     width: '100%',

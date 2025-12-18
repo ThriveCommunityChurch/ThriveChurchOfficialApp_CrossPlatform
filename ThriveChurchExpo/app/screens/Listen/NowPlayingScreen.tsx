@@ -16,6 +16,8 @@ import { AudioWaveform } from '../../components/AudioWaveform';
 import { ProgressSlider } from '../../components/ProgressSlider';
 import { waveformService } from '../../services/audio/waveformService';
 import { setCurrentScreen } from '../../services/analytics/analyticsService';
+import { fetchWaveformData } from '../../services/api/waveformService';
+import { adaptWaveformToScreen } from '../../utils/waveformUtils';
 
 const { width, height } = Dimensions.get('window');
 const isTablet = (Platform.OS === 'ios' && Platform.isPad) || Math.min(width, height) >= 768;
@@ -77,32 +79,73 @@ export default function NowPlayingScreen() {
     }
   }, [player.position, isSeeking]);
 
-  // Extract waveform when track changes
+  // Load waveform when track changes
   useEffect(() => {
-    const extractWaveform = async () => {
-      if (!player.currentTrack?.url) {
+    const loadWaveform = async () => {
+      if (!player.currentTrack) {
         setWaveformData([]);
+        setIsLoadingWaveform(false);
+        return;
+      }
+
+      // Get MessageId from track (stored as 'id' property)
+      const messageId = player.currentTrack.id;
+
+      if (!messageId) {
+        console.warn('[NowPlayingScreen] No messageId available on track');
+        setWaveformData([]);
+        setIsLoadingWaveform(false);
         return;
       }
 
       try {
+        // Try to fetch pre-computed waveform data from API
+        console.log('[NowPlayingScreen] Attempting to fetch pre-computed waveform for:', messageId);
+        const precomputedWaveform = await fetchWaveformData(messageId);
+
+        // If we got valid pre-computed data, use it immediately
+        if (precomputedWaveform && precomputedWaveform.length > 0) {
+          console.log('[NowPlayingScreen] Using pre-computed waveform:', {
+            originalLength: precomputedWaveform.length,
+            messageId,
+          });
+
+          // Adapt to screen size (480 → 240/120/60 based on device)
+          const adaptedWaveform = adaptWaveformToScreen(precomputedWaveform);
+          console.log('[NowPlayingScreen] Adapted waveform to:', adaptedWaveform.length, 'bars');
+
+          setWaveformData(adaptedWaveform);
+          setIsLoadingWaveform(false);
+          return;
+        }
+
+        // Fallback: Extract waveform on-device for messages without pre-computed data
+        console.log('[NowPlayingScreen] No pre-computed waveform available, extracting on-device');
+
+        if (!player.currentTrack.url) {
+          console.warn('[NowPlayingScreen] No audio URL available');
+          setWaveformData([]);
+          setIsLoadingWaveform(false);
+          return;
+        }
+
         setIsLoadingWaveform(true);
         console.log('[NowPlayingScreen] Extracting waveform for:', player.currentTrack.url);
 
-        const amplitudes = await waveformService.extractWaveform(player.currentTrack.url, 60);
+        const amplitudes = await waveformService.extractWaveform(player.currentTrack.url, 120);
         setWaveformData(amplitudes);
 
-        console.log('[NowPlayingScreen] Waveform extracted successfully');
+        console.log('[NowPlayingScreen] Waveform extracted successfully (on-device)');
       } catch (error) {
-        console.error('[NowPlayingScreen] Error extracting waveform:', error);
-        setWaveformData([]); // Will use fallback waveform
+        console.error('[NowPlayingScreen] Error loading waveform:', error);
+        setWaveformData([]); // Will use fallback waveform in AudioWaveform component
       } finally {
         setIsLoadingWaveform(false);
       }
     };
 
-    extractWaveform();
-  }, [player.currentTrack?.url]);
+    loadWaveform();
+  }, [player.currentTrack?.id]);
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -255,6 +298,7 @@ export default function NowPlayingScreen() {
             amplitudes={waveformData}
             isLoading={isLoadingWaveform}
             height={waveformHeight}
+            isSeeking={isSeeking}
           />
         </View>
 
@@ -356,16 +400,6 @@ export default function NowPlayingScreen() {
             </Text>
           </TouchableOpacity>
         </View>
-
-        {/* Status Indicator */}
-        {player.isLoading && (
-          <Text style={[
-            isTablet ? theme.typography.body as any : theme.typography.caption as any,
-            { textAlign: 'center', color: theme.colors.textSecondary, marginTop: isTablet ? 24 : 16 }
-          ]}>
-            Buffering...
-          </Text>
-        )}
       </View>
     </View>
   );

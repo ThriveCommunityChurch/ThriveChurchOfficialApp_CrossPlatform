@@ -1,6 +1,6 @@
 /**
  * SearchScreen Component
- * Main search screen for finding sermon series and messages by tags
+ * Main search screen for finding sermon series, messages by tags, and messages by speaker
  */
 
 import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
@@ -23,6 +23,7 @@ import { SearchTarget, SortDirection, SermonSeries, SermonMessage } from '../../
 import { searchContent } from '../../services/api/sermonSearchService';
 import { SearchTypeToggle } from '../../components/Search/SearchTypeToggle';
 import { TagSelector } from '../../components/Search/TagSelector';
+import { SpeakerSelector } from '../../components/Search/SpeakerSelector';
 import { SearchResultsList } from '../../components/Search/SearchResultsList';
 import { setCurrentScreen } from '../../services/analytics/analyticsService';
 
@@ -36,6 +37,7 @@ export const SearchScreen: React.FC = () => {
 
   // State
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedSpeaker, setSelectedSpeaker] = useState<string | null>(null);
   const [searchTarget, setSearchTarget] = useState<SearchTarget>(SearchTarget.Series);
   const [sortDirection, setSortDirection] = useState<SortDirection>(SortDirection.Descending);
   const [debouncedTags, setDebouncedTags] = useState<string[]>([]);
@@ -100,27 +102,55 @@ export const SearchScreen: React.FC = () => {
 
   // React Query for search results
   const { data: results, isLoading } = useQuery({
-    queryKey: ['search', searchTarget, sortDirection, debouncedTags.sort().join(',')],
+    queryKey: [
+      'search',
+      searchTarget,
+      sortDirection,
+      searchTarget === SearchTarget.Speaker ? selectedSpeaker : debouncedTags.sort().join(','),
+    ],
     queryFn: async () => {
+      // Handle Speaker search
+      if (searchTarget === SearchTarget.Speaker) {
+        if (!selectedSpeaker) return [];
+
+        console.log('[SearchScreen] Fetching speaker results:', {
+          searchTarget,
+          sortDirection,
+          speaker: selectedSpeaker,
+        });
+
+        const data = await searchContent(searchTarget, [], sortDirection, selectedSpeaker);
+
+        console.log('[SearchScreen] Speaker results received:', {
+          count: data.length,
+          sortDirection,
+        });
+
+        return data;
+      }
+
+      // Handle Series/Messages search
       if (debouncedTags.length === 0) return [];
 
-      console.log('[SearchScreen] Fetching results:', {
+      console.log('[SearchScreen] Fetching tag results:', {
         searchTarget,
         sortDirection,
         tagCount: debouncedTags.length,
       });
 
-      // Use the new searchContent function that supports both Series and Message search
       const data = await searchContent(searchTarget, debouncedTags, sortDirection);
 
-      console.log('[SearchScreen] Results received:', {
+      console.log('[SearchScreen] Tag results received:', {
         count: data.length,
         sortDirection,
       });
 
       return data;
     },
-    enabled: debouncedTags.length > 0,
+    enabled:
+      searchTarget === SearchTarget.Speaker
+        ? selectedSpeaker !== null
+        : debouncedTags.length > 0,
     staleTime: 0, // Don't use stale data - always fetch fresh when sort changes
     gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
   });
@@ -141,9 +171,28 @@ export const SearchScreen: React.FC = () => {
     setSelectedTags([]);
   }, []);
 
+  // Handle speaker selection
+  const handleSpeakerSelect = useCallback((speaker: string) => {
+    setSelectedSpeaker(speaker);
+  }, []);
+
+  // Handle clear speaker
+  const handleClearSpeaker = useCallback(() => {
+    setSelectedSpeaker(null);
+  }, []);
+
   // Handle search target change
   const handleSearchTargetChange = useCallback((target: SearchTarget) => {
     setSearchTarget(target);
+
+    // Clear opposite selection type when switching tabs (mutually exclusive)
+    if (target === SearchTarget.Speaker) {
+      // Switching TO Speaker tab: clear tags
+      setSelectedTags([]);
+    } else {
+      // Switching TO Series/Messages tab: clear speaker
+      setSelectedSpeaker(null);
+    }
   }, []);
 
   // Handle result press
@@ -161,45 +210,63 @@ export const SearchScreen: React.FC = () => {
           message,
           seriesTitle: message.seriesTitle || 'Sermon',
           seriesArtUrl: message.seriesArt || '',
-          seriesId: '', // TODO: Add seriesId to message if available
+          seriesId: message.SeriesId || '',
         });
       }
     },
     [navigation, searchTarget]
   );
 
-  // Render empty state when no tags selected
-  const renderNoTagsState = () => (
-    <View style={styles.emptyStateContainer}>
-      <Ionicons
-        name="search-outline"
-        size={64}
-        color={theme.colors.textTertiary}
-      />
-      <Text style={styles.emptyStateText}>Select tags to search for content</Text>
-      <Text style={styles.emptyStateSubtext}>
-        Choose one or more topics to find related messages and series
-      </Text>
-    </View>
-  );
+  // Render empty state when no selection made
+  const renderNoTagsState = () => {
+    const isSpeakerTab = searchTarget === SearchTarget.Speaker;
+
+    return (
+      <View style={styles.emptyStateContainer}>
+        <Ionicons
+          name={isSpeakerTab ? 'person-outline' : 'search-outline'}
+          size={64}
+          color={theme.colors.textTertiary}
+        />
+        <Text style={styles.emptyStateText}>
+          {isSpeakerTab
+            ? 'Select a speaker to see their messages'
+            : 'Select tags to search for content'}
+        </Text>
+        <Text style={styles.emptyStateSubtext}>
+          {isSpeakerTab
+            ? 'Choose a speaker to view all their sermon messages'
+            : 'Choose one or more topics to find related messages and series'}
+        </Text>
+      </View>
+    );
+  };
 
   // Render tablet landscape layout (split view)
   if (isTabletLandscape) {
     return (
       <View style={styles.container}>
         <View style={styles.tabletContainer}>
-          {/* Left Side - Tags */}
+          {/* Left Side - Selection */}
           <View style={styles.tabletLeftPanel}>
             <SearchTypeToggle
               value={searchTarget}
               onChange={handleSearchTargetChange}
             />
             <View style={styles.tabletTagSelectorContainer}>
-              <TagSelector
-                selectedTags={selectedTags}
-                onTagToggle={handleTagToggle}
-                onClearAll={handleClearAll}
-              />
+              {searchTarget === SearchTarget.Speaker ? (
+                <SpeakerSelector
+                  selectedSpeaker={selectedSpeaker}
+                  onSpeakerSelect={handleSpeakerSelect}
+                  onClearSpeaker={handleClearSpeaker}
+                />
+              ) : (
+                <TagSelector
+                  selectedTags={selectedTags}
+                  onTagToggle={handleTagToggle}
+                  onClearAll={handleClearAll}
+                />
+              )}
             </View>
           </View>
 
@@ -208,11 +275,11 @@ export const SearchScreen: React.FC = () => {
 
           {/* Right Side - Results */}
           <View style={styles.tabletRightPanel}>
-            {debouncedTags.length === 0 ? (
+            {((searchTarget === SearchTarget.Speaker && !selectedSpeaker) ||
+              (searchTarget !== SearchTarget.Speaker && debouncedTags.length === 0)) ? (
               renderNoTagsState()
             ) : (
               <SearchResultsList
-                key={`results-${searchTarget}-${sortDirection}`}
                 results={results || []}
                 searchTarget={searchTarget}
                 isLoading={isLoading}
@@ -236,20 +303,30 @@ export const SearchScreen: React.FC = () => {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Select Topics</Text>
-        <TagSelector
-          selectedTags={selectedTags}
-          onTagToggle={handleTagToggle}
-          onClearAll={handleClearAll}
-        />
+        <Text style={styles.sectionTitle}>
+          {searchTarget === SearchTarget.Speaker ? 'Select Speaker' : 'Select Topics'}
+        </Text>
+        {searchTarget === SearchTarget.Speaker ? (
+          <SpeakerSelector
+            selectedSpeaker={selectedSpeaker}
+            onSpeakerSelect={handleSpeakerSelect}
+            onClearSpeaker={handleClearSpeaker}
+          />
+        ) : (
+          <TagSelector
+            selectedTags={selectedTags}
+            onTagToggle={handleTagToggle}
+            onClearAll={handleClearAll}
+          />
+        )}
       </View>
 
-      {debouncedTags.length > 0 && (
+      {((searchTarget === SearchTarget.Speaker && selectedSpeaker) ||
+        (searchTarget !== SearchTarget.Speaker && debouncedTags.length > 0)) && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Results</Text>
           <View style={styles.resultsContainer}>
             <SearchResultsList
-              key={`results-${searchTarget}-${sortDirection}`}
               results={results || []}
               searchTarget={searchTarget}
               isLoading={isLoading}
@@ -259,7 +336,9 @@ export const SearchScreen: React.FC = () => {
         </View>
       )}
 
-      {debouncedTags.length === 0 && renderNoTagsState()}
+      {((searchTarget === SearchTarget.Speaker && !selectedSpeaker) ||
+        (searchTarget !== SearchTarget.Speaker && debouncedTags.length === 0)) &&
+        renderNoTagsState()}
     </ScrollView>
   );
 };

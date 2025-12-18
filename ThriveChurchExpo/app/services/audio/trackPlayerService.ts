@@ -7,6 +7,7 @@ import TrackPlayer, {
 } from 'react-native-track-player';
 import { SermonMessage } from '../../types/api';
 import { addToRecentlyPlayed } from '../storage/storage';
+import { markMessageAsPlayed } from '../api/messagePlayedService';
 
 let isServiceInitialized = false;
 
@@ -129,7 +130,12 @@ export const playAudio = async (options: PlayAudioOptions): Promise<void> => {
     // Add to recently played
     await addToRecentlyPlayed(message, seriesArt || message.seriesArt);
 
-    // TODO: Mark message as played via API
+    // Mark message as played via API (fire and forget - don't block playback)
+    markMessageAsPlayed(message.MessageId).catch(err => {
+      // Error already logged in markMessageAsPlayed, this is just extra safety
+      console.warn('[TrackPlayer] Failed to mark message as played:', err);
+    });
+
     console.log('Playing audio:', message.Title);
   } catch (error) {
     console.error('Error playing audio:', error);

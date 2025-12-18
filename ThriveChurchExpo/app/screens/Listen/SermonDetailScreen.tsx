@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -15,9 +15,11 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { useQuery } from '@tanstack/react-query';
 import { useTheme } from '../../hooks/useTheme';
 import type { Theme } from '../../theme/types';
-import { SermonMessage } from '../../types/api';
+import { SermonMessage, SermonSeries } from '../../types/api';
+import { api } from '../../services/api/client';
 import { usePlayer } from '../../hooks/usePlayer';
 import { downloadSermon, deleteDownload, getDownloadSize } from '../../services/downloads/downloadManager';
 import { isMessageDownloaded } from '../../services/storage/storage';
@@ -52,16 +54,55 @@ export const SermonDetailScreen: React.FC = () => {
   const isLandscape = windowWidth > windowHeight;
   const isTabletDevice = (Platform.OS === 'ios' && Platform.isPad) || Math.min(windowWidth, windowHeight) >= 768;
 
+  // Determine if we need to fetch series data (when coming from search with SeriesId but no artwork)
+  const needsSeriesData = !!(seriesId && !seriesArtUrl);
+
+  // Fetch series data if needed (when coming from search results)
+  const { data: seriesData, isLoading: isLoadingSeries } = useQuery({
+    queryKey: ['series', seriesId],
+    queryFn: async (): Promise<SermonSeries> => {
+      const res = await api.get(`api/sermons/series/${seriesId}`);
+      return res.data;
+    },
+    enabled: needsSeriesData, // Only fetch if we need it
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
+
+  // Calculate week number from series data if available
+  const calculatedWeekNum = useMemo(() => {
+    if (!seriesData || !message.MessageId) return message.WeekNum;
+
+    const messageIndex = seriesData.Messages.findIndex(
+      (m) => m.MessageId === message.MessageId
+    );
+
+    if (messageIndex === -1) return message.WeekNum;
+
+    // Week number is reverse order (newest = week 1)
+    return seriesData.Messages.length - messageIndex;
+  }, [seriesData, message.MessageId, message.WeekNum]);
+
+  // Use fetched data or fallback to route params
+  const displaySeriesTitle = seriesData?.Name || seriesTitle;
+  const displaySeriesArtUrl = seriesData?.ArtUrl || seriesArtUrl;
+  const displayWeekNum = calculatedWeekNum || message.WeekNum;
+
+  // Update message object with calculated week number
+  const messageWithWeek = useMemo(() => ({
+    ...message,
+    WeekNum: displayWeekNum,
+  }), [message, displayWeekNum]);
+
   // Track screen view with sermon info
   useEffect(() => {
     setCurrentScreen('SermonDetailScreen', 'SermonDetail');
     logCustomEvent('view_sermon', {
       sermon_id: message.MessageId,
       sermon_title: message.Title,
-      series_title: seriesTitle,
+      series_title: displaySeriesTitle,
       content_type: 'sermon',
     });
-  }, [message.MessageId, message.Title, seriesTitle]);
+  }, [message.MessageId, message.Title, displaySeriesTitle]);
 
   useEffect(() => {
     const checkDownloadStatus = async () => {
@@ -119,15 +160,15 @@ export const SermonDetailScreen: React.FC = () => {
 
       await player.play({
         message,
-        seriesTitle,
-        seriesArt: seriesArtUrl,
+        seriesTitle: displaySeriesTitle,
+        seriesArt: displaySeriesArtUrl,
         isLocal: downloaded,
       });
     } catch (error) {
       console.error('Error playing audio:', error);
       Alert.alert('Error', 'Failed to play audio. Please check your connection and try again.');
     }
-  }, [player, message, seriesTitle, seriesArtUrl, downloaded]);
+  }, [player, message, displaySeriesTitle, displaySeriesArtUrl, downloaded]);
 
   const handlePlayVideo = useCallback(() => {
     if (!message.VideoUrl) {
@@ -137,9 +178,9 @@ export const SermonDetailScreen: React.FC = () => {
 
     navigation.navigate('VideoPlayerScreen', {
       message,
-      seriesTitle,
+      seriesTitle: displaySeriesTitle,
     });
-  }, [navigation, message, seriesTitle]);
+  }, [navigation, message, displaySeriesTitle]);
 
   const handleReadPassage = useCallback(() => {
     if (!message.PassageRef) {
@@ -149,9 +190,9 @@ export const SermonDetailScreen: React.FC = () => {
 
     navigation.navigate('BiblePassageScreen', {
       message,
-      seriesTitle,
+      seriesTitle: displaySeriesTitle,
     });
-  }, [navigation, message, seriesTitle]);
+  }, [navigation, message, displaySeriesTitle]);
 
   const handleDownload = useCallback(async () => {
     if (!message.AudioUrl) {
@@ -165,8 +206,8 @@ export const SermonDetailScreen: React.FC = () => {
 
       await downloadSermon(
         message,
-        seriesTitle,
-        seriesArtUrl,
+        displaySeriesTitle,
+        displaySeriesArtUrl,
         (progress) => {
           setDownloadProgress(progress);
         }
@@ -189,7 +230,7 @@ export const SermonDetailScreen: React.FC = () => {
       setDownloading(false);
       setDownloadProgress(0);
     }
-  }, [message, seriesTitle, seriesArtUrl]);
+  }, [message, displaySeriesTitle, displaySeriesArtUrl]);
 
   const handleDeleteDownload = useCallback(async () => {
     Alert.alert(
@@ -234,7 +275,7 @@ export const SermonDetailScreen: React.FC = () => {
           <View style={[styles.tabletHeroSection, { height: heroSectionHeight }]}>
             {/* Blurred Background Image */}
             <ImageBackground
-              source={{ uri: seriesArtUrl }}
+              source={{ uri: displaySeriesArtUrl }}
               style={styles.tabletHeroBackground}
               blurRadius={50}
               resizeMode="cover"
@@ -244,7 +285,7 @@ export const SermonDetailScreen: React.FC = () => {
                   {/* Left Side - Sharp Series Artwork */}
                   <View style={[styles.tabletHeroArtworkContainer, { width: artworkWidth }]}>
                     <Image
-                      source={{ uri: seriesArtUrl }}
+                      source={{ uri: displaySeriesArtUrl }}
                       style={styles.tabletHeroArtwork}
                       resizeMode="cover"
                     />
@@ -253,7 +294,7 @@ export const SermonDetailScreen: React.FC = () => {
                   {/* Right Side - Content */}
                   <View style={styles.tabletHeroContent}>
                     {/* Series Title */}
-                    <Text style={styles.tabletHeroSeriesTitle}>{seriesTitle}</Text>
+                    <Text style={styles.tabletHeroSeriesTitle}>{displaySeriesTitle}</Text>
 
                     {/* Sermon Title */}
                     <Text style={[styles.tabletHeroTitle, { fontSize: titleFontSize, lineHeight: titleLineHeight }]} numberOfLines={3}>
@@ -332,7 +373,7 @@ export const SermonDetailScreen: React.FC = () => {
                 <Ionicons name="calendar-outline" size={20} color={theme.colors.primary} />
                 <View style={styles.tabletMetadataCardContent}>
                   <Text style={styles.tabletMetadataLabel}>Week</Text>
-                  <Text style={styles.tabletMetadataValue}>{message.WeekNum ?? '—'}</Text>
+                  <Text style={styles.tabletMetadataValue}>{messageWithWeek.WeekNum ?? '—'}</Text>
                 </View>
               </View>
 
@@ -492,7 +533,7 @@ export const SermonDetailScreen: React.FC = () => {
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Series Artwork */}
         <Image
-          source={{ uri: seriesArtUrl }}
+          source={{ uri: displaySeriesArtUrl }}
           style={styles.artwork}
           resizeMode="cover"
         />
@@ -501,7 +542,7 @@ export const SermonDetailScreen: React.FC = () => {
         <View style={styles.content}>
           {/* Week Badge */}
           <View style={styles.weekBadge}>
-            <Text style={styles.weekNumber}>{message.WeekNum ?? '—'}</Text>
+            <Text style={styles.weekNumber}>{messageWithWeek.WeekNum ?? '—'}</Text>
             <Text style={styles.weekLabel}>Week</Text>
           </View>
 
@@ -511,7 +552,7 @@ export const SermonDetailScreen: React.FC = () => {
           </Text>
 
           {/* Series Title */}
-          <Text style={styles.seriesTitle}>{seriesTitle}</Text>
+          <Text style={styles.seriesTitle}>{displaySeriesTitle}</Text>
 
           {/* Metadata Section */}
           <View style={styles.metadataSection}>
@@ -666,6 +707,18 @@ export const SermonDetailScreen: React.FC = () => {
       </ScrollView>
     </View>
   );
+
+  // Show loading indicator while fetching series data
+  if (needsSeriesData && isLoadingSeries) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={[styles.summaryText, { marginTop: 16 }]}>
+          Loading sermon details...
+        </Text>
+      </View>
+    );
+  }
 
   // Conditionally render based on device type
   return isTabletDevice ? renderTabletLayout() : renderPhoneLayout();
