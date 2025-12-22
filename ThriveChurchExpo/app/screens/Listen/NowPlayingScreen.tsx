@@ -218,7 +218,6 @@ export default function NowPlayingScreen() {
 
   // Extract custom metadata from track
   const track = player.currentTrack as any;
-  const seriesTitle = track.seriesTitle || track.description;
   const weekNum = track.weekNum;
 
   return (
@@ -278,15 +277,14 @@ export default function NowPlayingScreen() {
           >
             {player.currentTrack.artist}
           </Text>
-          {seriesTitle && (
+          {weekNum && (
             <Text
               style={[
                 isTablet ? theme.typography.body as any : theme.typography.caption as any,
                 { textAlign: 'center', color: theme.colors.textSecondary }
               ]}
             >
-              {seriesTitle}
-              {weekNum ? ` - ${t('nowPlaying.week')} ${weekNum}` : ''}
+              {t('nowPlaying.week')} {weekNum}
             </Text>
           )}
         </View>
