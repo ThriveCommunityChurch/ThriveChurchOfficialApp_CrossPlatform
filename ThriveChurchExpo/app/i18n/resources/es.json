@@ -131,7 +131,8 @@
       "removeDownloadTitle": "Eliminar Descarga",
       "removeDownloadMessage": "¿Estás seguro de que deseas eliminar este sermón descargado?",
       "removeSuccess": "Descarga eliminada exitosamente",
-      "removeFailed": "Error al eliminar la descarga"
+      "removeFailed": "Error al eliminar la descarga",
+      "takeNotes": "Tomar Notas"
     },
     "search": {
       "title": "Buscar",
@@ -175,7 +176,10 @@
       "clearAllMessage": "¿Estás seguro de que deseas limpiar tu historial de reproducción?",
       "clear": "Limpiar",
       "sermon": "sermón",
-      "sermons": "sermones"
+      "sermons": "sermones",
+      "resume": "Reanudar",
+      "resumeFrom": "Reanudar desde {{time}}",
+      "remaining": "restante"
     }
   },
   "bible": {
@@ -216,10 +220,13 @@
       "note": "Nota",
       "tapToStart": "Toca para comenzar a escribir...",
       "deleteTitle": "Eliminar Nota",
-      "deleteMessage": "¿Estás seguro de que deseas eliminar esta nota?"
+      "deleteMessage": "¿Estás seguro de que deseas eliminar esta nota?",
+      "emptyTitle": "Aún No Hay Notas",
+      "emptyDescription": "Toma notas durante un sermón tocando el botón \"Tomar Notas\" en cualquier mensaje. Tus notas se guardarán aquí, organizadas por sermón."
     },
     "detail": {
       "placeholder": "Comienza a escribir...",
+      "titlePlaceholder": "Título (opcional)",
       "emptyNote": "Nota Vacía",
       "emptyNoteMessage": "No hay contenido para compartir.",
       "shareError": "Error",

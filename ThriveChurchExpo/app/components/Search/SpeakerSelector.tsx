@@ -4,7 +4,7 @@
  * Shows selected speaker as a removable chip with "Select Speaker" button to open modal
  */
 
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import {
   Platform,
   Modal,
   ActivityIndicator,
+  LayoutChangeEvent,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
@@ -39,6 +40,8 @@ export const SpeakerSelector: React.FC<SpeakerSelectorProps> = ({
   const styles = createStyles(theme);
   const [modalVisible, setModalVisible] = useState(false);
   const [searchText, setSearchText] = useState('');
+  // Track when list container has been laid out (FlashList needs explicit dimensions)
+  const [listLayoutReady, setListLayoutReady] = useState(false);
 
   // Fetch speakers list using React Query
   const { data: speakers = [], isLoading, isError } = useQuery({
@@ -64,6 +67,7 @@ export const SpeakerSelector: React.FC<SpeakerSelectorProps> = ({
   }, [filteredSpeakers]);
 
   const handleOpenModal = () => {
+    setListLayoutReady(false); // Reset layout state when opening
     setModalVisible(true);
     setSearchText('');
   };
@@ -72,6 +76,15 @@ export const SpeakerSelector: React.FC<SpeakerSelectorProps> = ({
     setModalVisible(false);
     setSearchText('');
   };
+
+  // Handle list container layout - FlashList needs explicit dimensions to render correctly
+  const handleListLayout = useCallback((event: LayoutChangeEvent) => {
+    const { height } = event.nativeEvent.layout;
+    // Only mark as ready when we have a meaningful height
+    if (height > 0) {
+      setListLayoutReady(true);
+    }
+  }, []);
 
   const handleSpeakerPress = (speaker: string) => {
     onSpeakerSelect(speaker);
@@ -172,7 +185,7 @@ export const SpeakerSelector: React.FC<SpeakerSelectorProps> = ({
           </View>
 
           {/* Speakers List */}
-          <View style={styles.modalListContainer}>
+          <View style={styles.modalListContainer} onLayout={handleListLayout}>
             {isLoading ? (
               // Loading State
               <View style={styles.modalLoadingState}>
@@ -186,8 +199,8 @@ export const SpeakerSelector: React.FC<SpeakerSelectorProps> = ({
                 <Text style={styles.modalErrorText}>{t('components.speakerSelector.loadFailed')}</Text>
                 <Text style={styles.modalErrorSubtext}>{t('components.speakerSelector.tryAgainLater')}</Text>
               </View>
-            ) : (
-              // Speakers List
+            ) : listLayoutReady ? (
+              // Speakers List - only render after layout is ready
               <FlashList
                 data={sortedSpeakers}
                 renderItem={renderSpeakerItem}
@@ -207,7 +220,7 @@ export const SpeakerSelector: React.FC<SpeakerSelectorProps> = ({
                   </View>
                 }
               />
-            )}
+            ) : null}
           </View>
         </View>
       </Modal>

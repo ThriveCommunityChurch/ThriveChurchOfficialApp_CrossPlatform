@@ -131,7 +131,8 @@
       "removeDownloadTitle": "Remove Download",
       "removeDownloadMessage": "Are you sure you want to remove this downloaded sermon?",
       "removeSuccess": "Download removed successfully",
-      "removeFailed": "Failed to remove download"
+      "removeFailed": "Failed to remove download",
+      "takeNotes": "Take Notes"
     },
     "search": {
       "title": "Search",
@@ -175,7 +176,10 @@
       "clearAllMessage": "Are you sure you want to clear your recently played history?",
       "clear": "Clear",
       "sermon": "sermon",
-      "sermons": "sermons"
+      "sermons": "sermons",
+      "resume": "Resume",
+      "resumeFrom": "Resume from {{time}}",
+      "remaining": "remaining"
     }
   },
   "bible": {
@@ -216,10 +220,13 @@
       "note": "Note",
       "tapToStart": "Tap to start writing...",
       "deleteTitle": "Delete Note",
-      "deleteMessage": "Are you sure you want to delete this note?"
+      "deleteMessage": "Are you sure you want to delete this note?",
+      "emptyTitle": "No Notes Yet",
+      "emptyDescription": "Take notes during a sermon by tapping the \"Take Notes\" button on any message. Your notes will be saved here, organized by sermon."
     },
     "detail": {
       "placeholder": "Start typing...",
+      "titlePlaceholder": "Title (optional)",
       "emptyNote": "Empty Note",
       "emptyNoteMessage": "There is no content to share.",
       "shareError": "Error",

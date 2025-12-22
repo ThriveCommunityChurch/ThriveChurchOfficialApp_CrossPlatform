@@ -13,16 +13,18 @@ import { useTheme } from '../../hooks/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 import { SermonMessage } from '../../types/api';
-import { getRecentlyPlayed, clearRecentlyPlayed } from '../../services/storage/storage';
+import { getRecentlyPlayed, clearRecentlyPlayed, getPlaybackProgressMap } from '../../services/storage/storage';
 import { getDownloadedMessage } from '../../services/storage/storage';
 import { usePlayer } from '../../hooks/usePlayer';
 import { setCurrentScreen } from '../../services/analytics/analyticsService';
+import { PlaybackProgressMap } from '../../types/playback';
 
 export default function RecentlyPlayedScreen() {
   const navigation = useNavigation();
   const { theme } = useTheme();
   const { t } = useTranslation();
   const [recentlyPlayed, setRecentlyPlayed] = useState<SermonMessage[]>([]);
+  const [playbackProgress, setPlaybackProgress] = useState<PlaybackProgressMap>({});
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const player = usePlayer();
@@ -34,8 +36,12 @@ export default function RecentlyPlayedScreen() {
 
   const loadRecentlyPlayed = useCallback(async () => {
     try {
-      const messages = await getRecentlyPlayed();
+      const [messages, progressMap] = await Promise.all([
+        getRecentlyPlayed(),
+        getPlaybackProgressMap(),
+      ]);
       setRecentlyPlayed(messages);
+      setPlaybackProgress(progressMap);
     } catch (error) {
       console.error('Error loading recently played:', error);
     } finally {
@@ -58,10 +64,17 @@ export default function RecentlyPlayedScreen() {
     const downloadedMessage = await getDownloadedMessage(message.MessageId);
     const isDownloaded = !!downloadedMessage;
 
+    // Check if there's playback progress (not finished)
+    const progress = playbackProgress[message.MessageId];
+    const hasProgress = progress && progress.positionSeconds > 30;
+    const isFinished = progress && progress.positionSeconds >= progress.durationSeconds - 10; // Within 10 seconds of end
+
     const options = [];
 
     options.push({
-      text: t('listen.recentlyPlayed.listen'),
+      text: hasProgress && !isFinished
+        ? t('listen.recentlyPlayed.resume')
+        : t('listen.recentlyPlayed.listen'),
       onPress: () => handleListen(message, isDownloaded),
     });
 
@@ -89,7 +102,7 @@ export default function RecentlyPlayedScreen() {
       t('listen.recentlyPlayed.selectAction'),
       options as any
     );
-  }, [t]);
+  }, [t, playbackProgress]);
 
   const handleListen = useCallback(async (message: SermonMessage, isDownloaded: boolean) => {
     try {
@@ -173,7 +186,25 @@ export default function RecentlyPlayedScreen() {
     }
   };
 
+  const formatTimeRemaining = (positionSeconds: number, durationSeconds: number): string => {
+    const remaining = Math.max(0, durationSeconds - positionSeconds);
+    const minutes = Math.floor(remaining / 60);
+    const seconds = Math.floor(remaining % 60);
+    if (minutes > 60) {
+      const hours = Math.floor(minutes / 60);
+      const mins = minutes % 60;
+      return `${hours}h ${mins}m ${t('listen.recentlyPlayed.remaining')}`;
+    }
+    return `${minutes}:${seconds.toString().padStart(2, '0')} ${t('listen.recentlyPlayed.remaining')}`;
+  };
+
   const renderRecentlyPlayedItem = useCallback(({ item }: { item: SermonMessage }) => {
+    const progress = playbackProgress[item.MessageId];
+    const hasProgress = progress && progress.positionSeconds > 30; // Only show if meaningful progress
+    const progressPercent = hasProgress
+      ? Math.min((progress.positionSeconds / progress.durationSeconds) * 100, 100)
+      : 0;
+
     return (
       <TouchableOpacity
         style={{
@@ -182,58 +213,83 @@ export default function RecentlyPlayedScreen() {
           paddingVertical: 16,
           borderBottomWidth: 0.5,
           borderBottomColor: theme.colors.border,
-          flexDirection: 'row',
-          alignItems: 'center',
         }}
         onPress={() => handleMessagePress(item)}
         activeOpacity={0.7}
       >
-        {/* Series Art Thumbnail */}
-        {item.seriesArt ? (
-          <Image
-            source={{ uri: item.seriesArt }}
-            style={{
-              width: 106,
-              height: 60,
-              borderRadius: 8,
-              backgroundColor: theme.colors.card,
-              marginRight: 12,
-            }}
-            resizeMode="cover"
-          />
-        ) : (
-          <View
-            style={{
-              width: 106,
-              height: 60,
-              borderRadius: 8,
-              backgroundColor: theme.colors.card,
-              marginRight: 12,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Text style={[theme.typography.label as any, { color: theme.colors.textSecondary }]}>
-              {item.WeekNum || '?'}
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          {/* Series Art Thumbnail */}
+          {item.seriesArt ? (
+            <Image
+              source={{ uri: item.seriesArt }}
+              style={{
+                width: 106,
+                height: 60,
+                borderRadius: 8,
+                backgroundColor: theme.colors.card,
+                marginRight: 12,
+              }}
+              resizeMode="cover"
+            />
+          ) : (
+            <View
+              style={{
+                width: 106,
+                height: 60,
+                borderRadius: 8,
+                backgroundColor: theme.colors.card,
+                marginRight: 12,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Text style={[theme.typography.label as any, { color: theme.colors.textSecondary }]}>
+                {item.WeekNum || '?'}
+              </Text>
+            </View>
+          )}
+
+          {/* Message Info */}
+          <View style={{ flex: 1 }}>
+            <Text style={[theme.typography.h3 as any, { marginBottom: 4 }]} numberOfLines={2}>
+              {item.Title}
+            </Text>
+            <Text style={[theme.typography.body as any, { color: theme.colors.textTertiary, marginBottom: 2 }]}>
+              {item.seriesTitle || 'Sermon'}
+            </Text>
+            <Text style={[theme.typography.caption as any, { color: theme.colors.textSecondary }]}>
+              {item.Speaker} • {formatDate(item.previouslyPlayed)}
+            </Text>
+          </View>
+        </View>
+
+        {/* Resume Progress Indicator */}
+        {hasProgress && (
+          <View style={{ marginTop: 10, marginLeft: 118 }}>
+            <View style={{
+              height: 3,
+              backgroundColor: theme.colors.border,
+              borderRadius: 1.5,
+              overflow: 'hidden',
+            }}>
+              <View style={{
+                height: '100%',
+                width: `${progressPercent}%`,
+                backgroundColor: theme.colors.primary,
+                borderRadius: 1.5,
+              }} />
+            </View>
+            <Text style={[
+              theme.typography.caption as any,
+              { color: theme.colors.primary, marginTop: 4, fontSize: 11 }
+            ]}>
+              {formatTimeRemaining(progress.positionSeconds, progress.durationSeconds)}
             </Text>
           </View>
         )}
-
-        {/* Message Info */}
-        <View style={{ flex: 1 }}>
-          <Text style={[theme.typography.h3 as any, { marginBottom: 4 }]} numberOfLines={2}>
-            {item.Title}
-          </Text>
-          <Text style={[theme.typography.body as any, { color: theme.colors.textTertiary, marginBottom: 2 }]}>
-            {item.seriesTitle || 'Sermon'}
-          </Text>
-          <Text style={[theme.typography.caption as any, { color: theme.colors.textSecondary }]}>
-            {item.Speaker} • {formatDate(item.previouslyPlayed)}
-          </Text>
-        </View>
       </TouchableOpacity>
     );
-  }, [handleMessagePress, formatDate, theme]);
+  }, [handleMessagePress, formatDate, theme, playbackProgress, t]);
 
   const renderEmptyState = useCallback(() => (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}>

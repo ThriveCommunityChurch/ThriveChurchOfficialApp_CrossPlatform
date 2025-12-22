@@ -4,7 +4,7 @@
  * Shows selected tags as removable chips with "Add Tags" button to open modal
  */
 
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import {
   Platform,
   Modal,
   Pressable,
+  LayoutChangeEvent,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
@@ -39,6 +40,8 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
   const styles = createStyles(theme);
   const [modalVisible, setModalVisible] = useState(false);
   const [searchText, setSearchText] = useState('');
+  // Track when list container has been laid out (FlashList needs explicit dimensions)
+  const [listLayoutReady, setListLayoutReady] = useState(false);
 
   // Get all tag names from MessageTag enum (excluding Unknown)
   const allTags = useMemo(() => {
@@ -59,6 +62,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
   }, [allTags, searchText]);
 
   const handleOpenModal = () => {
+    setListLayoutReady(false); // Reset layout state when opening
     setModalVisible(true);
     setSearchText('');
   };
@@ -67,6 +71,15 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
     setModalVisible(false);
     setSearchText('');
   };
+
+  // Handle list container layout - FlashList needs explicit dimensions to render correctly
+  const handleListLayout = useCallback((event: LayoutChangeEvent) => {
+    const { height } = event.nativeEvent.layout;
+    // Only mark as ready when we have a meaningful height
+    if (height > 0) {
+      setListLayoutReady(true);
+    }
+  }, []);
 
   const handleTagPress = (tag: string) => {
     onTagToggle(tag);
@@ -196,22 +209,24 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
           )}
 
           {/* Tags List */}
-          <View style={styles.modalListContainer}>
-            <FlashList
-              data={filteredTags}
-              renderItem={renderTagItem}
-              keyExtractor={(item) => item}
-              estimatedItemSize={56}
-              showsVerticalScrollIndicator={true}
-              contentContainerStyle={styles.modalListContent}
-              ListEmptyComponent={
-                <View style={styles.modalEmptyState}>
-                  <Ionicons name="search-outline" size={48} color={theme.colors.textTertiary} />
-                  <Text style={styles.modalEmptyText}>{t('components.tagSelector.noTagsFound')}</Text>
-                  <Text style={styles.modalEmptySubtext}>{t('components.tagSelector.tryDifferentSearch')}</Text>
-                </View>
-              }
-            />
+          <View style={styles.modalListContainer} onLayout={handleListLayout}>
+            {listLayoutReady && (
+              <FlashList
+                data={filteredTags}
+                renderItem={renderTagItem}
+                keyExtractor={(item) => item}
+                estimatedItemSize={56}
+                showsVerticalScrollIndicator={true}
+                contentContainerStyle={styles.modalListContent}
+                ListEmptyComponent={
+                  <View style={styles.modalEmptyState}>
+                    <Ionicons name="search-outline" size={48} color={theme.colors.textTertiary} />
+                    <Text style={styles.modalEmptyText}>{t('components.tagSelector.noTagsFound')}</Text>
+                    <Text style={styles.modalEmptySubtext}>{t('components.tagSelector.tryDifferentSearch')}</Text>
+                  </View>
+                }
+              />
+            )}
           </View>
 
           {/* Modal Footer */}

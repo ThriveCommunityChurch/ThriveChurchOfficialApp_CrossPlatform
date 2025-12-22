@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,8 @@ import {
   Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { useTheme } from '../../hooks/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
@@ -64,6 +66,7 @@ export default function NowPlayingScreen() {
   const player = usePlayer();
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const navigation = useNavigation<StackNavigationProp<any>>();
   const styles = createStyles(theme);
   const [isSeeking, setIsSeeking] = useState(false);
   const [seekPosition, setSeekPosition] = useState(0);
@@ -74,6 +77,47 @@ export default function NowPlayingScreen() {
   useEffect(() => {
     setCurrentScreen('NowPlayingScreen', 'NowPlaying');
   }, []);
+
+  // Handle take notes navigation
+  const handleTakeNotes = useCallback(() => {
+    if (!player.currentTrack) return;
+
+    const track = player.currentTrack as any;
+    // Navigate to Notes tab, then to NoteDetail screen with sermon context
+    (navigation as any).navigate('Notes', {
+      screen: 'NoteDetail',
+      params: {
+        messageId: track.id,
+        messageTitle: track.title || 'Untitled',
+        seriesTitle: track.seriesTitle || track.description || undefined,
+        seriesArt: track.artwork || undefined,
+        speaker: track.artist || 'Unknown',
+        messageDate: track.messageDate || new Date().toISOString(),
+        seriesId: track.seriesId || undefined,
+      },
+    });
+  }, [navigation, player.currentTrack]);
+
+  // Set up header with notes button when track is playing
+  useEffect(() => {
+    if (player.currentTrack) {
+      navigation.setOptions({
+        headerRight: () => (
+          <TouchableOpacity
+            onPress={handleTakeNotes}
+            style={{ marginRight: 16 }}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="create-outline" size={24} color={theme.colors.text} />
+          </TouchableOpacity>
+        ),
+      });
+    } else {
+      navigation.setOptions({
+        headerRight: undefined,
+      });
+    }
+  }, [navigation, player.currentTrack, handleTakeNotes, theme.colors.text]);
 
   useEffect(() => {
     if (!isSeeking) {

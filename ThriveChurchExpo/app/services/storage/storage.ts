@@ -1,9 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SermonMessage } from '../../types/api';
-import { Note } from '../../types/notes';
+import { Note, SermonNote } from '../../types/notes';
 import { ConfigSetting } from '../../types/config';
 import { BibleTranslation, ThemeMode, DEFAULT_BIBLE_TRANSLATION } from '../../types/settings';
 import { Language } from '../i18n/types';
+import { PlaybackProgress, PlaybackProgressMap, MIN_POSITION_TO_SAVE, END_THRESHOLD } from '../../types/playback';
 
 // Storage wrapper using AsyncStorage
 // All operations are async to properly handle AsyncStorage's async nature
@@ -41,6 +42,8 @@ export const StorageKeys = {
   ONBOARDING_COMPLETED: 'onboardingCompleted',
   DOWNLOAD_QUEUE: 'downloadQueue',
   NOTES: 'notes',
+  SERMON_NOTES: 'sermonNotes',
+  PLAYBACK_PROGRESS: 'playbackProgress',
   THEME_MODE: 'themeMode',
   BIBLE_TRANSLATION: 'bibleTranslation',
   LANGUAGE: 'language',
@@ -346,10 +349,11 @@ export const saveNotes = async (notes: Note[]): Promise<void> => {
   }
 };
 
-export const createNote = async (content: string = ''): Promise<Note> => {
+export const createNote = async (content: string = '', title?: string): Promise<Note> => {
   const now = Date.now();
   const note: Note = {
     id: `note_${now}_${Math.random().toString(36).substr(2, 9)}`,
+    title,
     content,
     createdAt: now,
     updatedAt: now,
@@ -366,7 +370,7 @@ export const createNote = async (content: string = ''): Promise<Note> => {
   }
 };
 
-export const updateNote = async (id: string, content: string): Promise<void> => {
+export const updateNote = async (id: string, content: string, title?: string): Promise<void> => {
   try {
     const notes = await getNotes();
     const index = notes.findIndex(n => n.id === id);
@@ -375,6 +379,7 @@ export const updateNote = async (id: string, content: string): Promise<void> => 
       notes[index] = {
         ...notes[index],
         content,
+        title,
         updatedAt: Date.now(),
       };
       await saveNotes(notes);
@@ -526,5 +531,226 @@ export const setLanguage = async (language: Language): Promise<void> => {
     await AsyncStorage.setItem(StorageKeys.LANGUAGE, language);
   } catch (error) {
     console.error('Error saving language:', error);
+  }
+};
+
+// Playback Progress Functions
+export const getPlaybackProgressMap = async (): Promise<PlaybackProgressMap> => {
+  if (!isStorageAvailable()) return {};
+
+  try {
+    const data = await AsyncStorage.getItem(StorageKeys.PLAYBACK_PROGRESS);
+    return data ? JSON.parse(data) : {};
+  } catch (error) {
+    console.error('Error reading playback progress:', error);
+    return {};
+  }
+};
+
+export const savePlaybackProgressMap = async (progressMap: PlaybackProgressMap): Promise<void> => {
+  if (!isStorageAvailable()) return;
+
+  try {
+    await AsyncStorage.setItem(StorageKeys.PLAYBACK_PROGRESS, JSON.stringify(progressMap));
+  } catch (error) {
+    console.error('Error saving playback progress:', error);
+  }
+};
+
+export const getPlaybackProgressForMessage = async (messageId: string): Promise<PlaybackProgress | null> => {
+  try {
+    const progressMap = await getPlaybackProgressMap();
+    return progressMap[messageId] || null;
+  } catch (error) {
+    console.error('Error getting playback progress for message:', error);
+    return null;
+  }
+};
+
+/**
+ * Save playback progress for a message
+ * Only saves if position is above MIN_POSITION_TO_SAVE
+ * Clears progress if near the end (within END_THRESHOLD)
+ */
+export const savePlaybackProgress = async (
+  messageId: string,
+  positionSeconds: number,
+  durationSeconds: number
+): Promise<void> => {
+  try {
+    const progressMap = await getPlaybackProgressMap();
+
+    // If near the end, clear progress instead of saving
+    if (durationSeconds > 0 && (durationSeconds - positionSeconds) < END_THRESHOLD) {
+      if (progressMap[messageId]) {
+        delete progressMap[messageId];
+        await savePlaybackProgressMap(progressMap);
+      }
+      return;
+    }
+
+    // Don't save if position is too small
+    if (positionSeconds < MIN_POSITION_TO_SAVE) {
+      return;
+    }
+
+    const progress: PlaybackProgress = {
+      messageId,
+      positionSeconds,
+      durationSeconds,
+      updatedAt: Date.now(),
+    };
+
+    progressMap[messageId] = progress;
+    await savePlaybackProgressMap(progressMap);
+  } catch (error) {
+    console.error('Error saving playback progress:', error);
+  }
+};
+
+export const clearPlaybackProgress = async (messageId: string): Promise<void> => {
+  try {
+    const progressMap = await getPlaybackProgressMap();
+    if (progressMap[messageId]) {
+      delete progressMap[messageId];
+      await savePlaybackProgressMap(progressMap);
+    }
+  } catch (error) {
+    console.error('Error clearing playback progress:', error);
+  }
+};
+
+export const clearAllPlaybackProgress = async (): Promise<void> => {
+  if (!isStorageAvailable()) return;
+
+  try {
+    await AsyncStorage.removeItem(StorageKeys.PLAYBACK_PROGRESS);
+  } catch (error) {
+    console.error('Error clearing all playback progress:', error);
+  }
+};
+
+// Sermon Notes Functions
+export const getSermonNotes = async (): Promise<SermonNote[]> => {
+  if (!isStorageAvailable()) return [];
+
+  try {
+    const data = await AsyncStorage.getItem(StorageKeys.SERMON_NOTES);
+    return data ? JSON.parse(data) : [];
+  } catch (error) {
+    console.error('Error reading sermon notes:', error);
+    return [];
+  }
+};
+
+export const saveSermonNotes = async (notes: SermonNote[]): Promise<void> => {
+  if (!isStorageAvailable()) return;
+
+  try {
+    await AsyncStorage.setItem(StorageKeys.SERMON_NOTES, JSON.stringify(notes));
+  } catch (error) {
+    console.error('Error saving sermon notes:', error);
+  }
+};
+
+export const getSermonNote = async (id: string): Promise<SermonNote | null> => {
+  try {
+    const notes = await getSermonNotes();
+    return notes.find(n => n.id === id) || null;
+  } catch (error) {
+    console.error('Error getting sermon note:', error);
+    return null;
+  }
+};
+
+export const getSermonNoteByMessageId = async (messageId: string): Promise<SermonNote | null> => {
+  try {
+    const notes = await getSermonNotes();
+    return notes.find(n => n.messageId === messageId) || null;
+  } catch (error) {
+    console.error('Error getting sermon note by message ID:', error);
+    return null;
+  }
+};
+
+export interface CreateSermonNoteParams {
+  messageId: string;
+  seriesId?: string;
+  messageTitle: string;
+  seriesTitle?: string;
+  seriesArt?: string;
+  speaker: string;
+  messageDate: string;
+  content?: string;
+}
+
+export const createSermonNote = async (params: CreateSermonNoteParams): Promise<SermonNote> => {
+  const now = Date.now();
+  const note: SermonNote = {
+    id: `sermon_note_${now}_${Math.random().toString(36).substr(2, 9)}`,
+    messageId: params.messageId,
+    seriesId: params.seriesId,
+    messageTitle: params.messageTitle,
+    seriesTitle: params.seriesTitle,
+    seriesArt: params.seriesArt,
+    speaker: params.speaker,
+    messageDate: params.messageDate,
+    content: params.content || '',
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  try {
+    const notes = await getSermonNotes();
+    // Check if a note for this message already exists
+    const existingIndex = notes.findIndex(n => n.messageId === params.messageId);
+    if (existingIndex !== -1) {
+      // Return existing note instead of creating duplicate
+      return notes[existingIndex];
+    }
+    notes.unshift(note); // Add to beginning
+    await saveSermonNotes(notes);
+    return note;
+  } catch (error) {
+    console.error('Error creating sermon note:', error);
+    return note;
+  }
+};
+
+export const updateSermonNote = async (id: string, content: string): Promise<void> => {
+  try {
+    const notes = await getSermonNotes();
+    const index = notes.findIndex(n => n.id === id);
+
+    if (index !== -1) {
+      notes[index] = {
+        ...notes[index],
+        content,
+        updatedAt: Date.now(),
+      };
+      await saveSermonNotes(notes);
+    }
+  } catch (error) {
+    console.error('Error updating sermon note:', error);
+  }
+};
+
+export const deleteSermonNote = async (id: string): Promise<void> => {
+  try {
+    const notes = await getSermonNotes();
+    const filtered = notes.filter(n => n.id !== id);
+    await saveSermonNotes(filtered);
+  } catch (error) {
+    console.error('Error deleting sermon note:', error);
+  }
+};
+
+export const clearAllSermonNotes = async (): Promise<void> => {
+  if (!isStorageAvailable()) return;
+
+  try {
+    await AsyncStorage.removeItem(StorageKeys.SERMON_NOTES);
+  } catch (error) {
+    console.error('Error clearing sermon notes:', error);
   }
 };

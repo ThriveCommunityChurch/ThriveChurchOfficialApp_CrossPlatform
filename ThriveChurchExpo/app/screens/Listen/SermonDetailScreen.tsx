@@ -258,6 +258,22 @@ export const SermonDetailScreen: React.FC = () => {
     );
   }, [message.MessageId, t]);
 
+  const handleTakeNotes = useCallback(() => {
+    // Navigate to Notes tab, then to NoteDetail screen with sermon context
+    (navigation as any).navigate('Notes', {
+      screen: 'NoteDetail',
+      params: {
+        messageId: message.MessageId,
+        messageTitle: message.Title,
+        seriesTitle: displaySeriesTitle,
+        seriesArt: displaySeriesArtUrl,
+        speaker: message.Speaker || 'Unknown',
+        messageDate: message.Date || new Date().toISOString(),
+        seriesId: seriesId,
+      },
+    });
+  }, [navigation, message, displaySeriesTitle, displaySeriesArtUrl, seriesId]);
+
   const hasAudio = !!message.AudioUrl;
   const hasVideo = !!message.VideoUrl;
   const hasPassage = !!message.PassageRef;
@@ -480,6 +496,16 @@ export const SermonDetailScreen: React.FC = () => {
                   )}
                 </TouchableOpacity>
               )}
+
+              {/* Take Notes Button */}
+              <TouchableOpacity
+                style={styles.tabletDownloadButton}
+                onPress={handleTakeNotes}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="create-outline" size={20} color={theme.colors.text} />
+                <Text style={styles.tabletDownloadButtonText}>{t('listen.sermon.takeNotes')}</Text>
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -704,6 +730,16 @@ export const SermonDetailScreen: React.FC = () => {
                 </TouchableOpacity>
               )}
             </View>
+
+            {/* Take Notes Button - Full Width */}
+            <TouchableOpacity
+              style={styles.notesButton}
+              onPress={handleTakeNotes}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="create-outline" size={20} color={theme.colors.text} />
+              <Text style={styles.secondaryButtonText}>{t('listen.sermon.takeNotes')}</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
@@ -954,6 +990,18 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     fontSize: 14,
     color: theme.colors.text, // ← ONLY COLOR CHANGED
     marginLeft: 6,
+  },
+  notesButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.backgroundSecondary,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    marginTop: 12,
   },
   // Tablet-specific styles - New iPad Design
   // Hero Section

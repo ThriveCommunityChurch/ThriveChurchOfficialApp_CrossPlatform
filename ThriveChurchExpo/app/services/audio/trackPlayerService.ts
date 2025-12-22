@@ -6,10 +6,13 @@ import TrackPlayer, {
   State,
 } from 'react-native-track-player';
 import { SermonMessage } from '../../types/api';
-import { addToRecentlyPlayed } from '../storage/storage';
+import { addToRecentlyPlayed, savePlaybackProgress, getPlaybackProgressForMessage, clearPlaybackProgress } from '../storage/storage';
 import { markMessageAsPlayed } from '../api/messagePlayedService';
+import { MIN_POSITION_TO_SAVE, END_THRESHOLD, PROGRESS_SAVE_INTERVAL_MS } from '../../types/playback';
 
 let isServiceInitialized = false;
+let currentMessageId: string | null = null;
+let progressSaveInterval: ReturnType<typeof setInterval> | null = null;
 
 export const setupPlayer = async (): Promise<void> => {
   if (isServiceInitialized) {
@@ -48,21 +51,67 @@ export const setupPlayer = async (): Promise<void> => {
     isServiceInitialized = true;
     console.log('Track Player initialized successfully');
   } catch (error) {
+    // Handle case where player was already initialized (e.g., after hot reload)
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (errorMessage.includes('already been initialized')) {
+      isServiceInitialized = true;
+      console.log('Track Player was already initialized');
+      return;
+    }
     console.error('Error setting up Track Player:', error);
     throw error;
+  }
+};
+
+/**
+ * Save current playback progress if a track is playing
+ */
+const saveCurrentProgress = async (): Promise<void> => {
+  if (!currentMessageId) return;
+
+  try {
+    const progress = await TrackPlayer.getProgress();
+    if (progress.position > 0 && progress.duration > 0) {
+      await savePlaybackProgress(currentMessageId, progress.position, progress.duration);
+    }
+  } catch (error) {
+    console.warn('Error saving playback progress:', error);
+  }
+};
+
+/**
+ * Start periodic progress saving while playing
+ */
+const startProgressSaving = (): void => {
+  stopProgressSaving();
+  progressSaveInterval = setInterval(saveCurrentProgress, PROGRESS_SAVE_INTERVAL_MS);
+};
+
+/**
+ * Stop periodic progress saving
+ */
+const stopProgressSaving = (): void => {
+  if (progressSaveInterval) {
+    clearInterval(progressSaveInterval);
+    progressSaveInterval = null;
   }
 };
 
 export const playbackService = async (): Promise<void> => {
   TrackPlayer.addEventListener(Event.RemotePlay, () => {
     TrackPlayer.play();
+    startProgressSaving();
   });
 
-  TrackPlayer.addEventListener(Event.RemotePause, () => {
+  TrackPlayer.addEventListener(Event.RemotePause, async () => {
+    await saveCurrentProgress();
+    stopProgressSaving();
     TrackPlayer.pause();
   });
 
-  TrackPlayer.addEventListener(Event.RemoteStop, () => {
+  TrackPlayer.addEventListener(Event.RemoteStop, async () => {
+    await saveCurrentProgress();
+    stopProgressSaving();
     TrackPlayer.stop();
   });
 
@@ -78,6 +127,16 @@ export const playbackService = async (): Promise<void> => {
   TrackPlayer.addEventListener(Event.RemoteJumpBackward, async ({ interval }) => {
     const progress = await TrackPlayer.getProgress();
     await TrackPlayer.seekTo(Math.max(0, progress.position - (interval || 15)));
+  });
+
+  // Handle playback state changes
+  TrackPlayer.addEventListener(Event.PlaybackState, async (event) => {
+    if (event.state === State.Playing) {
+      startProgressSaving();
+    } else if (event.state === State.Paused || event.state === State.Stopped) {
+      await saveCurrentProgress();
+      stopProgressSaving();
+    }
   });
 };
 
@@ -96,16 +155,25 @@ export const playAudio = async (options: PlayAudioOptions): Promise<void> => {
     await setupPlayer();
 
     // Determine the audio URL
-    const audioUrl = isLocal && message.LocalAudioURI 
-      ? message.LocalAudioURI 
+    const audioUrl = isLocal && message.LocalAudioURI
+      ? message.LocalAudioURI
       : message.AudioUrl;
 
     if (!audioUrl) {
       throw new Error('No audio URL available');
     }
 
+    // Stop progress saving for previous track if any
+    stopProgressSaving();
+
     // Reset the player
     await TrackPlayer.reset();
+
+    // Set current message ID for progress tracking
+    currentMessageId = message.MessageId;
+
+    // Check for saved progress
+    const savedProgress = await getPlaybackProgressForMessage(message.MessageId);
 
     // Add track to player with extended metadata
     await TrackPlayer.add({
@@ -127,6 +195,24 @@ export const playAudio = async (options: PlayAudioOptions): Promise<void> => {
     // Start playback
     await TrackPlayer.play();
 
+    // Resume from saved position if available
+    // Only resume if position is meaningful (> MIN_POSITION_TO_SAVE and not too close to end)
+    if (savedProgress) {
+      const { positionSeconds, durationSeconds } = savedProgress;
+      const timeRemaining = durationSeconds - positionSeconds;
+
+      if (positionSeconds >= MIN_POSITION_TO_SAVE && timeRemaining > END_THRESHOLD) {
+        console.log(`Resuming playback at ${positionSeconds}s (saved progress)`);
+        await TrackPlayer.seekTo(positionSeconds);
+      } else {
+        // Clear progress if it's too close to the start or end
+        await clearPlaybackProgress(message.MessageId);
+      }
+    }
+
+    // Start periodic progress saving
+    startProgressSaving();
+
     // Add to recently played
     await addToRecentlyPlayed(message, seriesArt || message.seriesArt);
 
@@ -145,6 +231,8 @@ export const playAudio = async (options: PlayAudioOptions): Promise<void> => {
 
 export const pauseAudio = async (): Promise<void> => {
   try {
+    await saveCurrentProgress();
+    stopProgressSaving();
     await TrackPlayer.pause();
   } catch (error) {
     console.error('Error pausing audio:', error);
@@ -154,6 +242,7 @@ export const pauseAudio = async (): Promise<void> => {
 export const resumeAudio = async (): Promise<void> => {
   try {
     await TrackPlayer.play();
+    startProgressSaving();
   } catch (error) {
     console.error('Error resuming audio:', error);
   }
@@ -161,8 +250,11 @@ export const resumeAudio = async (): Promise<void> => {
 
 export const stopAudio = async (): Promise<void> => {
   try {
+    await saveCurrentProgress();
+    stopProgressSaving();
     await TrackPlayer.stop();
     await TrackPlayer.reset();
+    currentMessageId = null;
   } catch (error) {
     console.error('Error stopping audio:', error);
   }
