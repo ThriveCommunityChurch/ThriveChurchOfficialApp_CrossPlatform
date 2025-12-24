@@ -34,6 +34,9 @@ type ConnectStackParamList = {
   WebViewForm: { url: string; title: string };
   SmallGroup: undefined;
   Serve: undefined;
+  ImNew: undefined;
+  Contact: undefined;
+  Social: undefined;
 };
 
 type NavigationProp = NativeStackNavigationProp<ConnectStackParamList>;
@@ -227,12 +230,8 @@ export const ConnectScreen: React.FC = () => {
   const handleItemPress = (item: ConnectMenuItem) => {
     switch (item.action) {
       case 'imnew':
-        if (item.config) {
-          navigation.navigate('WebViewForm', {
-            url: item.config.Value,
-            title: item.title,
-          });
-        }
+        // Navigate to native ImNew screen instead of WebView
+        navigation.navigate('ImNew');
         break;
       case 'contact':
         navigation.navigate('Contact');

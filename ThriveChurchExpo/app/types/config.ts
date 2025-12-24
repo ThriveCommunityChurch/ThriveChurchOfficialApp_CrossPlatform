@@ -21,7 +21,7 @@ export interface ConnectMenuItem {
   id: string;
   title: string;
   subtitle?: string;
-  action: 'contact' | 'directions' | 'announcements' | 'webview' | 'smallgroup' | 'serve';
+  action: 'contact' | 'directions' | 'announcements' | 'webview' | 'smallgroup' | 'serve' | 'imnew' | 'social';
   config?: ConfigSetting;
 }
 

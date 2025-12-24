@@ -11,3 +11,4 @@ export { SmallGroupScreen } from './SmallGroupScreen';
 export { ServeScreen } from './ServeScreen';
 export { ContactScreen } from './ContactScreen';
 export { SocialScreen } from './SocialScreen';
+export { ImNewScreen } from './ImNewScreen';

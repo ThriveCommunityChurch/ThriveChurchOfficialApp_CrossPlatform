@@ -31,7 +31,7 @@ import BiblePassageScreen from '../screens/Listen/BiblePassageScreen';
 import { BibleSelectionScreen } from '../screens/Bible/BibleSelectionScreen';
 import { BookListScreen } from '../screens/Bible/BookListScreen';
 import { NotesListScreen, NoteDetailScreen } from '../screens/Notes';
-import { ConnectScreen, RSSScreen, RSSDetailScreen, WebViewScreen, SmallGroupScreen, ServeScreen, ContactScreen, SocialScreen } from '../screens/Connect';
+import { ConnectScreen, RSSScreen, RSSDetailScreen, WebViewScreen, SmallGroupScreen, ServeScreen, ContactScreen, SocialScreen, ImNewScreen } from '../screens/Connect';
 import { MoreScreen, AboutScreen } from '../screens/More';
 import { SettingsScreen } from '../screens/Settings';
 import OnboardingScreen from '../screens/Onboarding/OnboardingScreen';
@@ -372,6 +372,14 @@ function ConnectStackNavigator({ theme }: { theme: Theme }) {
         component={SocialScreen}
         options={{
           title: t('connect.menu.socialTitle'),
+          headerBackTitle: t('navigation.connect'),
+        }}
+      />
+      <ConnectStack.Screen
+        name="ImNew"
+        component={ImNewScreen}
+        options={{
+          title: t('connect.menu.imNewTitle'),
           headerBackTitle: t('navigation.connect'),
         }}
       />

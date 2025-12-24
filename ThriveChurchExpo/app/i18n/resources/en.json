@@ -321,6 +321,32 @@
       "emailSubject": "I'm Interested in Serving",
       "emailBody": "Hi!\n\nI'm interested in serving at Thrive. Please let me know about the opportunities available and how I can get involved.\n\nThank you!"
     },
+    "imNew": {
+      "heroTitle": "First Time?",
+      "heroSubtitle": "We get it—new places can feel awkward. Here's what to expect.",
+      "introTitle": "No Pressure. Just People.",
+      "introLead": "Church shouldn't feel like a performance you're not dressed for. At Thrive, we're just regular people figuring out life, faith, and everything in between—together.",
+      "introText": "Whether you're exploring faith for the first time, coming back after years away, or just looking for a community that actually feels like community—you're welcome here. No strings attached.",
+      "seeYouSunday": "See You Sunday",
+      "watchMessage": "Watch a Message",
+      "faqTitle": "FAQ",
+      "faq": {
+        "vibeTitle": "What's the vibe?",
+        "vibeText": "Relaxed and real. Grab a coffee when you arrive (it's free), find a seat anywhere you're comfortable, and enjoy music that actually sounds good. Our messages are practical—stuff you can actually use in your week. The whole thing wraps up in about an hour.",
+        "vibeLink": "Preview a recent message",
+        "dressTitle": "What do people wear?",
+        "dressText": "Whatever you want. Seriously. Jeans and a t-shirt? Perfect. Dressed up because you came from brunch? Also perfect. Our pastor usually rocks sneakers. We care way more about you being here than what you're wearing.",
+        "kidsTitle": "What about my kids?",
+        "kidsText": "They'll probably have more fun than you. Thrive Kids is designed to be the highlight of their week—age-appropriate teaching, awesome leaders, and activities they actually enjoy. Available for ages 6 months through 5th grade every Sunday.",
+        "kidsLink": "More about Thrive Kids",
+        "connectTitle": "How do I actually connect?",
+        "connectText": "Sunday is just the starting point. Every week we hang out at the pastor's house for dinner, games, and good conversation—it's a great low-pressure way to meet people. We also have Home Huddles (small groups) that meet throughout the week.",
+        "connectLink": "Learn more"
+      },
+      "locationCTATitle": "Ready to check us out?",
+      "locationCTASubtitle": "Sundays at 10. Coffee's on us.",
+      "getDirections": "Get Directions & Details"
+    },
     "rss": {
       "untitled": "Untitled",
       "announcement": "Announcement",

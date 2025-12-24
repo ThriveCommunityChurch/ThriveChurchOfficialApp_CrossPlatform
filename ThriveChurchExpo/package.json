@@ -10,7 +10,13 @@
     "prebuild": "npx expo prebuild --clean",
     "prebuild:ios": "npx expo prebuild --clean --platform ios && node scripts/patch-podfile-properties.js && cp GoogleService-Info.plist ios/ThriveChurchOfficialApp/ && cd ios && pod install",
     "prebuild:android": "npx expo prebuild --clean --platform android",
-    "patch-podfile": "node scripts/patch-podfile-properties.js"
+    "patch-podfile": "node scripts/patch-podfile-properties.js",
+    "version:bump": "node scripts/increment-build.js",
+    "version:patch": "node scripts/increment-build.js --bump-patch",
+    "version:minor": "node scripts/increment-build.js --bump-minor",
+    "version:major": "node scripts/increment-build.js --bump-major",
+    "build:ios": "node scripts/increment-build.js && npm run prebuild:ios",
+    "build:android": "node scripts/increment-build.js && npm run prebuild:android"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",

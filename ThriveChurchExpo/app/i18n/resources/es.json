@@ -321,6 +321,32 @@
       "emailSubject": "Estoy Interesado en Servir",
       "emailBody": "¡Hola!\n\nEstoy interesado en servir en Thrive. Por favor, háganme saber sobre las oportunidades disponibles y cómo puedo involucrarme.\n\n¡Gracias!"
     },
+    "imNew": {
+      "heroTitle": "¿Primera Vez?",
+      "heroSubtitle": "Lo entendemos—los lugares nuevos pueden sentirse incómodos. Esto es lo que puedes esperar.",
+      "introTitle": "Sin Presión. Solo Personas.",
+      "introLead": "La iglesia no debería sentirse como una actuación para la que no estás vestido. En Thrive, somos solo personas normales descubriendo la vida, la fe y todo lo demás—juntos.",
+      "introText": "Ya sea que estés explorando la fe por primera vez, volviendo después de años, o simplemente buscando una comunidad que realmente se sienta como comunidad—eres bienvenido aquí. Sin compromisos.",
+      "seeYouSunday": "Te Vemos el Domingo",
+      "watchMessage": "Ver un Mensaje",
+      "faqTitle": "Preguntas Frecuentes",
+      "faq": {
+        "vibeTitle": "¿Cuál es el ambiente?",
+        "vibeText": "Relajado y real. Toma un café cuando llegues (es gratis), encuentra un asiento donde te sientas cómodo, y disfruta música que realmente suena bien. Nuestros mensajes son prácticos—cosas que puedes usar en tu semana. Todo dura aproximadamente una hora.",
+        "vibeLink": "Ver un mensaje reciente",
+        "dressTitle": "¿Qué usa la gente?",
+        "dressText": "Lo que quieras. En serio. ¿Jeans y una camiseta? Perfecto. ¿Vestido elegante porque vienes de un brunch? También perfecto. Nuestro pastor usualmente usa tenis. Nos importa mucho más que estés aquí que lo que llevas puesto.",
+        "kidsTitle": "¿Y mis hijos?",
+        "kidsText": "Probablemente se diviertan más que tú. Thrive Kids está diseñado para ser lo mejor de su semana—enseñanza apropiada para su edad, líderes increíbles, y actividades que realmente disfrutan. Disponible para edades de 6 meses hasta 5to grado cada domingo.",
+        "kidsLink": "Más sobre Thrive Kids",
+        "connectTitle": "¿Cómo puedo conectarme?",
+        "connectText": "El domingo es solo el punto de partida. Cada semana nos reunimos en la casa del pastor para cenar, juegos y buena conversación—es una excelente manera relajada de conocer gente. También tenemos Home Huddles (grupos pequeños) que se reúnen durante la semana.",
+        "connectLink": "Más información"
+      },
+      "locationCTATitle": "¿Listo para visitarnos?",
+      "locationCTASubtitle": "Domingos a las 10. El café es por nuestra cuenta.",
+      "getDirections": "Cómo Llegar y Detalles"
+    },
     "rss": {
       "untitled": "Sin título",
       "announcement": "Anuncio",
