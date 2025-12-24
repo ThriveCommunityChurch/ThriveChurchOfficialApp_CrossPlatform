@@ -46,10 +46,39 @@ const withIosSplashCopyright = (config) => {
       }
       
       let storyboardContent = fs.readFileSync(storyboardPath, 'utf8');
-      
+
       // Check if copyright label already exists
-      if (storyboardContent.includes('copyright-label-id')) {
-        console.log('✅ Copyright label already exists in storyboard');
+      const hasLabel = storyboardContent.includes('copyright-label-id');
+      const hasConstraints = storyboardContent.includes('copyright-leading-constraint') &&
+                             storyboardContent.includes('copyright-trailing-constraint') &&
+                             storyboardContent.includes('copyright-bottom-constraint');
+
+      if (hasLabel && hasConstraints) {
+        console.log('✅ Copyright label and constraints already exist in storyboard');
+        return config;
+      }
+
+      // If label exists but constraints are missing (Xcode sometimes removes them), re-add constraints
+      if (hasLabel && !hasConstraints) {
+        console.log('⚠️  Copyright label exists but constraints are missing, re-adding constraints...');
+
+        // Find the </constraints> tag in the container view and add copyright constraints
+        const constraintsPattern = /(<constraint[^>]*id="d6a0be88096b36fb132659aa90203d39139deda9"[^>]*\/>)/;
+        const match = storyboardContent.match(constraintsPattern);
+
+        if (match) {
+          const copyrightConstraints = `
+                            <constraint firstItem="copyright-label-id" firstAttribute="leading" secondItem="EXPO-ContainerView" secondAttribute="leading" id="copyright-leading-constraint"/>
+                            <constraint firstAttribute="trailing" secondItem="copyright-label-id" secondAttribute="trailing" id="copyright-trailing-constraint"/>
+                            <constraint firstAttribute="bottom" secondItem="copyright-label-id" secondAttribute="bottom" constant="20" id="copyright-bottom-constraint"/>`;
+
+          storyboardContent = storyboardContent.replace(match[0], match[0] + copyrightConstraints);
+          fs.writeFileSync(storyboardPath, storyboardContent, 'utf8');
+          console.log('✅ Re-added copyright constraints to iOS splash screen');
+        } else {
+          console.warn('⚠️  Could not find constraint anchor point in storyboard');
+        }
+
         return config;
       }
       

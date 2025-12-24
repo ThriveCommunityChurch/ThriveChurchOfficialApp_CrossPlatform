@@ -110,7 +110,11 @@ module.exports = {
       // Custom plugin to add copyright text to splash screen (runs after expo-splash-screen)
       "./plugins/withSplashScreenCopyright.js",
       // Custom plugin to configure dynamic theme support (iOS + Android)
-      "./plugins/withThemeConfiguration.js"
+      "./plugins/withThemeConfiguration.js",
+      // Custom plugin to add native UI tests (XCUITest for iOS, Espresso for Android)
+      "./plugins/withNativeUITests.js",
+      // Custom plugin to apply Xcode recommended settings (avoids manual updates each time you open Xcode)
+      "./plugins/withXcodeSettings.js"
       // Note: @react-native-firebase/analytics and @react-native-firebase/messaging
       // do not have Expo config plugins. They are configured via native files
       // (GoogleService-Info.plist and google-services.json) and work at runtime.

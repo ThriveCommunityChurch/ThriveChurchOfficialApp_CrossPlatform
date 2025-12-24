@@ -65,6 +65,7 @@ class MainActivity : ReactActivity() {
       super.invokeDefaultOnBackPressed()
   }
 
+
   /**
    * Handle configuration changes (including theme changes)
    * This ensures React Native is notified when the system theme changes
