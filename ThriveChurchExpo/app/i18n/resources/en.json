@@ -29,6 +29,7 @@
     "connect": "Connect",
     "more": "More",
     "settings": "Settings",
+    "about": "About",
     "nowPlaying": "Now Playing",
     "recentlyPlayed": "Recently Played",
     "downloads": "Downloads",
@@ -244,6 +245,8 @@
     "error": "Failed to load announcements",
     "empty": "No announcements available",
     "menu": {
+      "imNewTitle": "I'm New",
+      "imNewSubtitle": "Learn about our church and community",
       "contactTitle": "Contact us",
       "contactSubtitle": "Email, call, or submit prayer requests",
       "directionsTitle": "Get directions",
@@ -253,6 +256,8 @@
       "smallGroupSubtitle": "Connect with others in community",
       "serveTitle": "Serve",
       "serveSubtitle": "Find ways to get involved",
+      "socialTitle": "Social",
+      "socialSubtitle": "Follow us on social media",
       "loadingConfigs": "Loading configurations...",
       "emptyTitle": "No menu items available",
       "emptySubtitle": "Pull down to refresh configurations",
@@ -275,10 +280,68 @@
       "mapsError": "Error",
       "mapsErrorMessage": "Unable to open maps"
     },
+    "contactScreen": {
+      "heroTitle": "Get in Touch",
+      "heroSubtitle": "We'd love to hear from you! Whether you have questions, need prayer, or just want to say hello, we're here for you.",
+      "emailTitle": "Email Us",
+      "phoneTitle": "Call Us",
+      "prayerTitle": "Prayer Request",
+      "prayerSubtitle": "Send us your prayer requests via email",
+      "notAvailable": "Not available",
+      "prayerEmailSubject": "Prayer Request",
+      "prayerEmailBody": "Hi!\n\nI would like to submit a prayer request:\n\n[Please share your prayer request here]\n\nThank you!"
+    },
+    "smallGroup": {
+      "heroTitle": "Join a Small Group",
+      "heroSubtitle": "Small groups are the heart of our church community. It's where real life happens and lasting friendships are made.",
+      "communityTitle": "Build Community",
+      "communityText": "Connect with others who share your faith journey. Small groups provide a place to belong, where you can be yourself and grow together.",
+      "growthTitle": "Grow in Faith",
+      "growthText": "Study the Bible together, discuss life's big questions, and deepen your understanding of God's Word in an interactive setting.",
+      "supportTitle": "Find Support",
+      "supportText": "Life is better together. Share your joys and struggles with people who care, pray for one another, and walk through life's seasons together.",
+      "ctaText": "Ready to take the next step? We'd love to help you find the perfect group for you.",
+      "ctaButton": "Email Us to Join",
+      "emailSubject": "I'm Interested in Joining a Small Group",
+      "emailBody": "Hi!\n\nI'm interested in joining a small group. Please let me know what groups are available and how I can get connected.\n\nThank you!"
+    },
+    "serve": {
+      "heroTitle": "Serve With Us",
+      "heroSubtitle": "Use your gifts and talents to make a difference. There's a place for everyone to serve at Thrive.",
+      "worshipTitle": "Worship",
+      "worshipText": "Join our worship team as a vocalist or musician. Lead others into the presence of God through music and song.",
+      "techTitle": "Tech & Production",
+      "techText": "Serve behind the scenes with sound, lighting, video production, media, graphics, or live streaming.",
+      "hospitalityTitle": "Hospitality",
+      "hospitalityText": "Help create a welcoming atmosphere. Serve with coffee and refreshments, guest services, or event setup and teardown.",
+      "ushersTitle": "Ushers & Greeters",
+      "ushersText": "Be the first smile people see. Welcome guests, help with seating, assist with offering, and ensure everyone feels at home.",
+      "ctaText": "Ready to serve? Let us know your interests and we'll help you find the perfect fit.",
+      "ctaButton": "Email Us to Serve",
+      "emailSubject": "I'm Interested in Serving",
+      "emailBody": "Hi!\n\nI'm interested in serving at Thrive. Please let me know about the opportunities available and how I can get involved.\n\nThank you!"
+    },
     "rss": {
       "untitled": "Untitled",
       "announcement": "Announcement",
       "errorMessage": "Unable to load announcements. Please try again later."
+    },
+    "socialScreen": {
+      "heroTitle": "Connect With Us",
+      "heroSubtitle": "Follow us on social media to stay updated on events, messages, and community happenings",
+      "facebookTitle": "Facebook",
+      "facebookSubtitle": "Follow our page for updates",
+      "instagramTitle": "Instagram",
+      "instagramSubtitle": "See photos and stories",
+      "xTitle": "X",
+      "xSubtitle": "Follow us for quick updates",
+      "notAvailable": "Not configured",
+      "downloadAlert": "Alert",
+      "downloadFacebook": "You need to download the Facebook app first",
+      "downloadInstagram": "You need to download the Instagram app first",
+      "downloadX": "You need to download the X app first",
+      "download": "Download",
+      "cancel": "Cancel"
     }
   },
   "more": {
@@ -318,6 +381,17 @@
       "downloadX": "You need to download the X app first",
       "download": "Download"
     },
+    "socialScreen": {
+      "heroTitle": "Connect With Us",
+      "heroSubtitle": "Follow us on social media to stay updated on events, messages, and community happenings",
+      "facebookTitle": "Facebook",
+      "facebookSubtitle": "Follow our page for updates",
+      "instagramTitle": "Instagram",
+      "instagramSubtitle": "See photos and stories",
+      "xTitle": "X",
+      "xSubtitle": "Follow us for quick updates",
+      "notAvailable": "Not configured"
+    },
     "sendLogs": {
       "title": "Send Logs to Support",
       "message": "Please describe any issues you're experiencing with the app:",
@@ -340,7 +414,20 @@
     "about": {
       "title": "About Thrive Church App",
       "message": "Version: {{version}} (Build {{buildNumber}})\n\n©{{year}} Thrive Community Church\n\nThis app helps you stay connected with our church community, access sermons, take notes, and more.",
-      "ok": "OK"
+      "ok": "OK",
+      "screenTitle": "About This App",
+      "screenSubtitle": "Stay connected with Thrive Community Church through sermons, notes, and more.",
+      "appInfoTitle": "App Information",
+      "version": "Version",
+      "build": "Build",
+      "platform": "Platform",
+      "deviceInfoTitle": "Device Information",
+      "deviceModel": "Device",
+      "deviceType": "Type",
+      "osVersion": "Operating System",
+      "aboutAppTitle": "Our Mission",
+      "aboutAppText": "The Thrive Church app is designed to help you stay connected with our church community. Listen to sermons, take notes, find ways to serve, and stay up to date with what's happening at Thrive Community Church.",
+      "copyright": "©{{year}} Thrive Community Church. All rights reserved."
     }
   },
   "player": {

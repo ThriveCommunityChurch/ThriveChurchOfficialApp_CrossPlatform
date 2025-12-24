@@ -13,7 +13,6 @@ import {
   Animated,
   Alert,
   Linking,
-  ActionSheetIOS,
   Platform,
   RefreshControl,
   ActivityIndicator,
@@ -26,13 +25,15 @@ import type { Theme } from '../../theme/types';
 import { ConnectMenuItem, ConfigKeys } from '../../types/config';
 import { getConfigSetting } from '../../services/storage/storage';
 import { useConfigContext } from '../../providers/ConfigProvider';
-import { setCurrentScreen, logContactChurch, logCustomEvent } from '../../services/analytics/analyticsService';
+import { setCurrentScreen, logCustomEvent } from '../../services/analytics/analyticsService';
 
 type ConnectStackParamList = {
   ConnectHome: undefined;
   RSSAnnouncements: undefined;
   RSSDetail: { title: string; content: string; date: string };
   WebViewForm: { url: string; title: string };
+  SmallGroup: undefined;
+  Serve: undefined;
 };
 
 type NavigationProp = NativeStackNavigationProp<ConnectStackParamList>;
@@ -114,13 +115,28 @@ export const ConnectScreen: React.FC = () => {
     // Load configs from AsyncStorage
     const emailConfig = await getConfigSetting(ConfigKeys.EMAIL_MAIN);
     const phoneConfig = await getConfigSetting(ConfigKeys.PHONE_MAIN);
-    const prayersConfig = await getConfigSetting(ConfigKeys.PRAYERS);
     const addressConfig = await getConfigSetting(ConfigKeys.ADDRESS_MAIN);
-    const smallGroupConfig = await getConfigSetting(ConfigKeys.SMALL_GROUP);
-    const serveConfig = await getConfigSetting(ConfigKeys.SERVE);
+    const imNewConfig = await getConfigSetting(ConfigKeys.IM_NEW);
+    const fbPageIdConfig = await getConfigSetting(ConfigKeys.FB_PAGE_ID);
+    const fbSocialConfig = await getConfigSetting(ConfigKeys.FB_SOCIAL);
+    const igUsernameConfig = await getConfigSetting(ConfigKeys.IG_USERNAME);
+    const igSocialConfig = await getConfigSetting(ConfigKeys.IG_SOCIAL);
+    const twUsernameConfig = await getConfigSetting(ConfigKeys.TW_USERNAME);
+    const twSocialConfig = await getConfigSetting(ConfigKeys.TW_SOCIAL);
 
-    // Contact Us - show if at least one contact method is available
-    if (emailConfig || phoneConfig || prayersConfig) {
+    // I'm New
+    if (imNewConfig) {
+      items.push({
+        id: 'imnew',
+        title: t('connect.menu.imNewTitle'),
+        subtitle: t('connect.menu.imNewSubtitle'),
+        action: 'imnew',
+        config: imNewConfig,
+      });
+    }
+
+    // Contact Us - show if email or phone is available
+    if (emailConfig || phoneConfig) {
       items.push({
         id: 'contact',
         title: t('connect.menu.contactTitle'),
@@ -148,25 +164,29 @@ export const ConnectScreen: React.FC = () => {
       action: 'announcements',
     });
 
-    // Join a small group
-    if (smallGroupConfig) {
-      items.push({
-        id: 'smallgroup',
-        title: t('connect.menu.smallGroupTitle'),
-        subtitle: t('connect.menu.smallGroupSubtitle'),
-        action: 'webview',
-        config: smallGroupConfig,
-      });
-    }
+    // Join a small group - always show (native landing page)
+    items.push({
+      id: 'smallgroup',
+      title: t('connect.menu.smallGroupTitle'),
+      subtitle: t('connect.menu.smallGroupSubtitle'),
+      action: 'smallgroup',
+    });
 
-    // Serve
-    if (serveConfig) {
+    // Serve - always show (native landing page)
+    items.push({
+      id: 'serve',
+      title: t('connect.menu.serveTitle'),
+      subtitle: t('connect.menu.serveSubtitle'),
+      action: 'serve',
+    });
+
+    // Social - show if at least one social config exists
+    if (fbPageIdConfig || fbSocialConfig || igUsernameConfig || igSocialConfig || twUsernameConfig || twSocialConfig) {
       items.push({
-        id: 'serve',
-        title: t('connect.menu.serveTitle'),
-        subtitle: t('connect.menu.serveSubtitle'),
-        action: 'webview',
-        config: serveConfig,
+        id: 'social',
+        title: t('connect.menu.socialTitle'),
+        subtitle: t('connect.menu.socialSubtitle'),
+        action: 'social',
       });
     }
 
@@ -192,100 +212,6 @@ export const ConnectScreen: React.FC = () => {
     }
   }, [refetchConfigs, loadMenuItems, t]);
 
-  const handleContactUs = useCallback(async () => {
-    const emailConfig = await getConfigSetting(ConfigKeys.EMAIL_MAIN);
-    const phoneConfig = await getConfigSetting(ConfigKeys.PHONE_MAIN);
-    const prayersConfig = await getConfigSetting(ConfigKeys.PRAYERS);
-
-    const options: string[] = [];
-    const actions: (() => void)[] = [];
-
-    if (emailConfig) {
-      options.push(t('connect.contact.emailUs'));
-      actions.push(() => handleEmail(emailConfig.Value));
-    }
-
-    if (phoneConfig) {
-      options.push(t('connect.contact.callUs'));
-      actions.push(() => handlePhone(phoneConfig.Value));
-    }
-
-    if (prayersConfig) {
-      options.push(t('connect.contact.prayerRequest'));
-      actions.push(() => handlePrayerRequest(prayersConfig.Value));
-    }
-
-    options.push(t('connect.contact.cancel'));
-
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          title: t('connect.contact.title'),
-          message: t('connect.contact.message'),
-          options,
-          cancelButtonIndex: options.length - 1,
-        },
-        (buttonIndex) => {
-          if (buttonIndex < actions.length) {
-            actions[buttonIndex]();
-          }
-        }
-      );
-    } else {
-      // For Android, show a simple alert with buttons
-      Alert.alert(
-        t('connect.contact.title'),
-        t('connect.contact.message'),
-        [
-          ...actions.map((action, index) => ({
-            text: options[index],
-            onPress: action,
-          })),
-          { text: t('connect.contact.cancel'), style: 'cancel' },
-        ]
-      );
-    }
-  }, [t]);
-
-  const handleEmail = useCallback((email: string) => {
-    const url = `mailto:${email}`;
-    Linking.canOpenURL(url)
-      .then((supported) => {
-        if (supported) {
-          Linking.openURL(url);
-        } else {
-          Alert.alert(t('connect.contact.emailError'), t('connect.contact.emailErrorMessage'));
-        }
-      })
-      .catch((err) => {
-        console.error('Error opening email:', err);
-        Alert.alert(t('connect.contact.emailError'), t('connect.contact.emailErrorMessage'));
-      });
-  }, [t]);
-
-  const handlePhone = useCallback((phone: string) => {
-    const url = `tel:${phone}`;
-    Linking.canOpenURL(url)
-      .then((supported) => {
-        if (supported) {
-          Linking.openURL(url);
-        } else {
-          Alert.alert(t('connect.contact.phoneError'), t('connect.contact.phoneErrorMessage'));
-        }
-      })
-      .catch((err) => {
-        console.error('Error opening phone:', err);
-        Alert.alert(t('connect.contact.phoneError'), t('connect.contact.phoneErrorMessage'));
-      });
-  }, [t]);
-
-  const handlePrayerRequest = useCallback((url: string) => {
-    navigation.navigate('WebViewForm', {
-      url,
-      title: t('connect.contact.prayerRequestTitle'),
-    });
-  }, [navigation, t]);
-
   const handleDirections = useCallback((address: string) => {
     const formattedAddress = address.replace(/ /g, '%20').replace(/\n/g, '%20');
     const url = Platform.OS === 'ios'
@@ -300,8 +226,16 @@ export const ConnectScreen: React.FC = () => {
 
   const handleItemPress = (item: ConnectMenuItem) => {
     switch (item.action) {
+      case 'imnew':
+        if (item.config) {
+          navigation.navigate('WebViewForm', {
+            url: item.config.Value,
+            title: item.title,
+          });
+        }
+        break;
       case 'contact':
-        handleContactUs();
+        navigation.navigate('Contact');
         break;
       case 'directions':
         if (item.config) {
@@ -318,6 +252,15 @@ export const ConnectScreen: React.FC = () => {
             title: item.title,
           });
         }
+        break;
+      case 'smallgroup':
+        navigation.navigate('SmallGroup');
+        break;
+      case 'serve':
+        navigation.navigate('Serve');
+        break;
+      case 'social':
+        navigation.navigate('Social');
         break;
     }
   };

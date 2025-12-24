@@ -31,8 +31,8 @@ import BiblePassageScreen from '../screens/Listen/BiblePassageScreen';
 import { BibleSelectionScreen } from '../screens/Bible/BibleSelectionScreen';
 import { BookListScreen } from '../screens/Bible/BookListScreen';
 import { NotesListScreen, NoteDetailScreen } from '../screens/Notes';
-import { ConnectScreen, RSSScreen, RSSDetailScreen, WebViewScreen } from '../screens/Connect';
-import { MoreScreen } from '../screens/More';
+import { ConnectScreen, RSSScreen, RSSDetailScreen, WebViewScreen, SmallGroupScreen, ServeScreen, ContactScreen, SocialScreen } from '../screens/Connect';
+import { MoreScreen, AboutScreen } from '../screens/More';
 import { SettingsScreen } from '../screens/Settings';
 import OnboardingScreen from '../screens/Onboarding/OnboardingScreen';
 import { isOnboardingCompleted } from '../services/storage/storage';
@@ -343,6 +343,38 @@ function ConnectStackNavigator({ theme }: { theme: Theme }) {
           headerBackTitle: t('navigation.connect'),
         })}
       />
+      <ConnectStack.Screen
+        name="SmallGroup"
+        component={SmallGroupScreen}
+        options={{
+          title: t('connect.menu.smallGroupTitle'),
+          headerBackTitle: t('navigation.connect'),
+        }}
+      />
+      <ConnectStack.Screen
+        name="Serve"
+        component={ServeScreen}
+        options={{
+          title: t('connect.menu.serveTitle'),
+          headerBackTitle: t('navigation.connect'),
+        }}
+      />
+      <ConnectStack.Screen
+        name="Contact"
+        component={ContactScreen}
+        options={{
+          title: t('connect.menu.contactTitle'),
+          headerBackTitle: t('navigation.connect'),
+        }}
+      />
+      <ConnectStack.Screen
+        name="Social"
+        component={SocialScreen}
+        options={{
+          title: t('connect.menu.socialTitle'),
+          headerBackTitle: t('navigation.connect'),
+        }}
+      />
     </ConnectStack.Navigator>
   );
 }
@@ -380,6 +412,14 @@ function MoreStackNavigator({ theme }: { theme: Theme }) {
           title: route.params?.title || t('navigation.page'),
           headerBackTitle: t('navigation.more'),
         })}
+      />
+      <MoreStack.Screen
+        name="About"
+        component={AboutScreen}
+        options={{
+          title: t('navigation.about'),
+          headerBackTitle: t('navigation.more'),
+        }}
       />
     </MoreStack.Navigator>
   );

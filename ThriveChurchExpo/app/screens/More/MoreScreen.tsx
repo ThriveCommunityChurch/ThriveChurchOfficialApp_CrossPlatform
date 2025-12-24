@@ -8,10 +8,9 @@ import {
   Alert,
   Linking,
   Platform,
-  ActionSheetIOS,
   Animated,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NavigationProp } from '@react-navigation/native';
 import * as Device from 'expo-device';
 import * as Application from 'expo-application';
@@ -20,7 +19,7 @@ import { getConfigSetting } from '../../services/storage/storage';
 import { ConfigKeys } from '../../types/config';
 import type { ConfigSetting } from '../../types/config';
 import { exportLogsToFile, logError, logInfo } from '../../services/logging/logger';
-import { setCurrentScreen, logOpenSocial, logCustomEvent } from '../../services/analytics/analyticsService';
+import { setCurrentScreen, logCustomEvent } from '../../services/analytics/analyticsService';
 import { useTheme } from '../../hooks/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
@@ -48,25 +47,8 @@ export const MoreScreen: React.FC = () => {
     const items: MoreMenuItem[] = [];
 
     // Load configs from AsyncStorage
-    const imNewConfig = await getConfigSetting(ConfigKeys.IM_NEW);
     const giveConfig = await getConfigSetting(ConfigKeys.GIVE);
     const teamConfig = await getConfigSetting(ConfigKeys.TEAM);
-    const fbPageIdConfig = await getConfigSetting(ConfigKeys.FB_PAGE_ID);
-    const fbSocialConfig = await getConfigSetting(ConfigKeys.FB_SOCIAL);
-    const igUsernameConfig = await getConfigSetting(ConfigKeys.IG_USERNAME);
-    const igSocialConfig = await getConfigSetting(ConfigKeys.IG_SOCIAL);
-    const twUsernameConfig = await getConfigSetting(ConfigKeys.TW_USERNAME);
-    const twSocialConfig = await getConfigSetting(ConfigKeys.TW_SOCIAL);
-
-    // I'm New
-    if (imNewConfig) {
-      items.push({
-        id: 'imnew',
-        title: t('more.menu.imNewTitle'),
-        subtitle: t('more.menu.imNewSubtitle'),
-        action: () => handleImNew(imNewConfig),
-      });
-    }
 
     // Give
     if (giveConfig) {
@@ -75,16 +57,6 @@ export const MoreScreen: React.FC = () => {
         title: t('more.menu.giveTitle'),
         subtitle: t('more.menu.giveSubtitle'),
         action: () => handleGive(giveConfig),
-      });
-    }
-
-    // Social - show if at least one social config exists
-    if (fbPageIdConfig || fbSocialConfig || igUsernameConfig || igSocialConfig || twUsernameConfig || twSocialConfig) {
-      items.push({
-        id: 'social',
-        title: t('more.menu.socialTitle'),
-        subtitle: t('more.menu.socialSubtitle'),
-        action: () => handleSocial(),
       });
     }
 
@@ -133,189 +105,20 @@ export const MoreScreen: React.FC = () => {
     setMenuItems(items);
   }, [navigation, t]);
 
-  useEffect(() => {
-    loadMenuItems();
-  }, [loadMenuItems]);
+  // Reload menu items when screen is focused (for language/settings changes)
+  useFocusEffect(
+    useCallback(() => {
+      loadMenuItems();
+    }, [loadMenuItems])
+  );
 
   // Handler functions
-  const handleImNew = useCallback((config: ConfigSetting) => {
-    navigation.navigate('WebView', {
-      url: config.Value,
-      title: t('more.menu.imNewTitle'),
-    });
-  }, [navigation, t]);
-
   const handleGive = useCallback((config: ConfigSetting) => {
     // MUST open in external browser per App Store policy
     Linking.openURL(config.Value).catch((err) => {
       console.error('Error opening Give URL:', err);
       Alert.alert(t('more.give.error'), t('more.give.errorMessage'));
     });
-  }, [t]);
-
-  const handleSocial = useCallback(async () => {
-    const fbPageIdConfig = await getConfigSetting(ConfigKeys.FB_PAGE_ID);
-    const fbSocialConfig = await getConfigSetting(ConfigKeys.FB_SOCIAL);
-    const igUsernameConfig = await getConfigSetting(ConfigKeys.IG_USERNAME);
-    const igSocialConfig = await getConfigSetting(ConfigKeys.IG_SOCIAL);
-    const twUsernameConfig = await getConfigSetting(ConfigKeys.TW_USERNAME);
-    const twSocialConfig = await getConfigSetting(ConfigKeys.TW_SOCIAL);
-
-    const options: string[] = [];
-    const handlers: (() => void)[] = [];
-
-    // Facebook
-    if (fbPageIdConfig) {
-      options.push(t('more.social.facebook'));
-      handlers.push(() => openFacebook(fbPageIdConfig.Value));
-    } else if (fbSocialConfig) {
-      options.push(t('more.social.facebook'));
-      handlers.push(() => Linking.openURL(fbSocialConfig.Value));
-    }
-
-    // Instagram
-    if (igUsernameConfig) {
-      options.push(t('more.social.instagram'));
-      handlers.push(() => openInstagram(igUsernameConfig.Value));
-    } else if (igSocialConfig) {
-      options.push(t('more.social.instagram'));
-      handlers.push(() => Linking.openURL(igSocialConfig.Value));
-    }
-
-    // X (Twitter)
-    if (twUsernameConfig) {
-      options.push(t('more.social.x'));
-      handlers.push(() => openTwitter(twUsernameConfig.Value));
-    } else if (twSocialConfig) {
-      options.push(t('more.social.x'));
-      handlers.push(() => Linking.openURL(twSocialConfig.Value));
-    }
-
-    options.push(t('more.social.cancel'));
-
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          title: t('more.social.title'),
-          message: t('more.social.message'),
-          options,
-          cancelButtonIndex: options.length - 1,
-        },
-        (buttonIndex) => {
-          if (buttonIndex < handlers.length) {
-            handlers[buttonIndex]();
-          }
-        }
-      );
-    } else {
-      // Android - use Alert
-      Alert.alert(
-        t('more.social.title'),
-        t('more.social.message'),
-        [
-          ...handlers.map((handler, index) => ({
-            text: options[index],
-            onPress: handler,
-          })),
-          { text: t('more.social.cancel'), style: 'cancel' },
-        ]
-      );
-    }
-  }, [t]);
-
-  const openFacebook = useCallback(async (pageId: string) => {
-    const appURL = `fb://profile/${pageId}`;
-    const webURL = `https://facebook.com/${pageId}`;
-
-    try {
-      const canOpen = await Linking.canOpenURL(appURL);
-      if (canOpen) {
-        await Linking.openURL(appURL);
-      } else {
-        // Prompt to download Facebook app
-        Alert.alert(
-          t('more.social.downloadAlert'),
-          t('more.social.downloadFacebook'),
-          [
-            { text: t('more.social.cancel'), style: 'destructive' },
-            {
-              text: t('more.social.download'),
-              onPress: () => {
-                const storeURL = Platform.OS === 'ios'
-                  ? 'itms-apps://itunes.apple.com/app/id284882215'
-                  : 'market://details?id=com.facebook.katana';
-                Linking.openURL(storeURL);
-              },
-            },
-          ]
-        );
-      }
-    } catch (error) {
-      // Fallback to web
-      Linking.openURL(webURL);
-    }
-  }, [t]);
-
-  const openInstagram = useCallback(async (username: string) => {
-    const appURL = `instagram://user?username=${username}`;
-    const webURL = `https://instagram.com/${username}`;
-
-    try {
-      const canOpen = await Linking.canOpenURL(appURL);
-      if (canOpen) {
-        await Linking.openURL(appURL);
-      } else {
-        Alert.alert(
-          t('more.social.downloadAlert'),
-          t('more.social.downloadInstagram'),
-          [
-            { text: t('more.social.cancel'), style: 'destructive' },
-            {
-              text: t('more.social.download'),
-              onPress: () => {
-                const storeURL = Platform.OS === 'ios'
-                  ? 'itms-apps://itunes.apple.com/app/id389801252'
-                  : 'market://details?id=com.instagram.android';
-                Linking.openURL(storeURL);
-              },
-            },
-          ]
-        );
-      }
-    } catch (error) {
-      Linking.openURL(webURL);
-    }
-  }, [t]);
-
-  const openTwitter = useCallback(async (username: string) => {
-    const appURL = `twitter://user?screen_name=${username}`;
-    const webURL = `https://twitter.com/${username}`;
-
-    try {
-      const canOpen = await Linking.canOpenURL(appURL);
-      if (canOpen) {
-        await Linking.openURL(appURL);
-      } else {
-        Alert.alert(
-          t('more.social.downloadAlert'),
-          t('more.social.downloadX'),
-          [
-            { text: t('more.social.cancel'), style: 'destructive' },
-            {
-              text: t('more.social.download'),
-              onPress: () => {
-                const storeURL = Platform.OS === 'ios'
-                  ? 'itms-apps://itunes.apple.com/app/id409789998'
-                  : 'market://details?id=com.twitter.android';
-                Linking.openURL(storeURL);
-              },
-            },
-          ]
-        );
-      }
-    } catch (error) {
-      Linking.openURL(webURL);
-    }
   }, [t]);
 
   const handleTeam = useCallback((config: ConfigSetting) => {
@@ -497,18 +300,8 @@ export const MoreScreen: React.FC = () => {
   }, [t]);
 
   const handleAbout = useCallback(() => {
-    const version = Application.nativeApplicationVersion || '1.0.0';
-    const buildNumber = Application.nativeBuildVersion || '1';
-    const year = new Date().getFullYear();
-
-    const message = t('more.about.message', { version, buildNumber, year });
-
-    if (Platform.OS === 'ios') {
-      Alert.alert(t('more.about.title'), message, [{ text: t('more.about.ok'), style: 'cancel' }]);
-    } else {
-      Alert.alert(t('more.about.title'), message, [{ text: t('more.about.ok') }]);
-    }
-  }, [t]);
+    navigation.navigate('About');
+  }, [navigation]);
 
   const renderItem = ({ item }: { item: MoreMenuItem }) => (
     <MoreMenuCard item={item} theme={theme} />

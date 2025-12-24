@@ -29,6 +29,7 @@
     "connect": "Conectar",
     "more": "Más",
     "settings": "Ajustes",
+    "about": "Acerca de",
     "nowPlaying": "Reproduciendo",
     "recentlyPlayed": "Reproducidos Recientemente",
     "downloads": "Descargas",
@@ -244,6 +245,8 @@
     "error": "Error al cargar anuncios",
     "empty": "No hay anuncios disponibles",
     "menu": {
+      "imNewTitle": "Soy Nuevo",
+      "imNewSubtitle": "Conoce nuestra iglesia y comunidad",
       "contactTitle": "Contáctanos",
       "contactSubtitle": "Envía un correo, llama o envía peticiones de oración",
       "directionsTitle": "Obtener direcciones",
@@ -253,6 +256,8 @@
       "smallGroupSubtitle": "Conéctate con otros en comunidad",
       "serveTitle": "Servir",
       "serveSubtitle": "Encuentra formas de involucrarte",
+      "socialTitle": "Social",
+      "socialSubtitle": "Síguenos en las redes sociales",
       "loadingConfigs": "Cargando configuraciones...",
       "emptyTitle": "No hay elementos de menú disponibles",
       "emptySubtitle": "Desliza hacia abajo para actualizar configuraciones",
@@ -275,10 +280,68 @@
       "mapsError": "Error",
       "mapsErrorMessage": "No se puede abrir mapas"
     },
+    "contactScreen": {
+      "heroTitle": "Contáctanos",
+      "heroSubtitle": "¡Nos encantaría saber de ti! Ya sea que tengas preguntas, necesites oración o simplemente quieras saludar, estamos aquí para ti.",
+      "emailTitle": "Envíanos un Correo",
+      "phoneTitle": "Llámanos",
+      "prayerTitle": "Petición de Oración",
+      "prayerSubtitle": "Envíanos tus peticiones de oración por correo",
+      "notAvailable": "No disponible",
+      "prayerEmailSubject": "Petición de Oración",
+      "prayerEmailBody": "¡Hola!\n\nMe gustaría enviar una petición de oración:\n\n[Por favor comparte tu petición de oración aquí]\n\n¡Gracias!"
+    },
+    "smallGroup": {
+      "heroTitle": "Únete a un Grupo Pequeño",
+      "heroSubtitle": "Los grupos pequeños son el corazón de nuestra comunidad. Es donde sucede la vida real y se forman amistades duraderas.",
+      "communityTitle": "Construye Comunidad",
+      "communityText": "Conéctate con otros que comparten tu camino de fe. Los grupos pequeños proporcionan un lugar para pertenecer, donde puedes ser tú mismo y crecer juntos.",
+      "growthTitle": "Crece en Fe",
+      "growthText": "Estudia la Biblia juntos, discute las grandes preguntas de la vida y profundiza tu comprensión de la Palabra de Dios en un entorno interactivo.",
+      "supportTitle": "Encuentra Apoyo",
+      "supportText": "La vida es mejor juntos. Comparte tus alegrías y luchas con personas que se preocupan, oran unos por otros y caminan juntos por las temporadas de la vida.",
+      "ctaText": "¿Listo para dar el siguiente paso? Nos encantaría ayudarte a encontrar el grupo perfecto para ti.",
+      "ctaButton": "Envíanos un Correo para Unirte",
+      "emailSubject": "Estoy Interesado en Unirme a un Grupo Pequeño",
+      "emailBody": "¡Hola!\n\nEstoy interesado en unirme a un grupo pequeño. Por favor, háganme saber qué grupos están disponibles y cómo puedo conectarme.\n\n¡Gracias!"
+    },
+    "serve": {
+      "heroTitle": "Sirve Con Nosotros",
+      "heroSubtitle": "Usa tus dones y talentos para hacer la diferencia. Hay un lugar para que todos sirvan en Thrive.",
+      "worshipTitle": "Adoración",
+      "worshipText": "Únete a nuestro equipo de adoración como vocalista o músico. Guía a otros a la presencia de Dios a través de la música y el canto.",
+      "techTitle": "Tecnología y Producción",
+      "techText": "Sirve detrás de escena con sonido, iluminación, producción de video, medios, gráficos o transmisión en vivo.",
+      "hospitalityTitle": "Hospitalidad",
+      "hospitalityText": "Ayuda a crear un ambiente acogedor. Sirve con café y refrigerios, servicios para invitados, o preparación y limpieza de eventos.",
+      "ushersTitle": "Ujieres y Recepcionistas",
+      "ushersText": "Sé la primera sonrisa que la gente ve. Da la bienvenida a los invitados, ayuda con los asientos, asiste con la ofrenda y asegúrate de que todos se sientan en casa.",
+      "ctaText": "¿Listo para servir? Déjanos saber tus intereses y te ayudaremos a encontrar el lugar perfecto.",
+      "ctaButton": "Envíanos un Correo para Servir",
+      "emailSubject": "Estoy Interesado en Servir",
+      "emailBody": "¡Hola!\n\nEstoy interesado en servir en Thrive. Por favor, háganme saber sobre las oportunidades disponibles y cómo puedo involucrarme.\n\n¡Gracias!"
+    },
     "rss": {
       "untitled": "Sin título",
       "announcement": "Anuncio",
       "errorMessage": "No se pueden cargar los anuncios. Por favor, intenta de nuevo más tarde."
+    },
+    "socialScreen": {
+      "heroTitle": "Conéctate Con Nosotros",
+      "heroSubtitle": "Síguenos en las redes sociales para mantenerte al día con eventos, mensajes y actividades de la comunidad",
+      "facebookTitle": "Facebook",
+      "facebookSubtitle": "Sigue nuestra página para actualizaciones",
+      "instagramTitle": "Instagram",
+      "instagramSubtitle": "Mira fotos e historias",
+      "xTitle": "X",
+      "xSubtitle": "Síguenos para actualizaciones rápidas",
+      "notAvailable": "No configurado",
+      "downloadAlert": "Alerta",
+      "downloadFacebook": "Necesitas descargar la aplicación de Facebook primero",
+      "downloadInstagram": "Necesitas descargar la aplicación de Instagram primero",
+      "downloadX": "Necesitas descargar la aplicación de X primero",
+      "download": "Descargar",
+      "cancel": "Cancelar"
     }
   },
   "more": {
@@ -318,6 +381,17 @@
       "downloadX": "Necesitas descargar la aplicación de X primero",
       "download": "Descargar"
     },
+    "socialScreen": {
+      "heroTitle": "Conéctate Con Nosotros",
+      "heroSubtitle": "Síguenos en las redes sociales para mantenerte al día con eventos, mensajes y actividades de la comunidad",
+      "facebookTitle": "Facebook",
+      "facebookSubtitle": "Sigue nuestra página para actualizaciones",
+      "instagramTitle": "Instagram",
+      "instagramSubtitle": "Mira fotos e historias",
+      "xTitle": "X",
+      "xSubtitle": "Síguenos para actualizaciones rápidas",
+      "notAvailable": "No configurado"
+    },
     "sendLogs": {
       "title": "Enviar Registros al Soporte",
       "message": "Por favor describe cualquier problema que estés experimentando con la aplicación:",
@@ -340,7 +414,20 @@
     "about": {
       "title": "Acerca de la Aplicación Thrive Church",
       "message": "Versión: {{version}} (Build {{buildNumber}})\n\n©{{year}} Thrive Community Church\n\nEsta aplicación te ayuda a mantenerte conectado con nuestra comunidad de la iglesia, acceder a sermones, tomar notas y más.",
-      "ok": "OK"
+      "ok": "OK",
+      "screenTitle": "Acerca de Esta Aplicación",
+      "screenSubtitle": "Mantente conectado con Thrive Community Church a través de sermones, notas y más.",
+      "appInfoTitle": "Información de la Aplicación",
+      "version": "Versión",
+      "build": "Compilación",
+      "platform": "Plataforma",
+      "deviceInfoTitle": "Información del Dispositivo",
+      "deviceModel": "Dispositivo",
+      "deviceType": "Tipo",
+      "osVersion": "Sistema Operativo",
+      "aboutAppTitle": "Nuestra Misión",
+      "aboutAppText": "La aplicación de Thrive Church está diseñada para ayudarte a mantenerte conectado con nuestra comunidad de la iglesia. Escucha sermones, toma notas, encuentra formas de servir y mantente al día con lo que está pasando en Thrive Community Church.",
+      "copyright": "©{{year}} Thrive Community Church. Todos los derechos reservados."
     }
   },
   "player": {
