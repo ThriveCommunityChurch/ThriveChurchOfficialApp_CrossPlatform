@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,8 @@ import {
   ImageBackground,
   useWindowDimensions,
   StyleSheet,
+  TouchableOpacity,
+  Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import FastImage from 'react-native-fast-image';
@@ -25,6 +27,8 @@ import { isMessageDownloaded } from '../../services/storage/storage';
 import { SermonMessageCard } from '../../components/SermonMessageCard';
 import { setCurrentScreen, logCustomEvent } from '../../services/analytics/analyticsService';
 import { getTagDisplayLabel } from '../../types/messageTag';
+import { queueSeriesDownload } from '../../services/downloads/queueProcessor';
+import { useDownloadQueueStore } from '../../stores/downloadQueueStore';
 
 interface SeriesDetailScreenProps {
   seriesId: string;
@@ -96,6 +100,114 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
   }, [navigation, series, seriesArtUrl, seriesId]);
 
   const isCurrentSeries = series?.EndDate == null;
+
+  // Get messages in queue
+  const queuedMessageIds = useDownloadQueueStore((state) =>
+    new Set(state.items.map((item) => item.messageId))
+  );
+
+  // Calculate downloadable messages (not downloaded and not in queue)
+  const downloadableMessages = useMemo(() => {
+    if (!series?.Messages) return [];
+    return series.Messages.filter(
+      (msg) =>
+        msg.AudioUrl &&
+        !downloadedMessages.has(msg.MessageId) &&
+        !queuedMessageIds.has(msg.MessageId)
+    );
+  }, [series?.Messages, downloadedMessages, queuedMessageIds]);
+
+  // Handle download series action
+  const handleDownloadSeries = useCallback((count?: number) => {
+    if (!series || downloadableMessages.length === 0) return;
+
+    const messagesToDownload = count
+      ? downloadableMessages.slice(0, count)
+      : downloadableMessages;
+
+    if (messagesToDownload.length === 0) {
+      Alert.alert(
+        t('listen.series.downloadSeries'),
+        t('listen.series.noMessagesToDownload')
+      );
+      return;
+    }
+
+    // Show confirmation
+    Alert.alert(
+      t('listen.series.confirmDownloadTitle'),
+      t('listen.series.confirmDownloadMessage', { count: messagesToDownload.length }),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('listen.sermon.download'),
+          onPress: () => {
+            queueSeriesDownload(messagesToDownload, series.Name, seriesArtUrl);
+
+            // Track analytics
+            logCustomEvent('download_series', {
+              series_id: seriesId,
+              series_name: series.Name,
+              message_count: messagesToDownload.length,
+              download_type: count ? 'partial' : 'full',
+            });
+
+            // Show success feedback
+            Alert.alert(
+              t('listen.series.downloadSeries'),
+              count
+                ? t('listen.series.queuedSome', { count: messagesToDownload.length })
+                : t('listen.series.queuedAll', { count: messagesToDownload.length })
+            );
+          },
+        },
+      ]
+    );
+  }, [series, downloadableMessages, seriesArtUrl, seriesId, t]);
+
+  // Show download options
+  const showDownloadOptions = useCallback(() => {
+    if (!series) return;
+
+    const totalMessages = series.Messages.filter((m) => m.AudioUrl).length;
+    const downloadedCount = downloadedMessages.size + queuedMessageIds.size;
+    const availableCount = downloadableMessages.length;
+
+    if (availableCount === 0) {
+      Alert.alert(
+        t('listen.series.downloadSeries'),
+        t('listen.series.noMessagesToDownload')
+      );
+      return;
+    }
+
+    // Build options based on availability
+    const options: { text: string; onPress?: () => void; style?: 'cancel' | 'destructive' | 'default' }[] = [];
+
+    // Always show "Download All" if there are messages to download
+    options.push({
+      text: t('listen.series.downloadAll'),
+      onPress: () => handleDownloadSeries(),
+    });
+
+    // Show "Download Next 3" if there are more than 3 available
+    if (availableCount > 3) {
+      options.push({
+        text: t('listen.series.downloadNext', { count: 3 }),
+        onPress: () => handleDownloadSeries(3),
+      });
+    }
+
+    options.push({ text: t('common.cancel'), style: 'cancel' });
+
+    Alert.alert(
+      t('listen.series.downloadSeries'),
+      downloadedCount > 0
+        ? t('listen.series.someDownloaded', { downloaded: downloadedCount, total: totalMessages })
+        : undefined,
+      options
+    );
+  }, [series, downloadedMessages, queuedMessageIds, downloadableMessages, handleDownloadSeries, t]);
 
   // Format date helper
   const formatDate = (dateString: string): string => {
@@ -275,6 +387,37 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
                 </View>
               )}
             </View>
+
+            {/* Download Series Section */}
+            <View style={styles.tabletSidebarSection}>
+              <Text style={styles.tabletSidebarTitle}>{t('listen.series.downloadSeries')}</Text>
+              <TouchableOpacity
+                style={styles.tabletDownloadSeriesButton}
+                onPress={showDownloadOptions}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name={downloadableMessages.length === 0 ? 'checkmark-circle' : 'cloud-download-outline'}
+                  size={24}
+                  color={downloadableMessages.length === 0 ? theme.colors.success : theme.colors.textInverse}
+                />
+                <View style={styles.tabletDownloadSeriesContent}>
+                  <Text style={[
+                    styles.tabletDownloadSeriesText,
+                    downloadableMessages.length === 0 && styles.tabletDownloadSeriesTextComplete
+                  ]}>
+                    {downloadableMessages.length === 0
+                      ? t('listen.series.allDownloaded')
+                      : t('listen.series.downloadAll')}
+                  </Text>
+                  {downloadableMessages.length > 0 && (
+                    <Text style={styles.tabletDownloadSeriesSubtext}>
+                      {downloadableMessages.length} {downloadableMessages.length === 1 ? 'message' : 'messages'} available
+                    </Text>
+                  )}
+                </View>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Right Main Content - Messages */}
@@ -365,6 +508,32 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
             </View>
           </View>
         )}
+
+        {/* Download Series Button */}
+        <TouchableOpacity
+          style={styles.phoneDownloadSeriesButton}
+          onPress={showDownloadOptions}
+          activeOpacity={0.7}
+        >
+          <Ionicons
+            name={downloadableMessages.length === 0 ? 'checkmark-circle' : 'cloud-download-outline'}
+            size={20}
+            color={downloadableMessages.length === 0 ? theme.colors.success : theme.colors.primary}
+          />
+          <Text style={[
+            styles.phoneDownloadSeriesText,
+            downloadableMessages.length === 0 && styles.phoneDownloadSeriesTextComplete
+          ]}>
+            {downloadableMessages.length === 0
+              ? t('listen.series.allDownloaded')
+              : t('listen.series.downloadSeries')}
+          </Text>
+          {downloadableMessages.length > 0 && (
+            <View style={styles.phoneDownloadSeriesBadge}>
+              <Text style={styles.phoneDownloadSeriesBadgeText}>{downloadableMessages.length}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
 
         {/* Messages List */}
         <View style={[styles.phoneMessagesList, { marginTop: (series.Summary || (series.Tags && series.Tags.length > 0)) ? 8 : (isCurrentSeries ? 0 : 16) }]}>
@@ -734,5 +903,74 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   phoneMessagesList: {
     // marginTop is set dynamically based on isCurrentSeries
+  },
+
+  // Phone Download Series Button
+  phoneDownloadSeriesButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.card,
+    marginHorizontal: 16,
+    marginTop: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    gap: 12,
+  },
+  phoneDownloadSeriesText: {
+    ...theme.typography.body,
+    fontSize: 15,
+    fontWeight: '600',
+    color: theme.colors.primary,
+    flex: 1,
+  },
+  phoneDownloadSeriesTextComplete: {
+    color: theme.colors.success,
+  },
+  phoneDownloadSeriesBadge: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    minWidth: 28,
+    alignItems: 'center',
+  },
+  phoneDownloadSeriesBadgeText: {
+    ...theme.typography.caption,
+    fontSize: 13,
+    fontWeight: '700',
+    color: theme.colors.textInverse,
+  },
+
+  // Tablet Download Series Button
+  tabletDownloadSeriesButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.primary,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    gap: 12,
+  },
+  tabletDownloadSeriesContent: {
+    flex: 1,
+  },
+  tabletDownloadSeriesText: {
+    ...theme.typography.body,
+    fontSize: 16,
+    fontWeight: '600',
+    color: theme.colors.textInverse,
+  },
+  tabletDownloadSeriesTextComplete: {
+    color: theme.colors.success,
+  },
+  tabletDownloadSeriesSubtext: {
+    ...theme.typography.caption,
+    fontSize: 13,
+    color: theme.colors.textInverse,
+    opacity: 0.8,
+    marginTop: 2,
   },
 });

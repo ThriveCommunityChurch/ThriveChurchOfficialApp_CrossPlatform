@@ -209,6 +209,19 @@
       "keepWifiOnly": "Keep WiFi Only",
       "allowCellular": "Allow Cellular"
     },
+    "series": {
+      "downloadSeries": "Download Series",
+      "downloadAll": "Download All Messages",
+      "downloadNext": "Download Next {{count}}",
+      "allDownloaded": "All Downloaded",
+      "someDownloaded": "{{downloaded}} of {{total}} downloaded",
+      "confirmDownloadTitle": "Download Series",
+      "confirmDownloadMessage": "Download {{count}} messages from this series? This may use significant storage space.",
+      "downloading": "Downloading...",
+      "queuedAll": "{{count}} messages queued for download",
+      "queuedSome": "{{count}} new messages queued for download",
+      "noMessagesToDownload": "All messages are already downloaded or in queue"
+    },
     "recentlyPlayed": {
       "title": "Recently Played",
       "empty": "No Recently Played",
@@ -677,7 +690,10 @@
     "noAnnouncements": "Unable to load announcements",
     "noAnnouncementsMessage": "Check your connection to see the latest updates.",
     "noSearchResults": "Unable to search",
-    "noSearchResultsMessage": "Connect to the internet to search for sermons."
+    "noSearchResultsMessage": "Connect to the internet to search for sermons.",
+    "downloadingMessage": "Downloading {{title}} – {{progress}}%",
+    "queuedMessage": "{{count}} queued for download",
+    "queuedWifiMessage": "{{count}} queued • Will download on WiFi"
   }
 }
 

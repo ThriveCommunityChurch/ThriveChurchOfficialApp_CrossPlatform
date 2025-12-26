@@ -227,6 +227,18 @@
       "resume": "Reanudar",
       "resumeFrom": "Reanudar desde {{time}}",
       "remaining": "restante"
+    },
+    "series": {
+      "downloadSeries": "Descargar Serie",
+      "downloadAll": "Descargar Todos los Mensajes",
+      "downloadNext": "Descargar los Próximos {{count}}",
+      "allDownloaded": "Todos Descargados",
+      "someDownloaded": "{{downloaded}} de {{total}} descargados",
+      "confirmDownloadTitle": "Descargar Serie",
+      "confirmDownloadMessage": "¿Agregar {{count}} sermones a la cola de descarga?",
+      "queuedAll": "Todos los {{count}} mensajes agregados a la cola de descarga",
+      "queuedSome": "{{count}} mensajes agregados a la cola de descarga",
+      "noMessagesToDownload": "No hay mensajes disponibles para descargar"
     }
   },
   "bible": {
@@ -677,7 +689,10 @@
     "noAnnouncements": "No se pueden cargar los anuncios",
     "noAnnouncementsMessage": "Verifica tu conexión para ver las últimas actualizaciones.",
     "noSearchResults": "No se puede buscar",
-    "noSearchResultsMessage": "Conéctate a internet para buscar sermones."
+    "noSearchResultsMessage": "Conéctate a internet para buscar sermones.",
+    "downloadingMessage": "Descargando {{title}} – {{progress}}%",
+    "queuedMessage": "{{count}} en cola para descargar",
+    "queuedWifiMessage": "{{count}} en cola • Se descargará con WiFi"
   }
 }
 
