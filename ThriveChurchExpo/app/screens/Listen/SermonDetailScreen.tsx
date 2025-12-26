@@ -22,11 +22,15 @@ import type { Theme } from '../../theme/types';
 import { SermonMessage, SermonSeries } from '../../types/api';
 import { api } from '../../services/api/client';
 import { usePlayer } from '../../hooks/usePlayer';
-import { downloadSermon, deleteDownload, getDownloadSize } from '../../services/downloads/downloadManager';
+import { deleteDownload, getDownloadSize } from '../../services/downloads/downloadManager';
 import { isMessageDownloaded } from '../../services/storage/storage';
 import { setCurrentScreen, logCustomEvent, logPlaySermon, logDownloadSermon } from '../../services/analytics/analyticsService';
 import { getTagDisplayLabel } from '../../types/messageTag';
 import { RelatedSeriesSection } from '../../components/RelatedSeriesSection';
+import { useDownloadQueueStore } from '../../stores/downloadQueueStore';
+import { useShallow } from 'zustand/react/shallow';
+import { queueSermonDownload } from '../../services/downloads/queueProcessor';
+import { canDownloadNow } from '../../services/downloads/networkMonitor';
 
 type SermonDetailScreenRouteProp = RouteProp<{
   SermonDetailScreen: {
@@ -48,9 +52,20 @@ export const SermonDetailScreen: React.FC = () => {
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
   const [downloaded, setDownloaded] = useState(false);
-  const [downloading, setDownloading] = useState(false);
-  const [downloadProgress, setDownloadProgress] = useState(0);
   const [fileSize, setFileSize] = useState<number>(0);
+
+  // Get queue state for this message - only extract the fields we need to avoid re-renders
+  const { queueStatus, downloadProgress } = useDownloadQueueStore(
+    useShallow((state) => {
+      const item = state.items.find((i) => i.messageId === message.MessageId);
+      return {
+        queueStatus: item?.status,
+        downloadProgress: item?.progress || 0,
+      };
+    })
+  );
+  const isDownloading = queueStatus === 'downloading';
+  const isQueued = queueStatus === 'queued' || queueStatus === 'paused';
 
   // Calculate orientation and responsive dimensions
   const isLandscape = windowWidth > windowHeight;
@@ -122,6 +137,18 @@ export const SermonDetailScreen: React.FC = () => {
     };
     checkDownloadStatus();
   }, [message.MessageId, message.AudioFileSize]);
+
+  // Watch for download completion and update downloaded state
+  useEffect(() => {
+    if (queueStatus === 'completed') {
+      // Download just finished - update state
+      setDownloaded(true);
+      // Also update file size
+      getDownloadSize(message.MessageId).then((size) => {
+        if (size > 0) setFileSize(size);
+      });
+    }
+  }, [queueStatus, message.MessageId]);
 
   const formatDate = (dateString: string): string => {
     try {
@@ -202,36 +229,40 @@ export const SermonDetailScreen: React.FC = () => {
       return;
     }
 
-    try {
-      setDownloading(true);
-      setDownloadProgress(0);
+    // Check network status and queue state to provide appropriate feedback
+    const networkStatus = await canDownloadNow();
+    const queueStore = useDownloadQueueStore.getState();
+    const queuedItems = queueStore.items.filter(
+      (item) => item.status === 'queued' || item.status === 'downloading'
+    );
+    const hasActiveDownloads = queuedItems.length > 0;
 
-      await downloadSermon(
-        message,
-        displaySeriesTitle,
-        displaySeriesArtUrl,
-        (progress) => {
-          setDownloadProgress(progress);
-        }
-      );
+    // Add to download queue
+    queueSermonDownload(message, displaySeriesTitle, displaySeriesArtUrl);
 
-      setDownloaded(true);
+    // Track sermon download event
+    logDownloadSermon(message.MessageId, message.Title);
 
-      // Get and update the file size
-      const size = await getDownloadSize(message.MessageId);
-      setFileSize(size);
-
-      // Track sermon download event
-      await logDownloadSermon(message.MessageId, message.Title);
-
-      Alert.alert(t('common.success'), t('listen.sermon.downloadSuccess'));
-    } catch (error) {
-      console.error('Download error:', error);
-      Alert.alert(t('common.error'), t('listen.sermon.downloadFailed'));
-    } finally {
-      setDownloading(false);
-      setDownloadProgress(0);
+    // Show context-aware feedback
+    let feedbackMessage: string;
+    if (!networkStatus.allowed) {
+      // Distinguish between WiFi-only restriction and no internet
+      const isWifiOnlyRestriction = networkStatus.reason?.includes('WiFi-only');
+      if (isWifiOnlyRestriction) {
+        feedbackMessage = t('listen.downloads.addedWillDownloadOnWifi');
+      } else {
+        // No internet connection
+        feedbackMessage = t('listen.downloads.addedWillDownloadWhenOnline');
+      }
+    } else if (hasActiveDownloads) {
+      // Connected and can download, but there are items ahead in queue
+      feedbackMessage = t('listen.downloads.addedToQueueWaiting');
+    } else {
+      // Connected, can download, queue is empty - download starting now
+      feedbackMessage = t('listen.downloads.downloadStarting');
     }
+
+    Alert.alert(t('common.success'), feedbackMessage);
   }, [message, displaySeriesTitle, displaySeriesArtUrl, t]);
 
   const handleDeleteDownload = useCallback(async () => {
@@ -469,28 +500,34 @@ export const SermonDetailScreen: React.FC = () => {
                 <TouchableOpacity
                   style={[
                     styles.tabletDownloadButton,
-                    downloading && styles.tabletDownloadButtonDisabled,
+                    (isDownloading || isQueued || downloaded) && styles.tabletDownloadButtonDisabled,
                   ]}
-                  onPress={downloaded ? handleDeleteDownload : handleDownload}
+                  onPress={handleDownload}
                   activeOpacity={0.8}
-                  disabled={downloading}
+                  disabled={isDownloading || isQueued || downloaded}
                 >
-                  {downloading ? (
+                  {isDownloading ? (
                     <>
                       <ActivityIndicator size="small" color={theme.colors.text} />
                       <Text style={styles.tabletDownloadButtonText}>
-                        {Math.round(downloadProgress * 100)}%
+                        {Math.round(downloadProgress)}%
                       </Text>
+                    </>
+                  ) : isQueued ? (
+                    <>
+                      <Ionicons name="time-outline" size={20} color={theme.colors.primary} />
+                      <Text style={styles.tabletDownloadButtonText}>{t('listen.downloads.queued')}</Text>
+                    </>
+                  ) : downloaded ? (
+                    <>
+                      <Ionicons name="checkmark-circle" size={20} color={theme.colors.success} />
+                      <Text style={styles.tabletDownloadButtonText}>{t('listen.sermon.saved')}</Text>
                     </>
                   ) : (
                     <>
-                      <Ionicons
-                        name={downloaded ? 'trash' : 'download'}
-                        size={20}
-                        color={theme.colors.text}
-                      />
+                      <Ionicons name="download" size={20} color={theme.colors.text} />
                       <Text style={styles.tabletDownloadButtonText}>
-                        {downloaded ? t('listen.sermon.removeDownload') : t('listen.sermon.download')}
+                        {t('listen.sermon.download')}
                       </Text>
                     </>
                   )}
@@ -697,33 +734,39 @@ export const SermonDetailScreen: React.FC = () => {
                 </TouchableOpacity>
               )}
 
-              {/* Download/Remove Button */}
+              {/* Download/Saved Button */}
               {hasAudio && (
                 <TouchableOpacity
                   style={[
                     styles.secondaryButton,
-                    downloading && styles.secondaryButtonDisabled,
+                    (isDownloading || isQueued || downloaded) && styles.secondaryButtonDisabled,
                   ]}
-                  onPress={downloaded ? handleDeleteDownload : handleDownload}
+                  onPress={handleDownload}
                   activeOpacity={0.8}
-                  disabled={downloading}
+                  disabled={isDownloading || isQueued || downloaded}
                 >
-                  {downloading ? (
+                  {isDownloading ? (
                     <>
                       <ActivityIndicator size="small" color={theme.colors.text} />
                       <Text style={styles.secondaryButtonText}>
-                        {Math.round(downloadProgress * 100)}%
+                        {Math.round(downloadProgress)}%
                       </Text>
+                    </>
+                  ) : isQueued ? (
+                    <>
+                      <Ionicons name="time-outline" size={20} color={theme.colors.primary} />
+                      <Text style={styles.secondaryButtonText}>{t('listen.downloads.queued')}</Text>
+                    </>
+                  ) : downloaded ? (
+                    <>
+                      <Ionicons name="checkmark-circle" size={20} color={theme.colors.success} />
+                      <Text style={styles.secondaryButtonText}>{t('listen.sermon.saved')}</Text>
                     </>
                   ) : (
                     <>
-                      <Ionicons
-                        name={downloaded ? 'trash' : 'download'}
-                        size={20}
-                        color={theme.colors.text}
-                      />
+                      <Ionicons name="download" size={20} color={theme.colors.text} />
                       <Text style={styles.secondaryButtonText}>
-                        {downloaded ? t('listen.sermon.remove') : t('listen.sermon.download')}
+                        {t('listen.sermon.download')}
                       </Text>
                     </>
                   )}

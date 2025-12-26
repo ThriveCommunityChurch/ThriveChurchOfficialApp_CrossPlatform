@@ -129,19 +129,40 @@ export const getAllDownloadedMessages = async (): Promise<SermonMessage[]> => {
   try {
     const ids = await getDownloadedMessageIds();
     const messages: SermonMessage[] = [];
-    
+
     for (const id of ids) {
       const message = await getDownloadedMessage(id);
       if (message) {
         messages.push(message);
       }
     }
-    
+
     // Sort by download date (most recent first)
     return messages.sort((a, b) => (b.DownloadedOn || 0) - (a.DownloadedOn || 0));
   } catch (error) {
     console.error('Error reading all downloaded messages:', error);
     return [];
+  }
+};
+
+// Clear all downloaded messages from storage (for use with clearAllDownloads)
+export const clearDownloadedMessages = async (): Promise<void> => {
+  if (!isStorageAvailable()) return;
+
+  try {
+    const ids = await getDownloadedMessageIds();
+
+    // Remove each message
+    for (const id of ids) {
+      await AsyncStorage.removeItem(`message_${id}`);
+    }
+
+    // Clear the IDs list
+    await AsyncStorage.setItem(StorageKeys.DOWNLOADED_MESSAGE_IDS, JSON.stringify([]));
+
+    console.log('All downloaded messages cleared from storage');
+  } catch (error) {
+    console.error('Error clearing downloaded messages:', error);
   }
 };
 

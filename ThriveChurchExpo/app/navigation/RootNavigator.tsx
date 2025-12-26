@@ -34,8 +34,11 @@ import { NotesListScreen, NoteDetailScreen } from '../screens/Notes';
 import { ConnectScreen, RSSScreen, RSSDetailScreen, WebViewScreen, SmallGroupScreen, ServeScreen, ContactScreen, SocialScreen, ImNewScreen } from '../screens/Connect';
 import { MoreScreen, AboutScreen } from '../screens/More';
 import { SettingsScreen } from '../screens/Settings';
+import DownloadSettingsScreen from '../screens/Settings/DownloadSettingsScreen';
 import OnboardingScreen from '../screens/Onboarding/OnboardingScreen';
 import { isOnboardingCompleted } from '../services/storage/storage';
+import { startNetworkMonitoring, stopNetworkMonitoring } from '../services/downloads/networkMonitor';
+import { startQueueProcessor, stopQueueProcessor } from '../services/downloads/queueProcessor';
 
 const Tab = createBottomTabNavigator();
 const ListenStack = createNativeStackNavigator();
@@ -414,6 +417,14 @@ function MoreStackNavigator({ theme }: { theme: Theme }) {
         }}
       />
       <MoreStack.Screen
+        name="DownloadSettings"
+        component={DownloadSettingsScreen}
+        options={{
+          title: t('navigation.downloadSettings'),
+          headerBackTitle: t('navigation.settings'),
+        }}
+      />
+      <MoreStack.Screen
         name="WebView"
         component={WebViewScreen}
         options={({ route }: any) => ({
@@ -459,6 +470,17 @@ export function RootNavigator() {
     };
 
     checkOnboarding();
+  }, []);
+
+  // Initialize network monitoring and queue processor
+  useEffect(() => {
+    startNetworkMonitoring();
+    startQueueProcessor();
+
+    return () => {
+      stopQueueProcessor();
+      stopNetworkMonitoring();
+    };
   }, []);
 
   // Initialize analytics and push notifications

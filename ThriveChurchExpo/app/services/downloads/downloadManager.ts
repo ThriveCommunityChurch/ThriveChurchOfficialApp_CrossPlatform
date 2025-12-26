@@ -10,6 +10,7 @@ import {
   removeFromDownloadQueue,
   getDownloadQueue,
   DownloadQueueItem,
+  getAllDownloadedMessages,
 } from '../storage/storage';
 
 // Download directory
@@ -276,6 +277,9 @@ export const clearAllDownloads = async (): Promise<void> => {
     if (dirInfo.exists) {
       await FileSystem.deleteAsync(DOWNLOAD_DIR);
       await ensureDownloadDirectory();
+      // Also clear from storage
+      const { clearDownloadedMessages } = await import('../storage/storage');
+      await clearDownloadedMessages();
       console.log('All downloads cleared');
     }
   } catch (error) {
@@ -284,3 +288,107 @@ export const clearAllDownloads = async (): Promise<void> => {
   }
 };
 
+// Get downloads sorted by file size (largest first)
+export const getDownloadsSortedBySize = async (): Promise<SermonMessage[]> => {
+  try {
+    const messages = await getAllDownloadedMessages();
+    return messages.sort((a, b) => (b.AudioFileSize || 0) - (a.AudioFileSize || 0));
+  } catch (error) {
+    console.error('Error getting downloads sorted by size:', error);
+    return [];
+  }
+};
+
+// Get downloads sorted by date (oldest first)
+export const getDownloadsSortedByDate = async (): Promise<SermonMessage[]> => {
+  try {
+    const messages = await getAllDownloadedMessages();
+    return messages.sort((a, b) => (a.DownloadedOn || 0) - (b.DownloadedOn || 0));
+  } catch (error) {
+    console.error('Error getting downloads sorted by date:', error);
+    return [];
+  }
+};
+
+// Delete multiple downloads at once
+export const deleteMultipleDownloads = async (messageIds: string[]): Promise<void> => {
+  try {
+    for (const messageId of messageIds) {
+      await deleteDownload(messageId);
+    }
+    console.log(`Deleted ${messageIds.length} downloads`);
+  } catch (error) {
+    console.error('Error deleting multiple downloads:', error);
+    throw error;
+  }
+};
+
+// Free up space by deleting oldest downloads until under target size
+export const freeUpSpace = async (targetSize: number): Promise<number> => {
+  try {
+    let currentSize = await getTotalDownloadsSize();
+    let deletedCount = 0;
+
+    if (currentSize <= targetSize) {
+      return 0;
+    }
+
+    const sortedDownloads = await getDownloadsSortedByDate();
+
+    for (const download of sortedDownloads) {
+      if (currentSize <= targetSize) {
+        break;
+      }
+
+      const fileSize = download.AudioFileSize || 0;
+      await deleteDownload(download.MessageId);
+      currentSize -= fileSize;
+      deletedCount++;
+    }
+
+    console.log(`Freed up space by deleting ${deletedCount} downloads`);
+    return deletedCount;
+  } catch (error) {
+    console.error('Error freeing up space:', error);
+    throw error;
+  }
+};
+
+// Get storage breakdown by series
+interface SeriesBreakdown {
+  seriesTitle: string;
+  messageCount: number;
+  totalSize: number;
+  messages: SermonMessage[];
+}
+
+export const getStorageBreakdownBySeries = async (): Promise<SeriesBreakdown[]> => {
+  try {
+    const messages = await getAllDownloadedMessages();
+    const seriesMap = new Map<string, SeriesBreakdown>();
+
+    for (const message of messages) {
+      const seriesTitle = message.seriesTitle || 'Unknown Series';
+
+      if (!seriesMap.has(seriesTitle)) {
+        seriesMap.set(seriesTitle, {
+          seriesTitle,
+          messageCount: 0,
+          totalSize: 0,
+          messages: [],
+        });
+      }
+
+      const series = seriesMap.get(seriesTitle)!;
+      series.messageCount++;
+      series.totalSize += message.AudioFileSize || 0;
+      series.messages.push(message);
+    }
+
+    // Sort by total size descending
+    return Array.from(seriesMap.values()).sort((a, b) => b.totalSize - a.totalSize);
+  } catch (error) {
+    console.error('Error getting storage breakdown:', error);
+    return [];
+  }
+};

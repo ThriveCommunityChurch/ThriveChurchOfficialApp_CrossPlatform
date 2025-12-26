@@ -21,6 +21,8 @@ import {
   Linking,
   Alert,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../hooks/useTheme';
 import { useSettings } from '../../hooks/useSettings';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -157,6 +159,7 @@ const ThemeModeOption: React.FC<ThemeModeOptionProps> = ({
 export const SettingsScreen: React.FC = () => {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const navigation = useNavigation<any>();
   const { settings, isLoading, updateBibleTranslation, updateThemeMode, updateLanguage } = useSettings();
   const styles = createStyles(theme);
 
@@ -357,6 +360,22 @@ export const SettingsScreen: React.FC = () => {
           />
         </View>
 
+        {/* Downloads Section */}
+        <Text style={styles.sectionTitle}>{t('settings.downloads.title')}</Text>
+
+        <AnimatedCard onPress={() => navigation.navigate('DownloadSettings')} theme={theme}>
+          <View style={styles.cardContent}>
+            <View style={styles.iconContainer}>
+              <Ionicons name="download-outline" size={24} color={theme.colors.primary} />
+            </View>
+            <View style={styles.textContainer}>
+              <Text style={styles.cardLabel}>{t('settings.downloads.manageDownloads')}</Text>
+              <Text style={styles.cardDescription}>{t('settings.downloads.manageDownloadsDescription')}</Text>
+            </View>
+            <Text style={styles.chevron}>›</Text>
+          </View>
+        </AnimatedCard>
+
         {/* System Section */}
         <Text style={styles.sectionTitle}>{t('settings.system.title')}</Text>
 
@@ -425,6 +444,9 @@ const createStyles = (theme: Theme) =>
       alignItems: 'center',
       justifyContent: 'space-between',
       padding: 16,
+    },
+    iconContainer: {
+      marginRight: 12,
     },
     textContainer: {
       flex: 1,
