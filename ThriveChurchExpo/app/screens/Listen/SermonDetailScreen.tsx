@@ -31,6 +31,11 @@ import { useDownloadQueueStore } from '../../stores/downloadQueueStore';
 import { useShallow } from 'zustand/react/shallow';
 import { queueSermonDownload } from '../../services/downloads/queueProcessor';
 import { canDownloadNow } from '../../services/downloads/networkMonitor';
+import {
+  hasBeenPromptedForWifiOnly,
+  markWifiOnlyPrompted,
+  updateDownloadSetting,
+} from '../../services/downloads/downloadSettings';
 
 type SermonDetailScreenRouteProp = RouteProp<{
   SermonDetailScreen: {
@@ -223,12 +228,8 @@ export const SermonDetailScreen: React.FC = () => {
     });
   }, [navigation, message, displaySeriesTitle, t]);
 
-  const handleDownload = useCallback(async () => {
-    if (!message.AudioUrl) {
-      Alert.alert(t('common.error'), t('listen.sermon.noAudioDownload'));
-      return;
-    }
-
+  // Helper to actually queue the download and show feedback
+  const proceedWithDownload = useCallback(async () => {
     // Check network status and queue state to provide appropriate feedback
     const networkStatus = await canDownloadNow();
     const queueStore = useDownloadQueueStore.getState();
@@ -264,6 +265,48 @@ export const SermonDetailScreen: React.FC = () => {
 
     Alert.alert(t('common.success'), feedbackMessage);
   }, [message, displaySeriesTitle, displaySeriesArtUrl, t]);
+
+  const handleDownload = useCallback(async () => {
+    if (!message.AudioUrl) {
+      Alert.alert(t('common.error'), t('listen.sermon.noAudioDownload'));
+      return;
+    }
+
+    // Check if this is the user's first download - show WiFi preference prompt
+    const hasBeenPrompted = await hasBeenPromptedForWifiOnly();
+    if (!hasBeenPrompted) {
+      // Mark as prompted regardless of their choice
+      await markWifiOnlyPrompted();
+
+      // Show the first-time WiFi preference prompt
+      Alert.alert(
+        t('listen.downloads.wifiOnlyPromptTitle'),
+        t('listen.downloads.wifiOnlyPromptMessage'),
+        [
+          {
+            text: t('listen.downloads.keepWifiOnly'),
+            style: 'cancel',
+            onPress: () => {
+              // Default is already WiFi-only, just proceed
+              proceedWithDownload();
+            },
+          },
+          {
+            text: t('listen.downloads.allowCellular'),
+            onPress: async () => {
+              // Update setting to allow cellular downloads
+              await updateDownloadSetting('wifiOnly', false);
+              proceedWithDownload();
+            },
+          },
+        ]
+      );
+      return;
+    }
+
+    // Already prompted before, just proceed with download
+    proceedWithDownload();
+  }, [message, t, proceedWithDownload]);
 
   const handleDeleteDownload = useCallback(async () => {
     Alert.alert(

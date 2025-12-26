@@ -203,7 +203,11 @@
       "addedWillDownloadOnWifi": "Added to queue. Download will start when you connect to WiFi.",
       "addedWillDownloadWhenOnline": "Added to queue. Download will start when you're back online.",
       "addedToQueueWaiting": "Added to queue. Download will start after current downloads finish.",
-      "downloadStarting": "Download starting now."
+      "downloadStarting": "Download starting now.",
+      "wifiOnlyPromptTitle": "Download Preference",
+      "wifiOnlyPromptMessage": "By default, downloads only occur over WiFi to save your mobile data. Would you like to allow downloads over cellular data as well?",
+      "keepWifiOnly": "Keep WiFi Only",
+      "allowCellular": "Allow Cellular"
     },
     "recentlyPlayed": {
       "title": "Recently Played",

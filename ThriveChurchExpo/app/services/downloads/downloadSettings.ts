@@ -9,6 +9,7 @@ export interface DownloadSettings {
   storageLimit: number;        // Max storage in bytes (0 = unlimited)
   storageLimitEnabled: boolean;
   downloadQuality: 'standard' | 'high'; // Future: audio quality option
+  hasPromptedWifiOnly: boolean; // Whether user has been shown the first-time WiFi prompt
 }
 
 // Default settings
@@ -17,6 +18,7 @@ export const DEFAULT_DOWNLOAD_SETTINGS: DownloadSettings = {
   storageLimit: 1024 * 1024 * 1024, // 1 GB default
   storageLimitEnabled: false,
   downloadQuality: 'standard',
+  hasPromptedWifiOnly: false,
 };
 
 // Storage limit options for picker UI
@@ -102,3 +104,17 @@ export const getStorageLimitInfo = async (): Promise<{ enabled: boolean; limit: 
   };
 };
 
+/**
+ * Check if user has been prompted about WiFi-only downloads
+ */
+export const hasBeenPromptedForWifiOnly = async (): Promise<boolean> => {
+  const settings = await getDownloadSettings();
+  return settings.hasPromptedWifiOnly;
+};
+
+/**
+ * Mark that the user has been prompted about WiFi-only downloads
+ */
+export const markWifiOnlyPrompted = async (): Promise<void> => {
+  await updateDownloadSetting('hasPromptedWifiOnly', true);
+};

@@ -203,7 +203,11 @@
       "addedWillDownloadOnWifi": "Agregado a la cola. La descarga comenzará cuando te conectes a WiFi.",
       "addedWillDownloadWhenOnline": "Agregado a la cola. La descarga comenzará cuando estés en línea.",
       "addedToQueueWaiting": "Agregado a la cola. La descarga comenzará después de las descargas actuales.",
-      "downloadStarting": "Descarga iniciando ahora."
+      "downloadStarting": "Descarga iniciando ahora.",
+      "wifiOnlyPromptTitle": "Preferencia de Descarga",
+      "wifiOnlyPromptMessage": "Por defecto, las descargas solo ocurren por WiFi para ahorrar tus datos móviles. ¿Deseas permitir descargas también por datos celulares?",
+      "keepWifiOnly": "Solo WiFi",
+      "allowCellular": "Permitir Celular"
     },
     "recentlyPlayed": {
       "title": "Reproducidos Recientemente",
