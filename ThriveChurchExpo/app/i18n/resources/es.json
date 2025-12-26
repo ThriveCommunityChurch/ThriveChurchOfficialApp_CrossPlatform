@@ -662,6 +662,22 @@
     "apiKeyNotConfigured": "La clave API de ESV no está configurada. Por favor agrega tu clave API de ESV para usar la lectura de pasajes bíblicos.",
     "noPassageFound": "No se encontró texto del pasaje para esta referencia",
     "fetchFailed": "Error al obtener el pasaje bíblico"
+  },
+  "offline": {
+    "title": "Sin Conexión",
+    "message": "Conéctate a internet para acceder a este contenido, o explora lo que está disponible sin conexión.",
+    "viewDownloads": "Ver Descargas",
+    "readBible": "Leer Biblia",
+    "listenOffline": "Escucha sermones descargados sin conexión",
+    "bibleOffline": "Lee la Biblia en cualquier momento, incluso sin internet",
+    "noSermons": "No se pueden cargar los sermones",
+    "noSermonsMessage": "Verifica tu conexión e intenta de nuevo, o escucha contenido descargado.",
+    "noSeries": "No se puede cargar la serie",
+    "noSeriesMessage": "Verifica tu conexión e intenta de nuevo.",
+    "noAnnouncements": "No se pueden cargar los anuncios",
+    "noAnnouncementsMessage": "Verifica tu conexión para ver las últimas actualizaciones.",
+    "noSearchResults": "No se puede buscar",
+    "noSearchResultsMessage": "Conéctate a internet para buscar sermones."
   }
 }
 

@@ -19,19 +19,26 @@ import type { Theme } from '../../theme/types';
 import { SearchTarget, SermonSeries, SermonMessage } from '../../types/api';
 import { RelatedSeriesCard } from '../RelatedSeriesCard';
 import { SearchMessageCard } from './SearchMessageCard';
+import OfflineEmptyState from '../OfflineEmptyState';
 
 interface SearchResultsListProps {
   results: SermonSeries[] | SermonMessage[];
   searchTarget: SearchTarget;
   isLoading: boolean;
+  isError?: boolean;
+  isOffline?: boolean;
   onResultPress: (result: SermonSeries | SermonMessage) => void;
+  onRetry?: () => void;
 }
 
 export const SearchResultsList: React.FC<SearchResultsListProps> = ({
   results,
   searchTarget,
   isLoading,
+  isError = false,
+  isOffline = false,
   onResultPress,
+  onRetry,
 }) => {
   const { theme } = useTheme();
   const { t } = useTranslation();
@@ -230,6 +237,19 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
   // Show loading skeletons during API fetch
   if (isLoading) {
     return renderLoadingSkeletons();
+  }
+
+  // Show offline empty state if offline with error
+  if (isError && isOffline) {
+    return (
+      <OfflineEmptyState
+        message={t('offline.noSearchResultsMessage')}
+        showDownloadsCta={true}
+        showBibleCta={true}
+        showRetry={!!onRetry}
+        onRetry={onRetry}
+      />
+    );
   }
 
   // Show empty state if no results

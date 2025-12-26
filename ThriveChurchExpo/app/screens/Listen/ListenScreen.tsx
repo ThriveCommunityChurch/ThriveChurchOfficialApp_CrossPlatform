@@ -3,10 +3,12 @@ import { View, ActivityIndicator, TouchableOpacity, Text, useWindowDimensions } 
 import { FlashList } from '@shopify/flash-list';
 import FastImage from 'react-native-fast-image';
 import { useInfiniteQuery } from '@tanstack/react-query';
+import { useNetInfo } from '@react-native-community/netinfo';
 import { api } from '../../services/api/client';
 import { useTheme } from '../../hooks/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
 import OfflineBanner from '../../components/OfflineBanner';
+import OfflineEmptyState from '../../components/OfflineEmptyState';
 import { SermonSeriesSummary, SermonsSummaryPagedResponse } from '../../types/api';
 import { setCurrentScreen } from '../../services/analytics/analyticsService';
 
@@ -99,6 +101,10 @@ export default function ListenScreen({ onSeriesPress }: ListenScreenProps) {
     return 2; // Tablet portrait: 2 columns
   }, [isTablet, isLandscape]);
 
+  // Network status for offline detection
+  const netInfo = useNetInfo();
+  const isOffline = netInfo.isConnected === false;
+
   const {
     data,
     fetchNextPage,
@@ -106,6 +112,7 @@ export default function ListenScreen({ onSeriesPress }: ListenScreenProps) {
     isFetchingNextPage,
     isLoading,
     isError,
+    refetch,
   } = useInfiniteQuery({
     queryKey: ['sermons'],
     queryFn: async ({ pageParam = 1 }): Promise<SermonsSummaryPagedResponse> => {
@@ -202,6 +209,21 @@ export default function ListenScreen({ onSeriesPress }: ListenScreenProps) {
   }
 
   if (isError) {
+    // Show offline-specific empty state when offline, generic error otherwise
+    if (isOffline) {
+      return (
+        <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+          <OfflineEmptyState
+            message={t('offline.noSermonsMessage')}
+            showDownloadsCta={true}
+            showBibleCta={true}
+            showRetry={true}
+            onRetry={() => refetch()}
+          />
+        </View>
+      );
+    }
+
     return (
       <View style={{ flex: 1, backgroundColor: theme.colors.background, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}>
         <OfflineBanner />

@@ -12,12 +12,14 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import FastImage from 'react-native-fast-image';
 import { useQuery } from '@tanstack/react-query';
+import { useNetInfo } from '@react-native-community/netinfo';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../../services/api/client';
 import { useTheme } from '../../hooks/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 import OfflineBanner from '../../components/OfflineBanner';
+import OfflineEmptyState from '../../components/OfflineEmptyState';
 import { SermonSeries, SermonMessage } from '../../types/api';
 import { isMessageDownloaded } from '../../services/storage/storage';
 import { SermonMessageCard } from '../../components/SermonMessageCard';
@@ -42,7 +44,11 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
 
   const [downloadedMessages, setDownloadedMessages] = useState<Set<string>>(new Set());
 
-  const { data: series, isLoading, isError } = useQuery({
+  // Network status for offline detection
+  const netInfo = useNetInfo();
+  const isOffline = netInfo.isConnected === false;
+
+  const { data: series, isLoading, isError, refetch } = useQuery({
     queryKey: ['series', seriesId],
     queryFn: async (): Promise<SermonSeries> => {
       const res = await api.get(`api/sermons/series/${seriesId}`);
@@ -128,6 +134,21 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
   }
 
   if (isError || !series) {
+    // Show offline-specific empty state when offline, generic error otherwise
+    if (isOffline) {
+      return (
+        <View style={{ flex: 1, backgroundColor: theme.colors.backgroundSecondary }}>
+          <OfflineEmptyState
+            message={t('offline.noSeriesMessage')}
+            showDownloadsCta={true}
+            showBibleCta={true}
+            showRetry={true}
+            onRetry={() => refetch()}
+          />
+        </View>
+      );
+    }
+
     return (
       <View style={{ flex: 1, backgroundColor: theme.colors.backgroundSecondary, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}>
         <OfflineBanner />

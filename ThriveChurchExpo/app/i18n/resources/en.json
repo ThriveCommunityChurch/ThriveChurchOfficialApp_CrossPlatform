@@ -662,6 +662,22 @@
     "apiKeyNotConfigured": "ESV API key not configured. Please add your ESV API key to use Bible passage reading.",
     "noPassageFound": "No passage text found for this reference",
     "fetchFailed": "Failed to fetch Bible passage"
+  },
+  "offline": {
+    "title": "You're Offline",
+    "message": "Connect to the internet to access this content, or explore what's available offline.",
+    "viewDownloads": "View Downloads",
+    "readBible": "Read Bible",
+    "listenOffline": "Listen to downloaded sermons while offline",
+    "bibleOffline": "Read the Bible anytime, even without internet",
+    "noSermons": "Unable to load sermons",
+    "noSermonsMessage": "Check your connection and try again, or listen to downloaded content.",
+    "noSeries": "Unable to load series",
+    "noSeriesMessage": "Check your connection and try again.",
+    "noAnnouncements": "Unable to load announcements",
+    "noAnnouncementsMessage": "Check your connection to see the latest updates.",
+    "noSearchResults": "Unable to search",
+    "noSearchResultsMessage": "Connect to the internet to search for sermons."
   }
 }
 

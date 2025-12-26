@@ -16,6 +16,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useQuery } from '@tanstack/react-query';
+import { useNetInfo } from '@react-native-community/netinfo';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../hooks/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -36,6 +37,10 @@ export const SearchScreen: React.FC = () => {
   const styles = createStyles(theme);
   const navigation = useNavigation<NavigationProp>();
   const { width } = useWindowDimensions();
+
+  // Network status for offline detection
+  const netInfo = useNetInfo();
+  const isOffline = netInfo.isConnected === false;
 
   // State
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -103,7 +108,7 @@ export const SearchScreen: React.FC = () => {
   }, [selectedTags]);
 
   // React Query for search results
-  const { data: results, isLoading } = useQuery({
+  const { data: results, isLoading, isError, refetch } = useQuery({
     queryKey: [
       'search',
       searchTarget,
@@ -285,7 +290,10 @@ export const SearchScreen: React.FC = () => {
                 results={results || []}
                 searchTarget={searchTarget}
                 isLoading={isLoading}
+                isError={isError}
+                isOffline={isOffline}
                 onResultPress={handleResultPress}
+                onRetry={() => refetch()}
               />
             )}
           </View>
@@ -332,7 +340,10 @@ export const SearchScreen: React.FC = () => {
               results={results || []}
               searchTarget={searchTarget}
               isLoading={isLoading}
+              isError={isError}
+              isOffline={isOffline}
               onResultPress={handleResultPress}
+              onRetry={() => refetch()}
             />
           </View>
         </View>
