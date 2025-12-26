@@ -18,10 +18,16 @@ export const AnalyticsEvents = {
   VIEW_ITEM: 'view_item',
   PLAY_SERMON: 'play_sermon',
   DOWNLOAD_SERMON: 'download_sermon',
+  // Enhanced download queue events
+  DOWNLOAD_QUEUE_ADD: 'download_queue_add',
+  DOWNLOAD_COMPLETE: 'download_complete',
+  DOWNLOAD_FAILED: 'download_failed',
   CREATE_NOTE: 'create_note',
   SHARE_NOTE: 'share_note',
   VIEW_BIBLE: 'view_bible',
   PLAY_BIBLE_AUDIO: 'play_bible_audio',
+  // Enhanced Bible event
+  BIBLE_CHAPTER_READ: 'bible_chapter_read',
   CONTACT_CHURCH: 'contact_church',
   VIEW_ANNOUNCEMENTS: 'view_announcements',
   OPEN_SOCIAL: 'open_social',
@@ -148,6 +154,94 @@ export const logDownloadSermon = async (sermonId: string, sermonTitle: string): 
 };
 
 /**
+ * Parameters for enhanced download events
+ */
+export interface DownloadEventParams {
+  messageId: string;
+  seriesId?: string;
+  networkType: 'wifi' | 'cellular' | 'unknown';
+  wifiOnlySetting: boolean;
+  fileSize?: number;
+}
+
+/**
+ * Log download queue add event
+ * Tracks when a sermon is added to the download queue
+ */
+export const logDownloadQueueAdd = async (params: DownloadEventParams): Promise<void> => {
+  if (!isAnalyticsEnabled()) {
+    console.log('Analytics: Download Queue Add (disabled by feature flag):', params.messageId);
+    return;
+  }
+
+  try {
+    await analytics().logEvent(AnalyticsEvents.DOWNLOAD_QUEUE_ADD, {
+      message_id: params.messageId,
+      series_id: params.seriesId || '',
+      network_type: params.networkType,
+      wifi_only_setting: params.wifiOnlySetting,
+      content_type: 'sermon',
+    });
+    console.log('Analytics: Download Queue Add:', params.messageId);
+  } catch (error) {
+    console.error('Analytics error (logDownloadQueueAdd):', error);
+  }
+};
+
+/**
+ * Log download complete event
+ * Tracks successful download completion with metadata
+ */
+export const logDownloadComplete = async (params: DownloadEventParams): Promise<void> => {
+  if (!isAnalyticsEnabled()) {
+    console.log('Analytics: Download Complete (disabled by feature flag):', params.messageId);
+    return;
+  }
+
+  try {
+    await analytics().logEvent(AnalyticsEvents.DOWNLOAD_COMPLETE, {
+      message_id: params.messageId,
+      series_id: params.seriesId || '',
+      network_type: params.networkType,
+      wifi_only_setting: params.wifiOnlySetting,
+      file_size: params.fileSize || 0,
+      content_type: 'sermon',
+    });
+    console.log('Analytics: Download Complete:', params.messageId);
+  } catch (error) {
+    console.error('Analytics error (logDownloadComplete):', error);
+  }
+};
+
+/**
+ * Log download failed event
+ * Tracks download failures with error context
+ */
+export const logDownloadFailed = async (
+  params: DownloadEventParams,
+  errorReason: string
+): Promise<void> => {
+  if (!isAnalyticsEnabled()) {
+    console.log('Analytics: Download Failed (disabled by feature flag):', params.messageId);
+    return;
+  }
+
+  try {
+    await analytics().logEvent(AnalyticsEvents.DOWNLOAD_FAILED, {
+      message_id: params.messageId,
+      series_id: params.seriesId || '',
+      network_type: params.networkType,
+      wifi_only_setting: params.wifiOnlySetting,
+      error_reason: errorReason.substring(0, 100), // Truncate long errors
+      content_type: 'sermon',
+    });
+    console.log('Analytics: Download Failed:', params.messageId, errorReason);
+  } catch (error) {
+    console.error('Analytics error (logDownloadFailed):', error);
+  }
+};
+
+/**
  * Log note creation event
  */
 export const logCreateNote = async (noteId: string): Promise<void> => {
@@ -224,6 +318,33 @@ export const logPlayBibleAudio = async (passage: string): Promise<void> => {
     console.log('Analytics: Play Bible Audio:', passage);
   } catch (error) {
     console.error('Analytics error (logPlayBibleAudio):', error);
+  }
+};
+
+/**
+ * Log Bible chapter read event
+ * Tracks when a user reads a Bible chapter/passage
+ */
+export const logBibleChapterRead = async (
+  book: string,
+  chapter?: number,
+  reference?: string
+): Promise<void> => {
+  if (!isAnalyticsEnabled()) {
+    console.log('Analytics: Bible Chapter Read (disabled by feature flag):', book, chapter);
+    return;
+  }
+
+  try {
+    await analytics().logEvent(AnalyticsEvents.BIBLE_CHAPTER_READ, {
+      book: book,
+      chapter: chapter || 0,
+      reference: reference || `${book}${chapter ? ' ' + chapter : ''}`,
+      content_type: 'bible',
+    });
+    console.log('Analytics: Bible Chapter Read:', book, chapter);
+  } catch (error) {
+    console.error('Analytics error (logBibleChapterRead):', error);
   }
 };
 
@@ -363,10 +484,14 @@ export default {
   logTutorialComplete,
   logPlaySermon,
   logDownloadSermon,
+  logDownloadQueueAdd,
+  logDownloadComplete,
+  logDownloadFailed,
   logCreateNote,
   logShareNote,
   logViewBible,
   logPlayBibleAudio,
+  logBibleChapterRead,
   logContactChurch,
   logViewAnnouncements,
   logOpenSocial,

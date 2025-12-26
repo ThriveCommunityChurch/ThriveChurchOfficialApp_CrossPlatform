@@ -29,7 +29,7 @@ import {
   updateNote,
   CreateSermonNoteParams,
 } from '../../services/storage/storage';
-import { setCurrentScreen, logShareNote, logCustomEvent } from '../../services/analytics/analyticsService';
+import { setCurrentScreen, logShareNote, logCustomEvent, logCreateNote } from '../../services/analytics/analyticsService';
 import { useTheme } from '../../hooks/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
@@ -147,6 +147,10 @@ export const NoteDetailScreen: React.FC = () => {
           setCurrentNoteId(newNote.id);
           setIsSermonNoteType(true);
           setContent('');
+
+          // Track new sermon note creation
+          logCreateNote(newNote.id);
+
           // Auto-focus for new notes
           setTimeout(() => {
             textInputRef.current?.focus();
@@ -170,6 +174,10 @@ export const NoteDetailScreen: React.FC = () => {
           setIsSermonNoteType(false);
           setContent('');
           setTitle('');
+
+          // Track new general note creation
+          logCreateNote(newNote.id);
+
           // Auto-focus for new notes
           setTimeout(() => {
             textInputRef.current?.focus();

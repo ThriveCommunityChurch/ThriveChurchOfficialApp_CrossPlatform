@@ -6,7 +6,7 @@
 
 import * as FileSystem from 'expo-file-system/legacy';
 import { useDownloadQueueStore, QueueItem } from '../../stores/downloadQueueStore';
-import { subscribeToNetworkChanges, canDownloadNow, NetworkStatus } from './networkMonitor';
+import { subscribeToNetworkChanges, canDownloadNow, getNetworkStatus, NetworkStatus } from './networkMonitor';
 import { getDownloadSettings, getStorageLimitInfo } from './downloadSettings';
 import {
   ensureDownloadDirectory,
@@ -16,11 +16,40 @@ import {
 } from './downloadManager';
 import { saveDownloadedMessage } from '../storage/storage';
 import type { SermonMessage } from '../../types/api';
+import {
+  logDownloadQueueAdd,
+  logDownloadComplete,
+  logDownloadFailed,
+  DownloadEventParams,
+} from '../analytics/analyticsService';
 
 // Constants
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 5000;
 const PROCESS_INTERVAL_MS = 1000;
+
+/**
+ * Helper to build analytics params from current network/settings state
+ */
+const getAnalyticsParams = async (messageId: string, seriesId?: string, fileSize?: number): Promise<DownloadEventParams> => {
+  const networkStatus = getNetworkStatus();
+  const settings = await getDownloadSettings();
+
+  let networkType: 'wifi' | 'cellular' | 'unknown' = 'unknown';
+  if (networkStatus.isWifi) {
+    networkType = 'wifi';
+  } else if (networkStatus.isCellular) {
+    networkType = 'cellular';
+  }
+
+  return {
+    messageId,
+    seriesId,
+    networkType,
+    wifiOnlySetting: settings.wifiOnly,
+    fileSize,
+  };
+};
 
 // State
 let isInitialized = false;
@@ -220,6 +249,14 @@ const downloadItem = async (item: QueueItem): Promise<void> => {
       // Update queue item status
       store.setItemStatus(item.id, 'completed');
 
+      // Track download complete analytics
+      const analyticsParams = await getAnalyticsParams(
+        item.messageId,
+        item.message.SeriesId,
+        fileSize
+      );
+      logDownloadComplete(analyticsParams);
+
       // Clear after completion
       setTimeout(() => {
         store.removeFromQueue(item.id);
@@ -245,6 +282,10 @@ const downloadItem = async (item: QueueItem): Promise<void> => {
       // Delay before retry
       await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
     } else {
+      // Track download failed analytics (only on final failure)
+      const analyticsParams = await getAnalyticsParams(item.messageId, item.message.SeriesId);
+      logDownloadFailed(analyticsParams, errorMessage);
+
       store.setItemStatus(item.id, 'failed', `Failed after ${MAX_RETRIES} attempts: ${errorMessage}`);
     }
   } finally {
@@ -300,11 +341,11 @@ export const resumeDownload = async (id: string): Promise<void> => {
  * Queue a sermon for download
  * Convenience function to add a sermon to the queue
  */
-export const queueSermonDownload = (
+export const queueSermonDownload = async (
   message: SermonMessage,
   seriesTitle?: string,
   seriesArt?: string
-): void => {
+): Promise<void> => {
   if (!message.AudioUrl) {
     console.error('Cannot queue download - no audio URL');
     return;
@@ -312,30 +353,34 @@ export const queueSermonDownload = (
 
   const store = useDownloadQueueStore.getState();
 
-	// If this message is already in the queue, decide whether to retry or skip
-	const existingItem = store.items.find((item) => item.messageId === message.MessageId);
-	if (existingItem) {
-	  if (existingItem.status === 'failed') {
-	    // Allow a manual retry of a previously failed download
-	    store.retryItem(existingItem.id);
-	    console.log('Retrying failed download for message:', message.MessageId);
-	  } else {
-	    // For queued/downloading/paused/completed items, do not enqueue again
-	    console.log('Message already in queue:', message.MessageId);
-	  }
-	  return;
-	}
+  // If this message is already in the queue, decide whether to retry or skip
+  const existingItem = store.items.find((item) => item.messageId === message.MessageId);
+  if (existingItem) {
+    if (existingItem.status === 'failed') {
+      // Allow a manual retry of a previously failed download
+      store.retryItem(existingItem.id);
+      console.log('Retrying failed download for message:', message.MessageId);
+    } else {
+      // For queued/downloading/paused/completed items, do not enqueue again
+      console.log('Message already in queue:', message.MessageId);
+    }
+    return;
+  }
 
-	store.addToQueue({
-	  messageId: message.MessageId,
-	  audioUrl: message.AudioUrl,
-	  title: message.Title,
-	  seriesTitle: seriesTitle || '',
-	  seriesArt: seriesArt,
-	  message,
-	});
+  store.addToQueue({
+    messageId: message.MessageId,
+    audioUrl: message.AudioUrl,
+    title: message.Title,
+    seriesTitle: seriesTitle || '',
+    seriesArt: seriesArt,
+    message,
+  });
 
-	console.log('Added to download queue:', message.Title);
+  // Track download queue add analytics
+  const analyticsParams = await getAnalyticsParams(message.MessageId, message.SeriesId);
+  logDownloadQueueAdd(analyticsParams);
+
+  console.log('Added to download queue:', message.Title);
 };
 
 /**

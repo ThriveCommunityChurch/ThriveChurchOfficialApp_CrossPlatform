@@ -12,6 +12,7 @@ import { useTheme } from '../hooks/useTheme';
 import { useTranslation } from '../hooks/useTranslation';
 import type { Theme } from '../theme/types';
 import { esvApiService, BiblePassage } from '../services/bible/esvApiService';
+import { logBibleChapterRead } from '../services/analytics/analyticsService';
 
 interface BiblePassageReaderProps {
   reference: string;
@@ -144,6 +145,13 @@ export const BiblePassageReader: React.FC<BiblePassageReaderProps> = ({
         setError(result.error);
       } else {
         setPassage(result);
+
+        // Track Bible chapter read - parse reference for book/chapter info
+        // Reference format is typically "Book Chapter:Verse" e.g., "John 3:16"
+        const refMatch = reference.match(/^([A-Za-z0-9\s]+?)(?:\s+(\d+))?(?::[\d-]+)?$/);
+        const book = refMatch ? refMatch[1].trim() : reference;
+        const chapter = refMatch && refMatch[2] ? parseInt(refMatch[2], 10) : undefined;
+        logBibleChapterRead(book, chapter, reference);
       }
     } catch (err) {
       console.error('Error loading Bible passage:', err);
