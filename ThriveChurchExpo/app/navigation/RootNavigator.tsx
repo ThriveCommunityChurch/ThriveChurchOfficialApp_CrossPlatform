@@ -35,6 +35,7 @@ import { ConnectScreen, RSSScreen, RSSDetailScreen, WebViewScreen, SmallGroupScr
 import { MoreScreen, AboutScreen } from '../screens/More';
 import { SettingsScreen } from '../screens/Settings';
 import DownloadSettingsScreen from '../screens/Settings/DownloadSettingsScreen';
+import PlaybackSettingsScreen from '../screens/Settings/PlaybackSettingsScreen';
 import OnboardingScreen from '../screens/Onboarding/OnboardingScreen';
 import { isOnboardingCompleted } from '../services/storage/storage';
 import { startNetworkMonitoring, stopNetworkMonitoring } from '../services/downloads/networkMonitor';
@@ -421,6 +422,14 @@ function MoreStackNavigator({ theme }: { theme: Theme }) {
         component={DownloadSettingsScreen}
         options={{
           title: t('navigation.downloadSettings'),
+          headerBackTitle: t('navigation.settings'),
+        }}
+      />
+      <MoreStack.Screen
+        name="PlaybackSettings"
+        component={PlaybackSettingsScreen}
+        options={{
+          title: t('navigation.playbackSettings'),
           headerBackTitle: t('navigation.settings'),
         }}
       />

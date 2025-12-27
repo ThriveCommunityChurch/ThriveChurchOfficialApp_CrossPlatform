@@ -34,6 +34,7 @@
     "recentlyPlayed": "Recently Played",
     "downloads": "Downloads",
     "downloadSettings": "Download Settings",
+    "playbackSettings": "Playback Settings",
     "search": "Search",
     "series": "Series",
     "sermon": "Sermon",
@@ -105,6 +106,22 @@
       "storageLimitWarningMessage": "Current usage ({{currentUsage}}) exceeds this limit ({{newLimit}}). Some downloads may need to be removed.",
       "setAnyway": "Set Anyway",
       "errorSaving": "Failed to save settings. Please try again."
+    },
+    "playback": {
+      "title": "Playback",
+      "managePlayback": "Playback Settings",
+      "managePlaybackDescription": "Jump intervals, playback speed, and controls",
+      "skipIntervalsTitle": "Jump Intervals",
+      "skipIntervalsDescription": "Configure how far to jump forward or backward within a sermon",
+      "skipForward": "Jump Forward",
+      "skipForwardDescription": "How far to jump ahead in the current message",
+      "skipBackward": "Jump Backward",
+      "skipBackwardDescription": "How far to jump back in the current message",
+      "speedTitle": "Playback Speed",
+      "speedDescription": "Set the default playback speed for sermons",
+      "defaultSpeed": "Default Speed",
+      "defaultSpeedDescription": "Speed when starting a new sermon",
+      "infoNote": "Jump intervals apply to both the player and lock screen controls. Playback speed can be overridden in the player for individual sessions."
     },
     "alerts": {
       "unableToOpenSettings": "Unable to Open Settings",
@@ -628,7 +645,8 @@
     "title": "Now Playing",
     "noAudioPlaying": "No Audio Playing",
     "selectSermon": "Select a sermon to start listening",
-    "week": "Week"
+    "week": "Week",
+    "playbackSpeed": "Playback Speed"
   },
   "videoPlayer": {
     "title": "Video Player",

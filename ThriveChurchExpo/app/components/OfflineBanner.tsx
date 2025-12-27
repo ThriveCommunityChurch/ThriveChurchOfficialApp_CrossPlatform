@@ -1,11 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useNetInfo } from '@react-native-community/netinfo';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/useTheme';
 import { useTranslation } from '../hooks/useTranslation';
-import { useDownloadQueueStore, selectActiveDownload, selectQueuedItems } from '../stores/downloadQueueStore';
-import { useShallow } from 'zustand/react/shallow';
+import { useDownloadQueueStore } from '../stores/downloadQueueStore';
 import { getDownloadSettings } from '../services/downloads/downloadSettings';
 import type { Theme } from '../theme/types';
 
@@ -13,25 +12,29 @@ export default function OfflineBanner() {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const netInfo = useNetInfo();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
-  // Get download queue state
-  const { activeDownload, queuedItems } = useDownloadQueueStore(
-    useShallow((state) => ({
-      activeDownload: selectActiveDownload(state),
-      queuedItems: selectQueuedItems(state),
-    }))
-  );
+  // Get download queue state with primitive selectors to avoid re-renders
+  const items = useDownloadQueueStore((state) => state.items);
+
+  // Compute derived values with useMemo to avoid infinite loops
+  const { activeDownload, pendingCount } = useMemo(() => {
+    const active = items.find((item) => item.status === 'downloading') || null;
+    const queued = items.filter((item) => item.status === 'queued');
+    return {
+      activeDownload: active,
+      pendingCount: queued.length,
+    };
+  }, [items]);
 
   // Track WiFi-only setting
-  const [wifiOnly, setWifiOnly] = React.useState(true);
-  React.useEffect(() => {
+  const [wifiOnly, setWifiOnly] = useState(true);
+  useEffect(() => {
     getDownloadSettings().then((settings) => setWifiOnly(settings.wifiOnly));
   }, []);
 
   const isOffline = netInfo.isConnected === false;
   const isWifi = netInfo.type === 'wifi';
-  const pendingCount = queuedItems.length;
   const hasActiveDownload = !!activeDownload;
 
   // Determine what to show

@@ -376,6 +376,22 @@ export const SettingsScreen: React.FC = () => {
           </View>
         </AnimatedCard>
 
+        {/* Playback Section */}
+        <Text style={styles.sectionTitle}>{t('settings.playback.title')}</Text>
+
+        <AnimatedCard onPress={() => navigation.navigate('PlaybackSettings')} theme={theme}>
+          <View style={styles.cardContent}>
+            <View style={styles.iconContainer}>
+              <Ionicons name="play-circle-outline" size={24} color={theme.colors.primary} />
+            </View>
+            <View style={styles.textContainer}>
+              <Text style={styles.cardLabel}>{t('settings.playback.managePlayback')}</Text>
+              <Text style={styles.cardDescription}>{t('settings.playback.managePlaybackDescription')}</Text>
+            </View>
+            <Text style={styles.chevron}>›</Text>
+          </View>
+        </AnimatedCard>
+
         {/* System Section */}
         <Text style={styles.sectionTitle}>{t('settings.system.title')}</Text>
 

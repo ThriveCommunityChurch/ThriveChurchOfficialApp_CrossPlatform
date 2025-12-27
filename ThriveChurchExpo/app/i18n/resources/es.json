@@ -34,6 +34,7 @@
     "recentlyPlayed": "Reproducidos Recientemente",
     "downloads": "Descargas",
     "downloadSettings": "Ajustes de Descarga",
+    "playbackSettings": "Ajustes de Reproducción",
     "search": "Buscar",
     "series": "Serie",
     "sermon": "Sermón",
@@ -105,6 +106,22 @@
       "storageLimitWarningMessage": "El uso actual ({{currentUsage}}) excede este límite ({{newLimit}}). Es posible que sea necesario eliminar algunas descargas.",
       "setAnyway": "Establecer de Todos Modos",
       "errorSaving": "Error al guardar la configuración. Por favor, intenta de nuevo."
+    },
+    "playback": {
+      "title": "Reproducción",
+      "managePlayback": "Ajustes de Reproducción",
+      "managePlaybackDescription": "Intervalos de avance, velocidad de reproducción y controles",
+      "skipIntervalsTitle": "Intervalos de Avance",
+      "skipIntervalsDescription": "Configura cuánto avanzar o retroceder dentro de un sermón",
+      "skipForward": "Avanzar",
+      "skipForwardDescription": "Cuánto avanzar en el mensaje actual",
+      "skipBackward": "Retroceder",
+      "skipBackwardDescription": "Cuánto retroceder en el mensaje actual",
+      "speedTitle": "Velocidad de Reproducción",
+      "speedDescription": "Establece la velocidad predeterminada para los sermones",
+      "defaultSpeed": "Velocidad Predeterminada",
+      "defaultSpeedDescription": "Velocidad al iniciar un nuevo sermón",
+      "infoNote": "Los intervalos de avance se aplican tanto al reproductor como a los controles de la pantalla de bloqueo. La velocidad de reproducción se puede cambiar en el reproductor para sesiones individuales."
     },
     "alerts": {
       "unableToOpenSettings": "No se Puede Abrir la Configuración",
@@ -627,7 +644,8 @@
     "title": "Reproduciendo Ahora",
     "noAudioPlaying": "No Hay Audio Reproduciéndose",
     "selectSermon": "Selecciona un sermón para comenzar a escuchar",
-    "week": "Semana"
+    "week": "Semana",
+    "playbackSpeed": "Velocidad de Reproducción"
   },
   "videoPlayer": {
     "title": "Reproductor de Video",

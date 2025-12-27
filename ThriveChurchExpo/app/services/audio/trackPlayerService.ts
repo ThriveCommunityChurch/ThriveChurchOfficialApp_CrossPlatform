@@ -9,10 +9,14 @@ import { SermonMessage } from '../../types/api';
 import { addToRecentlyPlayed, savePlaybackProgress, getPlaybackProgressForMessage, clearPlaybackProgress } from '../storage/storage';
 import { markMessageAsPlayed } from '../api/messagePlayedService';
 import { MIN_POSITION_TO_SAVE, END_THRESHOLD, PROGRESS_SAVE_INTERVAL_MS } from '../../types/playback';
+import { getPlaybackSettings, type SkipInterval } from '../playback/playbackSettings';
 
 let isServiceInitialized = false;
 let currentMessageId: string | null = null;
 let progressSaveInterval: ReturnType<typeof setInterval> | null = null;
+// Track current skip intervals for lock screen
+let currentSkipForward: SkipInterval = 15;
+let currentSkipBackward: SkipInterval = 15;
 
 export const setupPlayer = async (): Promise<void> => {
   if (isServiceInitialized) {
@@ -20,6 +24,11 @@ export const setupPlayer = async (): Promise<void> => {
   }
 
   try {
+    // Load saved skip intervals from settings
+    const settings = await getPlaybackSettings();
+    currentSkipForward = settings.skipForwardInterval;
+    currentSkipBackward = settings.skipBackwardInterval;
+
     await TrackPlayer.setupPlayer({
       autoHandleInterruptions: true,
     });
@@ -43,13 +52,13 @@ export const setupPlayer = async (): Promise<void> => {
         Capability.JumpBackward,
       ],
       progressUpdateEventInterval: 1,
-      // Set jump intervals to 15 seconds
-      forwardJumpInterval: 15,
-      backwardJumpInterval: 15,
+      // Set jump intervals from user settings (affects lock screen controls)
+      forwardJumpInterval: currentSkipForward,
+      backwardJumpInterval: currentSkipBackward,
     });
 
     isServiceInitialized = true;
-    console.log('Track Player initialized successfully');
+    console.log(`Track Player initialized with skip intervals: forward=${currentSkipForward}s, backward=${currentSkipBackward}s`);
   } catch (error) {
     // Handle case where player was already initialized (e.g., after hot reload)
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -61,6 +70,39 @@ export const setupPlayer = async (): Promise<void> => {
     console.error('Error setting up Track Player:', error);
     throw error;
   }
+};
+
+/**
+ * Update skip intervals for lock screen controls
+ * Call this when user changes settings
+ */
+export const updatePlayerSkipIntervals = async (
+  forward: SkipInterval,
+  backward: SkipInterval
+): Promise<void> => {
+  try {
+    currentSkipForward = forward;
+    currentSkipBackward = backward;
+
+    await TrackPlayer.updateOptions({
+      forwardJumpInterval: forward,
+      backwardJumpInterval: backward,
+    });
+
+    console.log(`Updated skip intervals: forward=${forward}s, backward=${backward}s`);
+  } catch (error) {
+    console.error('Error updating skip intervals:', error);
+  }
+};
+
+/**
+ * Get current skip intervals
+ */
+export const getCurrentSkipIntervals = (): { forward: SkipInterval; backward: SkipInterval } => {
+  return {
+    forward: currentSkipForward,
+    backward: currentSkipBackward,
+  };
 };
 
 /**
