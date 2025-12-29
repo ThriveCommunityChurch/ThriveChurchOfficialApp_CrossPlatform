@@ -50,3 +50,8 @@ export const useTranslation = () => {
  */
 export type { Language };
 
+/**
+ * Type for the translation function
+ */
+export type TFunction = (key: string, options?: any) => string;
+

@@ -13,9 +13,11 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 import { QueueItem, QueueItemStatus } from '../../stores/downloadQueueStore';
 import { formatBytes } from '../../services/downloads/downloadManager';
+import type { TFunction } from '../../hooks/useTranslation';
 
 interface DownloadQueueItemProps {
   item: QueueItem;
@@ -42,18 +44,18 @@ const getStatusColor = (status: QueueItemStatus, theme: Theme): string => {
   }
 };
 
-const getStatusText = (status: QueueItemStatus, progress: number): string => {
+const getStatusText = (status: QueueItemStatus, progress: number, t: TFunction): string => {
   switch (status) {
     case 'downloading':
-      return `Downloading... ${progress}%`;
+      return t('listen.downloads.downloading', { progress });
     case 'completed':
-      return 'Completed';
+      return t('listen.downloads.completed');
     case 'failed':
-      return 'Failed';
+      return t('listen.downloads.failed');
     case 'paused':
-      return 'Paused';
+      return t('listen.downloads.paused');
     case 'queued':
-      return 'Queued';
+      return t('listen.downloads.queued');
     default:
       return status;
   }
@@ -84,6 +86,7 @@ export const DownloadQueueItem: React.FC<DownloadQueueItemProps> = ({
   onRemove,
 }) => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme);
 
   const handleActionPress = () => {
@@ -107,9 +110,17 @@ export const DownloadQueueItem: React.FC<DownloadQueueItemProps> = ({
   };
 
   const statusColor = getStatusColor(item.status, theme);
-  const statusText = getStatusText(item.status, item.progress);
+  const statusText = getStatusText(item.status, item.progress, t);
   const actionIcon = getActionIcon(item.status);
   const showProgress = item.status === 'downloading' || item.status === 'paused';
+
+  // Translate known error messages
+  const getTranslatedError = (error: string): string => {
+    if (error === 'Storage limit reached') {
+      return t('listen.downloads.storageLimitReached');
+    }
+    return error;
+  };
 
   return (
     <View style={styles.container}>
@@ -141,12 +152,12 @@ export const DownloadQueueItem: React.FC<DownloadQueueItemProps> = ({
           )}
         </View>
 
-	        {/* Error details for failed items */}
-	        {item.status === 'failed' && item.error && (
-	          <Text style={styles.errorText} numberOfLines={2} ellipsizeMode="tail">
-	            {item.error}
-	          </Text>
-	        )}
+        {/* Error details for failed items */}
+        {item.status === 'failed' && item.error && (
+          <Text style={styles.errorText} numberOfLines={2} ellipsizeMode="tail">
+            {getTranslatedError(item.error)}
+          </Text>
+        )}
 
         {/* Progress bar */}
         {showProgress && (

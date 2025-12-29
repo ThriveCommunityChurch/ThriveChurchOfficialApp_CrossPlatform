@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 import { getTotalDownloadsSize, formatBytes } from '../../services/downloads/downloadManager';
 import { getDownloadSettings, DownloadSettings } from '../../services/downloads/downloadSettings';
@@ -26,6 +27,7 @@ export const StorageUsageBar: React.FC<StorageUsageBarProps> = ({
   compact = false,
 }) => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme, compact);
 
   const [currentUsage, setCurrentUsage] = useState(0);
@@ -62,7 +64,7 @@ export const StorageUsageBar: React.FC<StorageUsageBarProps> = ({
       <View style={styles.headerRow}>
         <View style={styles.labelRow}>
           <Ionicons name="folder" size={compact ? 16 : 20} color={theme.colors.primary} />
-          <Text style={styles.label}>Downloads</Text>
+          <Text style={styles.label}>{t('listen.downloads.title')}</Text>
         </View>
         <View style={styles.valueRow}>
           <Text style={styles.value}>

@@ -222,7 +222,7 @@ export const StorageManagementModal: React.FC<StorageManagementModalProps> = ({
               <View style={styles.seriesInfo}>
                 <Text style={styles.seriesTitle} numberOfLines={1}>{group.title}</Text>
                 <Text style={styles.seriesDetails}>
-                  {group.messages.length} {t('listen.downloads.sermons')} • {formatBytes(group.totalSize)}
+                  {group.messages.length} {group.messages.length === 1 ? t('listen.downloads.sermon') : t('listen.downloads.sermons')} • {formatBytes(group.totalSize)}
                 </Text>
               </View>
               <TouchableOpacity

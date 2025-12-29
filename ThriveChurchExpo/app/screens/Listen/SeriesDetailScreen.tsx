@@ -101,9 +101,11 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
 
   const isCurrentSeries = series?.EndDate == null;
 
-  // Get messages in queue
-  const queuedMessageIds = useDownloadQueueStore((state) =>
-    new Set(state.items.map((item) => item.messageId))
+  // Get messages in queue - use stable selector to avoid infinite re-renders
+  const queueItems = useDownloadQueueStore((state) => state.items);
+  const queuedMessageIds = useMemo(
+    () => new Set(queueItems.map((item) => item.messageId)),
+    [queueItems]
   );
 
   // Calculate downloadable messages (not downloaded and not in queue)
