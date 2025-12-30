@@ -24,7 +24,8 @@ import {
   deleteDownload,
   clearAllDownloads,
 } from '../../services/downloads/downloadManager';
-import { getAllDownloadedMessages, SermonMessage } from '../../../app/services/storage/storage';
+import { getAllDownloadedMessages } from '../../services/storage/storage';
+import { SermonMessage } from '../../types/api';
 
 interface StorageManagementModalProps {
   visible: boolean;

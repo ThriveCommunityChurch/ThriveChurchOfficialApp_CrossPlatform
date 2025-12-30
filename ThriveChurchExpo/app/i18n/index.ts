@@ -106,7 +106,7 @@ i18n
     },
     
     // Compatibility options
-    compatibilityJSON: 'v3', // Use i18next v3 JSON format
+    compatibilityJSON: 'v4', // Use i18next v4 JSON format
   });
 
 export default i18n;
