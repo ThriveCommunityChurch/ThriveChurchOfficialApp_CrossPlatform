@@ -25,6 +25,7 @@ module.exports = {
     name: credentials.app.name,
     slug: "ThriveChurchExpo",
     version: versionData.version,
+    jsEngine: "hermes",
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "automatic",

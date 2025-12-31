@@ -37,6 +37,7 @@ type ConnectStackParamList = {
   ImNew: undefined;
   Contact: undefined;
   Social: undefined;
+  Events: undefined;
 };
 
 type NavigationProp = NativeStackNavigationProp<ConnectStackParamList>;
@@ -167,6 +168,14 @@ export const ConnectScreen: React.FC = () => {
       action: 'announcements',
     });
 
+    // Events (always show)
+    items.push({
+      id: 'events',
+      title: t('events.title'),
+      subtitle: t('events.menu.subtitle'),
+      action: 'events',
+    });
+
     // Join a small group - always show (native landing page)
     items.push({
       id: 'smallgroup',
@@ -260,6 +269,9 @@ export const ConnectScreen: React.FC = () => {
         break;
       case 'social':
         navigation.navigate('Social');
+        break;
+      case 'events':
+        navigation.navigate('Events');
         break;
     }
   };

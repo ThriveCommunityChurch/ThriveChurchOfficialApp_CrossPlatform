@@ -31,6 +31,16 @@ export const AnalyticsEvents = {
   CONTACT_CHURCH: 'contact_church',
   VIEW_ANNOUNCEMENTS: 'view_announcements',
   OPEN_SOCIAL: 'open_social',
+  // Events feature
+  VIEW_EVENTS: 'view_events',
+  VIEW_EVENT_DETAIL: 'view_event_detail',
+  SELECT_EVENT: 'select_event',
+  ADD_TO_CALENDAR: 'add_to_calendar',
+  GET_DIRECTIONS: 'get_directions',
+  SHARE_EVENT: 'share_event',
+  REGISTER_FOR_EVENT: 'register_for_event',
+  JOIN_ONLINE_EVENT: 'join_online_event',
+  TOGGLE_EVENTS_VIEW: 'toggle_events_view',
 } as const;
 
 /**

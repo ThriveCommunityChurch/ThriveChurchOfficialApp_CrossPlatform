@@ -718,6 +718,65 @@
     "downloadingMessage": "Downloading {{title}} – {{progress}}%",
     "queuedMessage": "{{count}} queued for download",
     "queuedWifiMessage": "{{count}} queued • Will download on WiFi"
+  },
+  "events": {
+    "title": "Events",
+    "upcoming": "Upcoming Events",
+    "featured": "Featured Events",
+    "allEvents": "All Events",
+    "noEvents": "No Events",
+    "noEventsDescription": "Check back soon for upcoming events and gatherings.",
+    "loading": "Loading events...",
+    "error": "Unable to load events",
+    "errorDescription": "Check your internet connection and try again.",
+    "pullToRefresh": "Pull to refresh",
+    "viewMode": {
+      "calendar": "Calendar",
+      "list": "List"
+    },
+    "calendar": {
+      "today": "Today",
+      "prevMonth": "Previous month",
+      "nextMonth": "Next month"
+    },
+    "detail": {
+      "when": "When",
+      "where": "Where",
+      "online": "Online Event",
+      "allDay": "All Day",
+      "recurring": "Recurring Event",
+      "description": "About This Event",
+      "contact": "Contact",
+      "register": "Register",
+      "share": "Share Event",
+      "addToCalendar": "Add to Calendar",
+      "getDirections": "Get Directions",
+      "joinOnline": "Join Online",
+      "locationTbd": "Location TBD"
+    },
+    "recurrence": {
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "biweekly": "Bi-Weekly",
+      "monthly": "Monthly",
+      "yearly": "Yearly"
+    },
+    "badges": {
+      "featured": "Featured",
+      "online": "Online",
+      "recurring": "Recurring"
+    },
+    "alerts": {
+      "calendarSuccess": "Event added to calendar",
+      "calendarError": "Unable to add event to calendar",
+      "calendarPermission": "Calendar permission is required to add events",
+      "mapsError": "Unable to open maps",
+      "shareError": "Unable to share event"
+    },
+    "menu": {
+      "title": "Events",
+      "subtitle": "Upcoming events and gatherings"
+    }
   }
 }
 

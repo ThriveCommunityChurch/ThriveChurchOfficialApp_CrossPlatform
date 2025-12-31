@@ -74,6 +74,13 @@ export const linking: LinkingOptions<any> = {
               title: (title: string) => decodeURIComponent(title),
             },
           },
+          Events: 'connect/events',
+          EventDetail: {
+            path: 'connect/events/:eventId',
+            parse: {
+              eventId: (eventId: string) => eventId,
+            },
+          },
         },
       },
       // More Tab
@@ -145,7 +152,15 @@ export const handleDeepLink = (
       navigation.navigate('Notes', { screen: 'NotesList' });
     }
     // Connect tab deep links
-    else if (path.includes('/connect/announcements/')) {
+    else if (path.includes('/connect/events/')) {
+      const eventId = path.split('/connect/events/')[1];
+      navigation.navigate('Connect', {
+        screen: 'EventDetail',
+        params: { eventId },
+      });
+    } else if (path.includes('/connect/events')) {
+      navigation.navigate('Connect', { screen: 'Events' });
+    } else if (path.includes('/connect/announcements/')) {
       const date = path.split('/connect/announcements/')[1];
       navigation.navigate('Connect', {
         screen: 'RSSDetail',
