@@ -3,7 +3,7 @@ import { SermonMessage } from '../../types/api';
 import { Note, SermonNote } from '../../types/notes';
 import { ConfigSetting } from '../../types/config';
 import { BibleTranslation, ThemeMode, DEFAULT_BIBLE_TRANSLATION } from '../../types/settings';
-import { Language } from '../i18n/types';
+import { Language } from '../../i18n/types';
 import { PlaybackProgress, PlaybackProgressMap, MIN_POSITION_TO_SAVE, END_THRESHOLD } from '../../types/playback';
 
 // Storage wrapper using AsyncStorage
