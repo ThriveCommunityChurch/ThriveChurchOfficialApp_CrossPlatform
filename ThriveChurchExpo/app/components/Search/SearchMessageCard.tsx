@@ -8,6 +8,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 import { SermonMessage } from '../../types/api';
 
@@ -21,6 +22,7 @@ export const SearchMessageCard: React.FC<SearchMessageCardProps> = ({
   onPress,
 }) => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme);
 
   const formatDate = (dateString: string): string => {
@@ -57,7 +59,7 @@ export const SearchMessageCard: React.FC<SearchMessageCardProps> = ({
       onPress={onPress}
       activeOpacity={0.7}
       accessibilityLabel={`${message.Title}, ${message.Speaker}, ${formatDate(message.Date)}`}
-      accessibilityHint="Tap to play or view sermon options"
+      accessibilityHint={t('components.searchMessageCard.accessibilityHint')}
       accessibilityRole="button"
     >
       {/* Title */}
@@ -101,7 +103,7 @@ export const SearchMessageCard: React.FC<SearchMessageCardProps> = ({
             color={hasAudio ? theme.colors.primary : theme.colors.textTertiary}
           />
           <Text style={[styles.mediaLabel, { color: hasAudio ? theme.colors.primary : theme.colors.textTertiary }]}>
-            Audio
+            {t('components.searchMessageCard.audio')}
           </Text>
         </View>
 
@@ -113,7 +115,7 @@ export const SearchMessageCard: React.FC<SearchMessageCardProps> = ({
             color={hasVideo ? theme.colors.primary : theme.colors.textTertiary}
           />
           <Text style={[styles.mediaLabel, { color: hasVideo ? theme.colors.primary : theme.colors.textTertiary }]}>
-            Video
+            {t('components.searchMessageCard.video')}
           </Text>
         </View>
 

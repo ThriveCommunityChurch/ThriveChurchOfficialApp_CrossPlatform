@@ -8,6 +8,7 @@
  * API key is loaded from centralized credentials configuration.
  */
 
+import i18next from 'i18next';
 import { apiConfig } from '../../config/app.config';
 
 interface ESVPassageResponse {
@@ -57,7 +58,7 @@ class ESVApiService {
         reference: '',
         canonical: '',
         text: '',
-        error: 'No passage reference provided',
+        error: i18next.t('esvApi.noReferenceProvided'),
       };
     }
 
@@ -67,7 +68,7 @@ class ESVApiService {
         reference,
         canonical: reference,
         text: '',
-        error: 'ESV API key not configured. Please add your ESV API key to use Bible passage reading.',
+        error: i18next.t('esvApi.apiKeyNotConfigured'),
       };
     }
 
@@ -112,7 +113,7 @@ class ESVApiService {
           reference,
           canonical: data.canonical || reference,
           text: '',
-          error: 'No passage text found for this reference',
+          error: i18next.t('esvApi.noPassageFound'),
         };
       }
 
@@ -131,8 +132,8 @@ class ESVApiService {
 
     } catch (error) {
       console.error('ESV API Service Error:', error);
-      
-      let errorMessage = 'Failed to fetch Bible passage';
+
+      let errorMessage = i18next.t('esvApi.fetchFailed');
       if (error instanceof Error) {
         errorMessage = error.message;
       }

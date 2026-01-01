@@ -18,6 +18,7 @@ import { getTraditionalBooks, getAlphabeticalBooks } from '../../data/bibleBooks
 import { openBibleBook } from '../../utils/bibleLinks';
 import { setCurrentScreen, logCustomEvent } from '../../services/analytics/analyticsService';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 
 type BookListRouteParams = {

@@ -3,6 +3,8 @@
  * User preferences and configuration settings
  */
 
+import { Language, DEFAULT_LANGUAGE } from '../i18n/types';
+
 /**
  * Bible Translation Configuration
  * Represents a Bible translation available on Bible.com (YouVersion)
@@ -35,6 +37,8 @@ export interface UserSettings {
   bibleTranslation: BibleTranslation;
   /** Theme mode preference */
   themeMode: ThemeMode;
+  /** Language preference */
+  language: Language;
 }
 
 /**
@@ -61,5 +65,6 @@ export const DEFAULT_THEME_MODE: ThemeMode = 'auto';
 export const DEFAULT_SETTINGS: UserSettings = {
   bibleTranslation: DEFAULT_BIBLE_TRANSLATION,
   themeMode: DEFAULT_THEME_MODE,
+  language: DEFAULT_LANGUAGE,
 };
 

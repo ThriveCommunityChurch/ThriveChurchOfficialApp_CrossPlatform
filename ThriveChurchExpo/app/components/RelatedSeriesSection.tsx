@@ -12,6 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useQuery } from '@tanstack/react-query';
 import { useTheme } from '../hooks/useTheme';
+import { useTranslation } from '../hooks/useTranslation';
 import type { Theme } from '../theme/types';
 import { SermonSeries } from '../types/api';
 import { searchRelatedSeries } from '../services/api/sermonSearchService';
@@ -28,6 +29,7 @@ export const RelatedSeriesSection: React.FC<RelatedSeriesSectionProps> = ({
   currentSeriesId,
 }) => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme);
   const navigation = useNavigation<StackNavigationProp<any>>();
 
@@ -120,7 +122,7 @@ export const RelatedSeriesSection: React.FC<RelatedSeriesSectionProps> = ({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>Related Series</Text>
+      <Text style={styles.sectionTitle}>{t('components.relatedSeries.title')}</Text>
 
       {isLoading ? (
         <View style={styles.loadingContainer}>

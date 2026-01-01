@@ -1,21 +1,30 @@
 /**
  * Expo App Configuration
- * 
+ *
  * This file dynamically loads credentials from credentials.json
  * and configures the Expo app accordingly.
+ *
+ * Version is managed in version.json - use scripts/increment-build.js
+ * to increment the build number before each release.
  */
 
+const fs = require('fs');
+const path = require('path');
 const { loadCredentials, credentialsToExpoExtra } = require('./load-credentials');
 
 // Load credentials
 const credentials = loadCredentials();
 const extra = credentialsToExpoExtra(credentials);
 
+// Load version info
+const versionPath = path.join(__dirname, 'version.json');
+const versionData = JSON.parse(fs.readFileSync(versionPath, 'utf8'));
+
 module.exports = {
   expo: {
     name: credentials.app.name,
     slug: "ThriveChurchExpo",
-    version: "1.0.0",
+    version: versionData.version,
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "automatic",
@@ -25,6 +34,7 @@ module.exports = {
     ios: {
       supportsTablet: true,
       bundleIdentifier: credentials.app.bundleIdIos,
+      buildNumber: String(versionData.buildNumber),
       googleServicesFile: "./GoogleService-Info.plist",
       infoPlist: {
         // Firebase URL Schemes
@@ -66,6 +76,7 @@ module.exports = {
         backgroundColor: "#FFFFFF"
       },
       package: credentials.app.bundleIdAndroid,
+      versionCode: versionData.buildNumber,
       googleServicesFile: "./google-services.json",
       permissions: [
         "INTERNET",
@@ -110,7 +121,11 @@ module.exports = {
       // Custom plugin to add copyright text to splash screen (runs after expo-splash-screen)
       "./plugins/withSplashScreenCopyright.js",
       // Custom plugin to configure dynamic theme support (iOS + Android)
-      "./plugins/withThemeConfiguration.js"
+      "./plugins/withThemeConfiguration.js",
+      // Custom plugin to add native UI tests (XCUITest for iOS, Espresso for Android)
+      "./plugins/withNativeUITests.js",
+      // Custom plugin to apply Xcode recommended settings (avoids manual updates each time you open Xcode)
+      "./plugins/withXcodeSettings.js"
       // Note: @react-native-firebase/analytics and @react-native-firebase/messaging
       // do not have Expo config plugins. They are configured via native files
       // (GoogleService-Info.plist and google-services.json) and work at runtime.

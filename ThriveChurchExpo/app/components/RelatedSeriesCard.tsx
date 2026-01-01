@@ -10,6 +10,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import FastImage from 'react-native-fast-image';
 import { useTheme } from '../hooks/useTheme';
+import { useTranslation } from '../hooks/useTranslation';
 import type { Theme } from '../theme/types';
 import { SermonSeriesWithMatchCount } from '../types/api';
 import { getTagDisplayLabel } from '../types/messageTag';
@@ -28,6 +29,7 @@ export const RelatedSeriesCard: React.FC<RelatedSeriesCardProps> = ({
   summaryLines = 4,
 }) => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme);
 
   const formatDateRange = (): string => {
@@ -35,16 +37,16 @@ export const RelatedSeriesCard: React.FC<RelatedSeriesCardProps> = ({
       month: 'short',
       year: 'numeric',
     });
-    
+
     if (!series.EndDate) {
-      return 'Current Series';
+      return t('components.relatedSeries.currentSeries');
     }
-    
+
     const endDate = new Date(series.EndDate).toLocaleDateString('en-US', {
       month: 'short',
       year: 'numeric',
     });
-    
+
     return `${startDate} - ${endDate}`;
   };
 
@@ -72,7 +74,9 @@ export const RelatedSeriesCard: React.FC<RelatedSeriesCardProps> = ({
         <View style={styles.metadataRowVertical}>
           <View style={styles.metadataItem}>
             <Ionicons name="albums" size={14} color={theme.colors.textSecondary} />
-            <Text style={styles.metadataText}>{messageCount} Messages</Text>
+            <Text style={styles.metadataText}>
+              {messageCount} {messageCount === 1 ? t('components.relatedSeries.message') : t('components.relatedSeries.messages')}
+            </Text>
           </View>
           <View style={styles.metadataItem}>
             <Ionicons name="calendar-outline" size={14} color={theme.colors.textSecondary} />

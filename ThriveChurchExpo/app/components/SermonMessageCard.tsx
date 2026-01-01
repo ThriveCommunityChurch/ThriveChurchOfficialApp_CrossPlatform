@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/useTheme';
+import { useTranslation } from '../hooks/useTranslation';
 import type { Theme } from '../theme/types';
 import { SermonMessage } from '../types/api';
 
@@ -23,6 +24,7 @@ export const SermonMessageCard: React.FC<SermonMessageCardProps> = ({
   noHorizontalMargin = false,
 }) => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme);
   const formatDate = (dateString: string): string => {
     try {
@@ -62,15 +64,15 @@ export const SermonMessageCard: React.FC<SermonMessageCardProps> = ({
       onPress={onPress}
       activeOpacity={0.7}
       disabled={downloading}
-      accessibilityLabel={`${message.Title}, Week ${message.WeekNum}, ${message.Speaker}, ${formatDate(message.Date)}`}
-      accessibilityHint="Tap to play or view sermon options"
+      accessibilityLabel={`${message.Title}, ${t('components.sermonCard.week')} ${message.WeekNum}, ${message.Speaker}, ${formatDate(message.Date)}`}
+      accessibilityHint={t('components.sermonCard.accessibilityHint')}
       accessibilityRole="button"
     >
       <View style={styles.content}>
         {/* Week Number Badge */}
         <View style={styles.weekBadge}>
           <Text style={styles.weekNumber}>{message.WeekNum ?? '—'}</Text>
-          <Text style={styles.weekLabel}>Week</Text>
+          <Text style={styles.weekLabel}>{t('components.sermonCard.week')}</Text>
         </View>
 
         {/* Message Info */}
@@ -104,10 +106,10 @@ export const SermonMessageCard: React.FC<SermonMessageCardProps> = ({
                 name={hasAudio ? 'headset' : 'headset-outline'}
                 size={18}
                 color={hasAudio ? theme.colors.primary : theme.colors.textTertiary}
-                accessibilityLabel={hasAudio ? 'Audio available' : 'Audio not available'}
+                accessibilityLabel={hasAudio ? t('components.sermonCard.audioAvailable') : t('components.sermonCard.audioNotAvailable')}
               />
               <Text style={[styles.mediaLabel, { color: hasAudio ? theme.colors.primary : theme.colors.textTertiary }]}>
-                Audio
+                {t('components.sermonCard.audio')}
               </Text>
             </View>
 
@@ -117,10 +119,10 @@ export const SermonMessageCard: React.FC<SermonMessageCardProps> = ({
                 name={hasVideo ? 'play-circle' : 'play-circle-outline'}
                 size={18}
                 color={hasVideo ? theme.colors.primary : theme.colors.textTertiary}
-                accessibilityLabel={hasVideo ? 'Video available' : 'Video not available'}
+                accessibilityLabel={hasVideo ? t('components.sermonCard.videoAvailable') : t('components.sermonCard.videoNotAvailable')}
               />
               <Text style={[styles.mediaLabel, { color: hasVideo ? theme.colors.primary : theme.colors.textTertiary }]}>
-                Video
+                {t('components.sermonCard.video')}
               </Text>
             </View>
 
@@ -146,7 +148,7 @@ export const SermonMessageCard: React.FC<SermonMessageCardProps> = ({
             <ActivityIndicator
               size="small"
               color={theme.colors.primary}
-              accessibilityLabel="Downloading"
+              accessibilityLabel={t('components.sermonCard.downloading')}
             />
           )}
           {downloaded && !downloading && (
@@ -154,7 +156,7 @@ export const SermonMessageCard: React.FC<SermonMessageCardProps> = ({
               name="checkmark-circle"
               size={24}
               color={theme.colors.success}
-              accessibilityLabel="Downloaded"
+              accessibilityLabel={t('components.sermonCard.downloaded')}
             />
           )}
         </View>
