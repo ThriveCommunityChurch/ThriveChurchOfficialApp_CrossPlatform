@@ -249,6 +249,7 @@ export default function DownloadsScreen() {
     try {
       await player.play({
         message,
+        seriesId: message.SeriesId,
         seriesTitle: message.seriesTitle,
         seriesArt: message.seriesArt,
         isLocal: true,

@@ -243,7 +243,12 @@
       "downloading": "Downloading...",
       "queuedAll": "{{count}} messages queued for download",
       "queuedSome": "{{count}} new messages queued for download",
-      "noMessagesToDownload": "All messages are already downloaded or in queue"
+      "noMessagesToDownload": "All messages are already downloaded or in queue",
+      "progress": {
+        "completed": "Completed",
+        "messagesProgress": "{{completed}} of {{total}} messages",
+        "percentComplete": "{{percent}}% complete"
+      }
     },
     "recentlyPlayed": {
       "title": "Recently Played",

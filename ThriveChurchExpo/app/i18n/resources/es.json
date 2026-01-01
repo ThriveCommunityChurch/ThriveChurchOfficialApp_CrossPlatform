@@ -261,7 +261,12 @@
       "confirmDownloadMessage": "¿Agregar {{count}} sermones a la cola de descarga?",
       "queuedAll": "Todos los {{count}} mensajes agregados a la cola de descarga",
       "queuedSome": "{{count}} mensajes agregados a la cola de descarga",
-      "noMessagesToDownload": "No hay mensajes disponibles para descargar"
+      "noMessagesToDownload": "No hay mensajes disponibles para descargar",
+      "progress": {
+        "completed": "Completado",
+        "messagesProgress": "{{completed}} de {{total}} mensajes",
+        "percentComplete": "{{percent}}% completado"
+      }
     }
   },
   "bible": {

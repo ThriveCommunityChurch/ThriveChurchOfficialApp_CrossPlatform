@@ -29,6 +29,8 @@ import { setCurrentScreen, logCustomEvent } from '../../services/analytics/analy
 import { getTagDisplayLabel } from '../../types/messageTag';
 import { queueSeriesDownload } from '../../services/downloads/queueProcessor';
 import { useDownloadQueueStore } from '../../stores/downloadQueueStore';
+import { useSeriesProgress } from '../../hooks/useSeriesProgress';
+import { SeriesProgressBadge } from '../../components/SeriesProgressBadge';
 
 interface SeriesDetailScreenProps {
   seriesId: string;
@@ -59,6 +61,9 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
       return res.data;
     },
   });
+
+  // Series progress tracking
+  const seriesProgress = useSeriesProgress({ series });
 
   // Track screen view with series info
   useEffect(() => {
@@ -322,6 +327,18 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
                       </View>
                     )}
 
+                    {/* Series Progress Badge - Only for eligible past series */}
+                    {seriesProgress.showProgress && (
+                      <SeriesProgressBadge
+                        completedCount={seriesProgress.completedCount}
+                        totalCount={seriesProgress.totalCount}
+                        percentage={seriesProgress.percentage}
+                        isCompleted={seriesProgress.isCompleted}
+                        variant="header"
+                        darkBackground={true}
+                      />
+                    )}
+
                     {/* Series Summary */}
                     {series.Summary && (
                       <Text style={[
@@ -481,6 +498,19 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
           <Text style={styles.phoneCurrentLabel}>
             {t('listen.currentSeries')}
           </Text>
+        )}
+
+        {/* Series Progress Badge - Only for eligible past series */}
+        {seriesProgress.showProgress && (
+          <View style={styles.phoneProgressSection}>
+            <SeriesProgressBadge
+              completedCount={seriesProgress.completedCount}
+              totalCount={seriesProgress.totalCount}
+              percentage={seriesProgress.percentage}
+              isCompleted={seriesProgress.isCompleted}
+              variant="header"
+            />
+          </View>
         )}
 
         {/* Summary Section */}
@@ -833,6 +863,15 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     marginHorizontal: 18,
     marginTop: 16,
     marginBottom: 0,
+  },
+  phoneProgressSection: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    backgroundColor: theme.colors.card,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
   phoneSummarySection: {
     marginHorizontal: 16,
