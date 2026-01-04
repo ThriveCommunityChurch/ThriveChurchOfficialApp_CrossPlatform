@@ -31,6 +31,8 @@ export const setupPlayer = async (): Promise<void> => {
 
     await TrackPlayer.setupPlayer({
       autoHandleInterruptions: true,
+      // Ensure audio plays through media stream at proper volume
+      androidAudioContentType: 2, // CONTENT_TYPE_MUSIC
     });
 
     await TrackPlayer.updateOptions({
