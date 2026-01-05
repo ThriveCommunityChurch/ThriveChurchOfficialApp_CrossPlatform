@@ -734,6 +734,65 @@
     "downloadingMessage": "Descargando {{title}} – {{progress}}%",
     "queuedMessage": "{{count}} en cola para descargar",
     "queuedWifiMessage": "{{count}} en cola • Se descargará con WiFi"
+  },
+  "events": {
+    "title": "Eventos",
+    "upcoming": "Próximos Eventos",
+    "featured": "Eventos Destacados",
+    "allEvents": "Todos los Eventos",
+    "noEvents": "Sin Eventos",
+    "noEventsDescription": "Vuelve pronto para ver próximos eventos y reuniones.",
+    "loading": "Cargando eventos...",
+    "error": "No se pueden cargar los eventos",
+    "errorDescription": "Verifica tu conexión a internet e intenta de nuevo.",
+    "pullToRefresh": "Desliza para actualizar",
+    "viewMode": {
+      "calendar": "Calendario",
+      "list": "Lista"
+    },
+    "calendar": {
+      "today": "Hoy",
+      "prevMonth": "Mes anterior",
+      "nextMonth": "Mes siguiente"
+    },
+    "detail": {
+      "when": "Cuándo",
+      "where": "Dónde",
+      "online": "Evento en Línea",
+      "allDay": "Todo el Día",
+      "recurring": "Evento Recurrente",
+      "description": "Acerca de Este Evento",
+      "contact": "Contacto",
+      "register": "Registrarse",
+      "share": "Compartir Evento",
+      "addToCalendar": "Agregar al Calendario",
+      "getDirections": "Cómo Llegar",
+      "joinOnline": "Unirse en Línea",
+      "locationTbd": "Ubicación por confirmar"
+    },
+    "recurrence": {
+      "daily": "Diario",
+      "weekly": "Semanal",
+      "biweekly": "Quincenal",
+      "monthly": "Mensual",
+      "yearly": "Anual"
+    },
+    "badges": {
+      "featured": "Destacado",
+      "online": "En Línea",
+      "recurring": "Recurrente"
+    },
+    "alerts": {
+      "calendarSuccess": "Evento agregado al calendario",
+      "calendarError": "No se pudo agregar el evento al calendario",
+      "calendarPermission": "Se requiere permiso del calendario para agregar eventos",
+      "mapsError": "No se puede abrir mapas",
+      "shareError": "No se puede compartir el evento"
+    },
+    "menu": {
+      "title": "Eventos",
+      "subtitle": "Próximos eventos y reuniones"
+    }
   }
 }
 

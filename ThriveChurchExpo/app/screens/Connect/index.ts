@@ -12,3 +12,5 @@ export { ServeScreen } from './ServeScreen';
 export { ContactScreen } from './ContactScreen';
 export { SocialScreen } from './SocialScreen';
 export { ImNewScreen } from './ImNewScreen';
+export { EventsScreen } from './EventsScreen';
+export { EventDetailScreen } from './EventDetailScreen';

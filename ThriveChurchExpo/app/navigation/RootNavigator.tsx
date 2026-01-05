@@ -31,7 +31,7 @@ import BiblePassageScreen from '../screens/Listen/BiblePassageScreen';
 import { BibleSelectionScreen } from '../screens/Bible/BibleSelectionScreen';
 import { BookListScreen } from '../screens/Bible/BookListScreen';
 import { NotesListScreen, NoteDetailScreen } from '../screens/Notes';
-import { ConnectScreen, RSSScreen, RSSDetailScreen, WebViewScreen, SmallGroupScreen, ServeScreen, ContactScreen, SocialScreen, ImNewScreen } from '../screens/Connect';
+import { ConnectScreen, RSSScreen, RSSDetailScreen, WebViewScreen, SmallGroupScreen, ServeScreen, ContactScreen, SocialScreen, ImNewScreen, EventsScreen, EventDetailScreen } from '../screens/Connect';
 import { MoreScreen, AboutScreen, MeetTheTeamScreen } from '../screens/More';
 import { SettingsScreen } from '../screens/Settings';
 import DownloadSettingsScreen from '../screens/Settings/DownloadSettingsScreen';
@@ -386,6 +386,22 @@ function ConnectStackNavigator({ theme }: { theme: Theme }) {
           title: t('connect.menu.imNewTitle'),
           headerBackTitle: t('navigation.connect'),
         }}
+      />
+      <ConnectStack.Screen
+        name="Events"
+        component={EventsScreen}
+        options={{
+          title: t('events.title'),
+          headerBackTitle: t('navigation.connect'),
+        }}
+      />
+      <ConnectStack.Screen
+        name="EventDetail"
+        component={EventDetailScreen}
+        options={({ route }: any) => ({
+          title: route.params?.eventTitle || t('events.detail.title'),
+          headerBackTitle: t('events.title'),
+        })}
       />
     </ConnectStack.Navigator>
   );

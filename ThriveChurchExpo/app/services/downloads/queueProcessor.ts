@@ -24,9 +24,24 @@ import {
 } from '../analytics/analyticsService';
 
 // Constants
-const MAX_RETRIES = 3;
-const RETRY_DELAY_MS = 5000;
+const MAX_RETRIES = 5;
+const RETRY_DELAY_MS = 3000;
+const SSL_RETRY_DELAY_MS = 5000;
 const PROCESS_INTERVAL_MS = 1000;
+
+// Network/SSL errors that should trigger retry with file deletion
+const RETRYABLE_ERRORS = [
+  'SSL',
+  'ssl',
+  'DECRYPTION_FAILED',
+  'BAD_RECORD_MAC',
+  'Connection reset',
+  'network',
+  'ECONNRESET',
+  'ETIMEDOUT',
+  'ENOTFOUND',
+  'socket hang up',
+];
 
 /**
  * Helper to build analytics params from current network/settings state
@@ -274,13 +289,31 @@ const downloadItem = async (item: QueueItem): Promise<void> => {
       return;
     }
 
+    // Check if this is a retryable network/SSL error
+    const isRetryableError = RETRYABLE_ERRORS.some(err => errorMessage.includes(err));
+
+    // For SSL/network errors, delete the partial file to start fresh
+    if (isRetryableError) {
+      try {
+        const downloadPath = getDownloadPath(item.messageId);
+        const fileInfo = await FileSystem.getInfoAsync(downloadPath);
+        if (fileInfo.exists) {
+          await FileSystem.deleteAsync(downloadPath, { idempotent: true });
+          console.log('Deleted partial file for retry:', downloadPath);
+        }
+      } catch (deleteError) {
+        console.warn('Could not delete partial file:', deleteError);
+      }
+    }
+
     // Handle retry logic
     if (item.retryCount < MAX_RETRIES) {
-      console.log(`Retrying download (${item.retryCount + 1}/${MAX_RETRIES})...`);
+      const retryDelay = isRetryableError ? SSL_RETRY_DELAY_MS : RETRY_DELAY_MS;
+      console.log(`Retrying download (${item.retryCount + 1}/${MAX_RETRIES}) after ${retryDelay}ms...`);
       store.retryItem(item.id);
 
-      // Delay before retry
-      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+      // Delay before retry (longer for SSL errors)
+      await new Promise((resolve) => setTimeout(resolve, retryDelay));
     } else {
       // Track download failed analytics (only on final failure)
       const analyticsParams = await getAnalyticsParams(item.messageId, item.message.SeriesId);
