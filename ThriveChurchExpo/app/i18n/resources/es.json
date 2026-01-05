@@ -540,6 +540,18 @@
       "aboutAppTitle": "Nuestra Misión",
       "aboutAppText": "La aplicación de Thrive Church está diseñada para ayudarte a mantenerte conectado con nuestra comunidad de la iglesia. Escucha sermones, toma notas, encuentra formas de servir y mantente al día con lo que está pasando en Thrive Community Church.",
       "copyright": "©{{year}} Thrive Community Church. Todos los derechos reservados."
+    },
+    "team": {
+      "heroTitle": "Nuestro Liderazgo",
+      "heroSubtitle": "Personas reales. Fe real. Aquí para servir.",
+      "introText": "No somos perfectos—solo somos apasionados por ayudar a las personas a descubrir lo que significa prosperar en su relación con Jesús y con los demás.",
+      "photoOf": "Foto de",
+      "emailAccessibility": "Enviar correo a",
+      "emailError": "Error",
+      "emailErrorMessage": "No se puede abrir el correo electrónico. Por favor, asegúrate de tener una aplicación de correo configurada.",
+      "ctaTitle": "¿Quieres Participar?",
+      "ctaText": "Siempre estamos buscando personas que quieran servir. Ya sea saludando, ministerio de niños, tecnología u otra cosa—hay un lugar para ti.",
+      "ctaButton": "Conectémonos"
     }
   },
   "player": {
