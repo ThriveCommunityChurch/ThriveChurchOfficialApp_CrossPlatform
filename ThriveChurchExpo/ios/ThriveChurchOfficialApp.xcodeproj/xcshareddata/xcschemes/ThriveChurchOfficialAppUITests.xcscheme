@@ -18,7 +18,7 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "B1B60A647C7BFAF6CD4CA524"
+               BlueprintIdentifier = "ThriveChurchOfficialAppUITests"
                BuildableName = "ThriveChurchOfficialAppUITests.xctest"
                BlueprintName = "ThriveChurchOfficialAppUITests"
                ReferencedContainer = "container:ThriveChurchOfficialApp.xcodeproj">
@@ -45,7 +45,7 @@
       debugDocumentVersioning = "YES">
    </ProfileAction>
    <AnalyzeAction
-      buildConfiguration = "Debug">
+      buildConfiguration = "Release">
    </AnalyzeAction>
    <ArchiveAction
       buildConfiguration = "Release"
