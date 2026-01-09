@@ -8,6 +8,7 @@ import { useTheme } from '../hooks/useTheme';
 import { useTranslation } from '../hooks/useTranslation';
 import type { Theme } from '../theme/types';
 import OfflineBanner from '../components/OfflineBanner';
+import { LiveButton } from '../components/LiveButton';
 import { linking } from './linking';
 
 // Platform-specific font families for navigation headers
@@ -28,6 +29,7 @@ import RecentlyPlayedScreen from '../screens/Listen/RecentlyPlayedScreen';
 import DownloadsScreen from '../screens/Listen/DownloadsScreen';
 import VideoPlayerScreen from '../screens/Listen/VideoPlayerScreen';
 import BiblePassageScreen from '../screens/Listen/BiblePassageScreen';
+import LiveScreen from '../screens/Listen/LiveScreen';
 import { BibleSelectionScreen } from '../screens/Bible/BibleSelectionScreen';
 import { BookListScreen } from '../screens/Bible/BookListScreen';
 import { NotesListScreen, NoteDetailScreen } from '../screens/Notes';
@@ -129,7 +131,8 @@ function ListenStackNavigator({ theme }: { theme: Theme }) {
             </TouchableOpacity>
           ),
           headerRight: () => (
-            <View style={{ flexDirection: 'row', marginRight: 8 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 8 }}>
+              <LiveButton style={{ marginRight: 12 }} />
               <TouchableOpacity
                 onPress={() => navigation.navigate('NowPlaying')}
                 style={{ marginRight: 16 }}
@@ -223,6 +226,15 @@ function ListenStackNavigator({ theme }: { theme: Theme }) {
         component={DownloadsScreen}
         options={{
           title: t('listen.downloads.title'),
+          headerBackTitle: t('navigation.listen'),
+          headerTitleAlign: 'center',
+        }}
+      />
+      <ListenStack.Screen
+        name="Live"
+        component={LiveScreen}
+        options={{
+          title: t('listen.live.title'),
           headerBackTitle: t('navigation.listen'),
           headerTitleAlign: 'center',
         }}

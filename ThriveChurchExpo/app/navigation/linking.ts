@@ -31,6 +31,7 @@ export const linking: LinkingOptions<any> = {
           NowPlaying: 'listen/now-playing',
           RecentlyPlayed: 'listen/recently-played',
           Downloads: 'listen/downloads',
+          Live: 'listen/live',
         },
       },
       // Bible Tab
@@ -128,6 +129,8 @@ export const handleDeepLink = (
       navigation.navigate('Listen', { screen: 'RecentlyPlayed' });
     } else if (path.includes('/listen/downloads')) {
       navigation.navigate('Listen', { screen: 'Downloads' });
+    } else if (path.includes('/listen/live')) {
+      navigation.navigate('Listen', { screen: 'Live' });
     } else if (path.includes('/listen')) {
       navigation.navigate('Listen', { screen: 'ListenHome' });
     }

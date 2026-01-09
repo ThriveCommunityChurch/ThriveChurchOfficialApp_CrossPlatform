@@ -17,13 +17,18 @@ Search for **"Thrive Church Official App"** in the Apple App Store or Google Pla
 - Search by tags, series, or speaker
 - Playback speed controls and resume playback support
 - Waveform visualization and recently played history
+- Series progress tracking with visual indicators
 
 ### 📝 Notes
 - Take sermon notes with full text editing
 - Notes linked to specific sermons for easy reference
 
+### 🗓️ Events
+- Browse upcoming church events with details
+- View event date, time, location, and description
+
 ### 🤝 Connect
-- Native screens for I'm New, Social, Serve, and About
+- Native screens for I'm New, Social, Serve, About, and Meet the Team
 - RSS announcements, prayer requests, small groups, and volunteer opportunities
 - Contact info, directions, and social media links
 
@@ -423,7 +428,7 @@ node generate-firebase-configs.js
 
 ---
 
-**Version**: 1.0.0 | **React Native**: 0.75.5 | **Expo SDK**: ~54.0 | **Last Updated**: 2025
+**Version**: 1.0.0 | **React Native**: 0.81.4 | **Expo SDK**: ~54.0 | **Last Updated**: January 2026
 
 ### Acknowledgements
 Thank you to everyone who uses this application, we made it for you - to help make taking notes and hearing the gospel message that much easier for you. Made with ❤️

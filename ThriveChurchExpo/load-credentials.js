@@ -127,6 +127,10 @@ function credentialsToExpoExtra(credentials) {
     
     // Environment
     ENVIRONMENT: credentials.environment,
+
+    // YouTube Configuration
+    YOUTUBE_API_KEY: credentials.youtube?.apiKey || '',
+    YOUTUBE_CHANNEL_ID: credentials.youtube?.channelId || '',
   };
 }
 

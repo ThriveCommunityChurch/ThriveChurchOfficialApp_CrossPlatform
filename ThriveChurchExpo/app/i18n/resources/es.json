@@ -267,6 +267,17 @@
         "messagesProgress": "{{completed}} de {{total}} mensajes",
         "percentComplete": "{{percent}}% completado"
       }
+    },
+    "live": {
+      "title": "En Vivo",
+      "liveNow": "En Vivo Ahora",
+      "checking": "Verificando estado en vivo...",
+      "notLive": "Thrive no está en vivo en este momento",
+      "joinUs": "¡Únete a nosotros los domingos a las 10:00 AM!",
+      "checkAgain": "Verificar de Nuevo",
+      "watching": "{{count}} viendo",
+      "share": "Compartir",
+      "openInYouTube": "Abrir en YouTube"
     }
   },
   "bible": {
