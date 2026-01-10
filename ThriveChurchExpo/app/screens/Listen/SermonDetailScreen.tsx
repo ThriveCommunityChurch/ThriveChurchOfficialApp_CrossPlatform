@@ -194,6 +194,7 @@ export const SermonDetailScreen: React.FC = () => {
 
       await player.play({
         message,
+        seriesId,
         seriesTitle: displaySeriesTitle,
         seriesArt: displaySeriesArtUrl,
         isLocal: downloaded,
@@ -202,7 +203,7 @@ export const SermonDetailScreen: React.FC = () => {
       console.error('Error playing audio:', error);
       Alert.alert(t('common.error'), t('listen.sermon.errorPlayAudio'));
     }
-  }, [player, message, displaySeriesTitle, displaySeriesArtUrl, downloaded, t]);
+  }, [player, message, seriesId, displaySeriesTitle, displaySeriesArtUrl, downloaded, t]);
 
   const handlePlayVideo = useCallback(() => {
     if (!message.VideoUrl) {

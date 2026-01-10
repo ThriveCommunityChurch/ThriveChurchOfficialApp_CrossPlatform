@@ -48,7 +48,6 @@ export const MoreScreen: React.FC = () => {
 
     // Load configs from AsyncStorage
     const giveConfig = await getConfigSetting(ConfigKeys.GIVE);
-    const teamConfig = await getConfigSetting(ConfigKeys.TEAM);
 
     // Give
     if (giveConfig) {
@@ -60,15 +59,13 @@ export const MoreScreen: React.FC = () => {
       });
     }
 
-    // Meet the team
-    if (teamConfig) {
-      items.push({
-        id: 'team',
-        title: t('more.menu.teamTitle'),
-        subtitle: t('more.menu.teamSubtitle'),
-        action: () => handleTeam(teamConfig),
-      });
-    }
+    // Meet the team - always show (native screen)
+    items.push({
+      id: 'team',
+      title: t('more.menu.teamTitle'),
+      subtitle: t('more.menu.teamSubtitle'),
+      action: () => handleTeam(),
+    });
 
     // Bible (always show)
     items.push({
@@ -121,12 +118,10 @@ export const MoreScreen: React.FC = () => {
     });
   }, [t]);
 
-  const handleTeam = useCallback((config: ConfigSetting) => {
-    navigation.navigate('WebView', {
-      url: config.Value,
-      title: t('more.menu.teamTitle'),
-    });
-  }, [navigation, t]);
+  const handleTeam = useCallback(() => {
+    // Navigate to native MeetTheTeam screen
+    navigation.navigate('MeetTheTeam');
+  }, [navigation]);
 
   const handleBible = () => {
     // Navigate to Bible tab

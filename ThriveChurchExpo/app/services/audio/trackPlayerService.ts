@@ -10,6 +10,7 @@ import { addToRecentlyPlayed, savePlaybackProgress, getPlaybackProgressForMessag
 import { markMessageAsPlayed } from '../api/messagePlayedService';
 import { MIN_POSITION_TO_SAVE, END_THRESHOLD, PROGRESS_SAVE_INTERVAL_MS } from '../../types/playback';
 import { getPlaybackSettings, type SkipInterval } from '../playback/playbackSettings';
+import { setCompletionContext, clearCompletionContext, checkAndMarkCompletion } from '../progress/seriesCompletionService';
 
 let isServiceInitialized = false;
 let currentMessageId: string | null = null;
@@ -109,6 +110,7 @@ export const getCurrentSkipIntervals = (): { forward: SkipInterval; backward: Sk
 
 /**
  * Save current playback progress if a track is playing
+ * Also checks for series completion threshold
  */
 const saveCurrentProgress = async (): Promise<void> => {
   if (!currentMessageId) return;
@@ -117,6 +119,9 @@ const saveCurrentProgress = async (): Promise<void> => {
     const progress = await TrackPlayer.getProgress();
     if (progress.position > 0 && progress.duration > 0) {
       await savePlaybackProgress(currentMessageId, progress.position, progress.duration);
+
+	      // Check for series completion based on the configured completion threshold
+      checkAndMarkCompletion(currentMessageId, progress.position, progress.duration);
     }
   } catch (error) {
     console.warn('Error saving playback progress:', error);
@@ -180,19 +185,25 @@ export const playbackService = async (): Promise<void> => {
     } else if (event.state === State.Paused || event.state === State.Stopped) {
       await saveCurrentProgress();
       stopProgressSaving();
+
+      // Clear series completion context only when playback is fully stopped
+      if (event.state === State.Stopped) {
+        clearCompletionContext();
+      }
     }
   });
 };
 
 export interface PlayAudioOptions {
   message: SermonMessage;
+  seriesId?: string;
   seriesTitle?: string;
   seriesArt?: string;
   isLocal?: boolean;
 }
 
 export const playAudio = async (options: PlayAudioOptions): Promise<void> => {
-  const { message, seriesTitle, seriesArt, isLocal = false } = options;
+  const { message, seriesId, seriesTitle, seriesArt, isLocal = false } = options;
 
   try {
     // Ensure player is set up
@@ -215,6 +226,9 @@ export const playAudio = async (options: PlayAudioOptions): Promise<void> => {
 
     // Set current message ID for progress tracking
     currentMessageId = message.MessageId;
+
+    // Set completion context for series progress tracking
+    setCompletionContext(seriesId, message.MessageId);
 
     // Check for saved progress
     const savedProgress = await getPlaybackProgressForMessage(message.MessageId);

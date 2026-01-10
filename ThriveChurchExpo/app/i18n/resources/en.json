@@ -243,7 +243,12 @@
       "downloading": "Downloading...",
       "queuedAll": "{{count}} messages queued for download",
       "queuedSome": "{{count}} new messages queued for download",
-      "noMessagesToDownload": "All messages are already downloaded or in queue"
+      "noMessagesToDownload": "All messages are already downloaded or in queue",
+      "progress": {
+        "completed": "Completed",
+        "messagesProgress": "{{completed}} of {{total}} messages",
+        "percentComplete": "{{percent}}% complete"
+      }
     },
     "recentlyPlayed": {
       "title": "Recently Played",
@@ -536,6 +541,18 @@
       "aboutAppTitle": "Our Mission",
       "aboutAppText": "The Thrive Church app is designed to help you stay connected with our church community. Listen to sermons, take notes, find ways to serve, and stay up to date with what's happening at Thrive Community Church.",
       "copyright": "©{{year}} Thrive Community Church. All rights reserved."
+    },
+    "team": {
+      "heroTitle": "Our Leadership",
+      "heroSubtitle": "Real people. Real faith. Here to serve.",
+      "introText": "We're not perfect—just passionate about helping people discover what it means to thrive in their relationship with Jesus and each other.",
+      "photoOf": "Photo of",
+      "emailAccessibility": "Send email to",
+      "emailError": "Error",
+      "emailErrorMessage": "Unable to open email. Please make sure you have an email app configured.",
+      "ctaTitle": "Want to Get Involved?",
+      "ctaText": "We're always looking for people who want to serve. Whether it's greeting, kids ministry, tech, or something else—there's a place for you.",
+      "ctaButton": "Let's Connect"
     }
   },
   "player": {

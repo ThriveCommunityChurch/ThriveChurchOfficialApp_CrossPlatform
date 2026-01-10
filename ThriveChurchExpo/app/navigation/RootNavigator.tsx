@@ -32,7 +32,7 @@ import { BibleSelectionScreen } from '../screens/Bible/BibleSelectionScreen';
 import { BookListScreen } from '../screens/Bible/BookListScreen';
 import { NotesListScreen, NoteDetailScreen } from '../screens/Notes';
 import { ConnectScreen, RSSScreen, RSSDetailScreen, WebViewScreen, SmallGroupScreen, ServeScreen, ContactScreen, SocialScreen, ImNewScreen, EventsScreen, EventDetailScreen } from '../screens/Connect';
-import { MoreScreen, AboutScreen } from '../screens/More';
+import { MoreScreen, AboutScreen, MeetTheTeamScreen } from '../screens/More';
 import { SettingsScreen } from '../screens/Settings';
 import DownloadSettingsScreen from '../screens/Settings/DownloadSettingsScreen';
 import PlaybackSettingsScreen from '../screens/Settings/PlaybackSettingsScreen';
@@ -456,6 +456,14 @@ function MoreStackNavigator({ theme }: { theme: Theme }) {
           title: route.params?.title || t('navigation.page'),
           headerBackTitle: t('navigation.more'),
         })}
+      />
+      <MoreStack.Screen
+        name="MeetTheTeam"
+        component={MeetTheTeamScreen}
+        options={{
+          title: t('more.menu.teamTitle'),
+          headerBackTitle: t('navigation.more'),
+        }}
       />
       <MoreStack.Screen
         name="About"
