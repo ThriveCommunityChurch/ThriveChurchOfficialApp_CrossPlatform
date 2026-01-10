@@ -20,8 +20,21 @@ Search for **"Thrive Church Official App"** in the Apple App Store or Google Pla
 - Series progress tracking with visual indicators
 
 ### 📝 Notes
-- Take sermon notes with full text editing
+- Take sermon notes with full Markdown editor (live preview, edit/view toggle)
 - Notes linked to specific sermons for easy reference
+- Auto-save with debounced persistence
+- Share notes and export functionality
+- In-app Markdown syntax help modal
+
+### 🤖 AI-Generated Content
+- **AI Sermon Notes** - Automatic summaries, key points with Scripture, quotes, and application points
+- **AI Study Guides** - Complete small group curriculum including:
+  - Discussion questions (icebreakers, reflection, application)
+  - Scripture references with context
+  - Prayer prompts and devotional content
+  - Take-home challenges
+- Save AI content to personal notes with append-or-create flow
+- Powered by GPT-5-mini via automated backend pipeline
 
 ### 🗓️ Events
 - Browse upcoming church events with details
