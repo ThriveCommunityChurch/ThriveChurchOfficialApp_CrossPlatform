@@ -13,7 +13,6 @@ import {
   Animated,
   Alert,
   Linking,
-  ActionSheetIOS,
   Platform,
   RefreshControl,
   ActivityIndicator,
@@ -21,17 +20,24 @@ import {
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 import { ConnectMenuItem, ConfigKeys } from '../../types/config';
 import { getConfigSetting } from '../../services/storage/storage';
 import { useConfigContext } from '../../providers/ConfigProvider';
-import { setCurrentScreen, logContactChurch, logCustomEvent } from '../../services/analytics/analyticsService';
+import { setCurrentScreen, logCustomEvent } from '../../services/analytics/analyticsService';
 
 type ConnectStackParamList = {
   ConnectHome: undefined;
   RSSAnnouncements: undefined;
   RSSDetail: { title: string; content: string; date: string };
   WebViewForm: { url: string; title: string };
+  SmallGroup: undefined;
+  Serve: undefined;
+  ImNew: undefined;
+  Contact: undefined;
+  Social: undefined;
+  Events: undefined;
 };
 
 type NavigationProp = NativeStackNavigationProp<ConnectStackParamList>;
@@ -95,6 +101,7 @@ const ConnectCard: React.FC<ConnectCardProps> = ({ item, onPress, theme }) => {
 
 export const ConnectScreen: React.FC = () => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme);
   const navigation = useNavigation<NavigationProp>();
   const [menuItems, setMenuItems] = useState<ConnectMenuItem[]>([]);
@@ -112,17 +119,32 @@ export const ConnectScreen: React.FC = () => {
     // Load configs from AsyncStorage
     const emailConfig = await getConfigSetting(ConfigKeys.EMAIL_MAIN);
     const phoneConfig = await getConfigSetting(ConfigKeys.PHONE_MAIN);
-    const prayersConfig = await getConfigSetting(ConfigKeys.PRAYERS);
     const addressConfig = await getConfigSetting(ConfigKeys.ADDRESS_MAIN);
-    const smallGroupConfig = await getConfigSetting(ConfigKeys.SMALL_GROUP);
-    const serveConfig = await getConfigSetting(ConfigKeys.SERVE);
+    const imNewConfig = await getConfigSetting(ConfigKeys.IM_NEW);
+    const fbPageIdConfig = await getConfigSetting(ConfigKeys.FB_PAGE_ID);
+    const fbSocialConfig = await getConfigSetting(ConfigKeys.FB_SOCIAL);
+    const igUsernameConfig = await getConfigSetting(ConfigKeys.IG_USERNAME);
+    const igSocialConfig = await getConfigSetting(ConfigKeys.IG_SOCIAL);
+    const twUsernameConfig = await getConfigSetting(ConfigKeys.TW_USERNAME);
+    const twSocialConfig = await getConfigSetting(ConfigKeys.TW_SOCIAL);
 
-    // Contact Us - show if at least one contact method is available
-    if (emailConfig || phoneConfig || prayersConfig) {
+    // I'm New
+    if (imNewConfig) {
+      items.push({
+        id: 'imnew',
+        title: t('connect.menu.imNewTitle'),
+        subtitle: t('connect.menu.imNewSubtitle'),
+        action: 'imnew',
+        config: imNewConfig,
+      });
+    }
+
+    // Contact Us - show if email or phone is available
+    if (emailConfig || phoneConfig) {
       items.push({
         id: 'contact',
-        title: 'Contact us',
-        subtitle: 'Email, call, or submit prayer requests',
+        title: t('connect.menu.contactTitle'),
+        subtitle: t('connect.menu.contactSubtitle'),
         action: 'contact',
       });
     }
@@ -131,7 +153,7 @@ export const ConnectScreen: React.FC = () => {
     if (addressConfig) {
       items.push({
         id: 'directions',
-        title: 'Get directions',
+        title: t('connect.menu.directionsTitle'),
         subtitle: addressConfig.Value,
         action: 'directions',
         config: addressConfig,
@@ -141,35 +163,47 @@ export const ConnectScreen: React.FC = () => {
     // Announcements (always show)
     items.push({
       id: 'announcements',
-      title: 'Announcements',
-      subtitle: 'Latest church news and updates',
+      title: t('connect.menu.announcementsTitle'),
+      subtitle: t('connect.menu.announcementsSubtitle'),
       action: 'announcements',
     });
 
-    // Join a small group
-    if (smallGroupConfig) {
-      items.push({
-        id: 'smallgroup',
-        title: 'Join a small group',
-        subtitle: 'Connect with others in community',
-        action: 'webview',
-        config: smallGroupConfig,
-      });
-    }
+    // Events (always show)
+    items.push({
+      id: 'events',
+      title: t('events.title'),
+      subtitle: t('events.menu.subtitle'),
+      action: 'events',
+    });
 
-    // Serve
-    if (serveConfig) {
+    // Join a small group - always show (native landing page)
+    items.push({
+      id: 'smallgroup',
+      title: t('connect.menu.smallGroupTitle'),
+      subtitle: t('connect.menu.smallGroupSubtitle'),
+      action: 'smallgroup',
+    });
+
+    // Serve - always show (native landing page)
+    items.push({
+      id: 'serve',
+      title: t('connect.menu.serveTitle'),
+      subtitle: t('connect.menu.serveSubtitle'),
+      action: 'serve',
+    });
+
+    // Social - show if at least one social config exists
+    if (fbPageIdConfig || fbSocialConfig || igUsernameConfig || igSocialConfig || twUsernameConfig || twSocialConfig) {
       items.push({
-        id: 'serve',
-        title: 'Serve',
-        subtitle: 'Find ways to get involved',
-        action: 'webview',
-        config: serveConfig,
+        id: 'social',
+        title: t('connect.menu.socialTitle'),
+        subtitle: t('connect.menu.socialSubtitle'),
+        action: 'social',
       });
     }
 
     setMenuItems(items);
-  }, []);
+  }, [t]);
 
   useFocusEffect(
     useCallback(() => {
@@ -184,107 +218,13 @@ export const ConnectScreen: React.FC = () => {
       loadMenuItems();
     } catch (error) {
       console.error('Error refreshing configs:', error);
-      Alert.alert('Error', 'Failed to refresh configurations. Please try again.');
+      Alert.alert(t('connect.menu.refreshError'), t('connect.menu.refreshErrorMessage'));
     } finally {
       setRefreshing(false);
     }
-  }, [refetchConfigs, loadMenuItems]);
+  }, [refetchConfigs, loadMenuItems, t]);
 
-  const handleContactUs = async () => {
-    const emailConfig = await getConfigSetting(ConfigKeys.EMAIL_MAIN);
-    const phoneConfig = await getConfigSetting(ConfigKeys.PHONE_MAIN);
-    const prayersConfig = await getConfigSetting(ConfigKeys.PRAYERS);
-
-    const options: string[] = [];
-    const actions: (() => void)[] = [];
-
-    if (emailConfig) {
-      options.push('Email us');
-      actions.push(() => handleEmail(emailConfig.Value));
-    }
-
-    if (phoneConfig) {
-      options.push('Call us');
-      actions.push(() => handlePhone(phoneConfig.Value));
-    }
-
-    if (prayersConfig) {
-      options.push('Submit a prayer request');
-      actions.push(() => handlePrayerRequest(prayersConfig.Value));
-    }
-
-    options.push('Cancel');
-
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          title: 'Contact us',
-          message: 'Please select an option',
-          options,
-          cancelButtonIndex: options.length - 1,
-        },
-        (buttonIndex) => {
-          if (buttonIndex < actions.length) {
-            actions[buttonIndex]();
-          }
-        }
-      );
-    } else {
-      // For Android, show a simple alert with buttons
-      Alert.alert(
-        'Contact us',
-        'Please select an option',
-        [
-          ...actions.map((action, index) => ({
-            text: options[index],
-            onPress: action,
-          })),
-          { text: 'Cancel', style: 'cancel' },
-        ]
-      );
-    }
-  };
-
-  const handleEmail = (email: string) => {
-    const url = `mailto:${email}`;
-    Linking.canOpenURL(url)
-      .then((supported) => {
-        if (supported) {
-          Linking.openURL(url);
-        } else {
-          Alert.alert('Error', 'Unable to open email client');
-        }
-      })
-      .catch((err) => {
-        console.error('Error opening email:', err);
-        Alert.alert('Error', 'Unable to open email client');
-      });
-  };
-
-  const handlePhone = (phone: string) => {
-    const url = `tel:${phone}`;
-    Linking.canOpenURL(url)
-      .then((supported) => {
-        if (supported) {
-          Linking.openURL(url);
-        } else {
-          Alert.alert('Error', 'Unable to make phone call');
-        }
-      })
-      .catch((err) => {
-        console.error('Error opening phone:', err);
-        Alert.alert('Error', 'Unable to make phone call');
-      });
-  };
-
-  const handlePrayerRequest = (url: string) => {
-    navigation.navigate('WebViewForm', {
-      url,
-      title: 'Prayer request',
-    });
-  };
-
-  const handleDirections = (address: string) => {
+  const handleDirections = useCallback((address: string) => {
     const formattedAddress = address.replace(/ /g, '%20').replace(/\n/g, '%20');
     const url = Platform.OS === 'ios'
       ? `http://maps.apple.com/?daddr=${formattedAddress}&dirflg=d`
@@ -292,14 +232,18 @@ export const ConnectScreen: React.FC = () => {
 
     Linking.openURL(url).catch((err) => {
       console.error('Error opening maps:', err);
-      Alert.alert('Error', 'Unable to open maps');
+      Alert.alert(t('connect.contact.mapsError'), t('connect.contact.mapsErrorMessage'));
     });
-  };
+  }, [t]);
 
   const handleItemPress = (item: ConnectMenuItem) => {
     switch (item.action) {
+      case 'imnew':
+        // Navigate to native ImNew screen instead of WebView
+        navigation.navigate('ImNew');
+        break;
       case 'contact':
-        handleContactUs();
+        navigation.navigate('Contact');
         break;
       case 'directions':
         if (item.config) {
@@ -317,6 +261,18 @@ export const ConnectScreen: React.FC = () => {
           });
         }
         break;
+      case 'smallgroup':
+        navigation.navigate('SmallGroup');
+        break;
+      case 'serve':
+        navigation.navigate('Serve');
+        break;
+      case 'social':
+        navigation.navigate('Social');
+        break;
+      case 'events':
+        navigation.navigate('Events');
+        break;
     }
   };
 
@@ -331,7 +287,7 @@ export const ConnectScreen: React.FC = () => {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={styles.loadingText}>Loading configurations...</Text>
+        <Text style={styles.loadingText}>{t('connect.menu.loadingConfigs')}</Text>
       </View>
     );
   }
@@ -340,9 +296,9 @@ export const ConnectScreen: React.FC = () => {
   if (!isLoading && menuItems.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyTitle}>No menu items available</Text>
+        <Text style={styles.emptyTitle}>{t('connect.menu.emptyTitle')}</Text>
         <Text style={styles.emptySubtitle}>
-          Pull down to refresh configurations
+          {t('connect.menu.emptySubtitle')}
         </Text>
       </View>
     );
@@ -363,7 +319,7 @@ export const ConnectScreen: React.FC = () => {
             onRefresh={handleRefresh}
             tintColor={theme.colors.primary}
             colors={[theme.colors.primary]}
-            title="Pull to refresh configs"
+            title={t('connect.menu.refreshTitle')}
             titleColor={theme.colors.textSecondary}
           />
         }

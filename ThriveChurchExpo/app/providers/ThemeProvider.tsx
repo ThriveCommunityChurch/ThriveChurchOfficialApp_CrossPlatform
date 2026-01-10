@@ -100,12 +100,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     await saveThemeMode(mode);
   }, []);
 
-  const contextValue: ThemeContextValue = {
+  const contextValue: ThemeContextValue = useMemo(() => ({
     theme,
     isDark,
     themeMode: userThemeMode,
     setThemeMode: handleSetThemeMode,
-  };
+  }), [theme, isDark, userThemeMode, handleSetThemeMode]);
 
   return (
     <ThemeContext.Provider value={contextValue}>

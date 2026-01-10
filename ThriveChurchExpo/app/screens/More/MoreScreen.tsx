@@ -8,10 +8,9 @@ import {
   Alert,
   Linking,
   Platform,
-  ActionSheetIOS,
   Animated,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NavigationProp } from '@react-navigation/native';
 import * as Device from 'expo-device';
 import * as Application from 'expo-application';
@@ -20,8 +19,9 @@ import { getConfigSetting } from '../../services/storage/storage';
 import { ConfigKeys } from '../../types/config';
 import type { ConfigSetting } from '../../types/config';
 import { exportLogsToFile, logError, logInfo } from '../../services/logging/logger';
-import { setCurrentScreen, logOpenSocial, logCustomEvent } from '../../services/analytics/analyticsService';
+import { setCurrentScreen, logCustomEvent } from '../../services/analytics/analyticsService';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 
 interface MoreMenuItem {
@@ -34,6 +34,7 @@ interface MoreMenuItem {
 export const MoreScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<any>>();
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme);
   const [menuItems, setMenuItems] = useState<MoreMenuItem[]>([]);
 
@@ -46,282 +47,81 @@ export const MoreScreen: React.FC = () => {
     const items: MoreMenuItem[] = [];
 
     // Load configs from AsyncStorage
-    const imNewConfig = await getConfigSetting(ConfigKeys.IM_NEW);
     const giveConfig = await getConfigSetting(ConfigKeys.GIVE);
-    const teamConfig = await getConfigSetting(ConfigKeys.TEAM);
-    const fbPageIdConfig = await getConfigSetting(ConfigKeys.FB_PAGE_ID);
-    const fbSocialConfig = await getConfigSetting(ConfigKeys.FB_SOCIAL);
-    const igUsernameConfig = await getConfigSetting(ConfigKeys.IG_USERNAME);
-    const igSocialConfig = await getConfigSetting(ConfigKeys.IG_SOCIAL);
-    const twUsernameConfig = await getConfigSetting(ConfigKeys.TW_USERNAME);
-    const twSocialConfig = await getConfigSetting(ConfigKeys.TW_SOCIAL);
-
-    // I'm New
-    if (imNewConfig) {
-      items.push({
-        id: 'imnew',
-        title: "I'm New",
-        subtitle: 'Learn about our church and community',
-        action: () => handleImNew(imNewConfig),
-      });
-    }
 
     // Give
     if (giveConfig) {
       items.push({
         id: 'give',
-        title: 'Give',
-        subtitle: 'Support our mission and ministry',
+        title: t('more.menu.giveTitle'),
+        subtitle: t('more.menu.giveSubtitle'),
         action: () => handleGive(giveConfig),
       });
     }
 
-    // Social - show if at least one social config exists
-    if (fbPageIdConfig || fbSocialConfig || igUsernameConfig || igSocialConfig || twUsernameConfig || twSocialConfig) {
-      items.push({
-        id: 'social',
-        title: 'Social',
-        subtitle: 'Follow us on social media',
-        action: () => handleSocial(),
-      });
-    }
-
-    // Meet the team
-    if (teamConfig) {
-      items.push({
-        id: 'team',
-        title: 'Meet the team',
-        subtitle: 'Get to know our staff and leadership',
-        action: () => handleTeam(teamConfig),
-      });
-    }
+    // Meet the team - always show (native screen)
+    items.push({
+      id: 'team',
+      title: t('more.menu.teamTitle'),
+      subtitle: t('more.menu.teamSubtitle'),
+      action: () => handleTeam(),
+    });
 
     // Bible (always show)
     items.push({
       id: 'bible',
-      title: 'Bible',
-      subtitle: 'Read scripture with YouVersion integration',
+      title: t('more.menu.bibleTitle'),
+      subtitle: t('more.menu.bibleSubtitle'),
       action: () => handleBible(),
     });
 
     // Settings (always show)
     items.push({
       id: 'settings',
-      title: 'Settings',
-      subtitle: 'Manage app preferences and notifications',
+      title: t('more.menu.settingsTitle'),
+      subtitle: t('more.menu.settingsSubtitle'),
       action: () => handleSettings(),
     });
 
     // Send Logs (always show)
     items.push({
       id: 'sendlogs',
-      title: 'Send Logs',
-      subtitle: 'Send diagnostic information to support',
+      title: t('more.menu.sendLogsTitle'),
+      subtitle: t('more.menu.sendLogsSubtitle'),
       action: () => handleSendLogs(),
     });
 
     // About (always show)
     items.push({
       id: 'about',
-      title: 'About',
-      subtitle: 'App version and information',
+      title: t('more.menu.aboutTitle'),
+      subtitle: t('more.menu.aboutSubtitle'),
       action: () => handleAbout(),
     });
 
     setMenuItems(items);
-  }, [navigation]);
+  }, [navigation, t]);
 
-  useEffect(() => {
-    loadMenuItems();
-  }, [loadMenuItems]);
+  // Reload menu items when screen is focused (for language/settings changes)
+  useFocusEffect(
+    useCallback(() => {
+      loadMenuItems();
+    }, [loadMenuItems])
+  );
 
   // Handler functions
-  const handleImNew = (config: ConfigSetting) => {
-    navigation.navigate('WebView', {
-      url: config.Value,
-      title: "I'm New",
-    });
-  };
-
-  const handleGive = (config: ConfigSetting) => {
+  const handleGive = useCallback((config: ConfigSetting) => {
     // MUST open in external browser per App Store policy
     Linking.openURL(config.Value).catch((err) => {
       console.error('Error opening Give URL:', err);
-      Alert.alert('Error', 'Unable to open the giving page. Please try again later.');
+      Alert.alert(t('more.give.error'), t('more.give.errorMessage'));
     });
-  };
+  }, [t]);
 
-  const handleSocial = async () => {
-    const fbPageIdConfig = await getConfigSetting(ConfigKeys.FB_PAGE_ID);
-    const fbSocialConfig = await getConfigSetting(ConfigKeys.FB_SOCIAL);
-    const igUsernameConfig = await getConfigSetting(ConfigKeys.IG_USERNAME);
-    const igSocialConfig = await getConfigSetting(ConfigKeys.IG_SOCIAL);
-    const twUsernameConfig = await getConfigSetting(ConfigKeys.TW_USERNAME);
-    const twSocialConfig = await getConfigSetting(ConfigKeys.TW_SOCIAL);
-
-    const options: string[] = [];
-    const handlers: (() => void)[] = [];
-
-    // Facebook
-    if (fbPageIdConfig) {
-      options.push('Facebook');
-      handlers.push(() => openFacebook(fbPageIdConfig.Value));
-    } else if (fbSocialConfig) {
-      options.push('Facebook');
-      handlers.push(() => Linking.openURL(fbSocialConfig.Value));
-    }
-
-    // Instagram
-    if (igUsernameConfig) {
-      options.push('Instagram');
-      handlers.push(() => openInstagram(igUsernameConfig.Value));
-    } else if (igSocialConfig) {
-      options.push('Instagram');
-      handlers.push(() => Linking.openURL(igSocialConfig.Value));
-    }
-
-    // X (Twitter)
-    if (twUsernameConfig) {
-      options.push('X');
-      handlers.push(() => openTwitter(twUsernameConfig.Value));
-    } else if (twSocialConfig) {
-      options.push('X');
-      handlers.push(() => Linking.openURL(twSocialConfig.Value));
-    }
-
-    options.push('Cancel');
-
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          title: 'Social',
-          message: 'Please select an option',
-          options,
-          cancelButtonIndex: options.length - 1,
-        },
-        (buttonIndex) => {
-          if (buttonIndex < handlers.length) {
-            handlers[buttonIndex]();
-          }
-        }
-      );
-    } else {
-      // Android - use Alert
-      Alert.alert(
-        'Social',
-        'Please select an option',
-        [
-          ...handlers.map((handler, index) => ({
-            text: options[index],
-            onPress: handler,
-          })),
-          { text: 'Cancel', style: 'cancel' },
-        ]
-      );
-    }
-  };
-
-  const openFacebook = async (pageId: string) => {
-    const appURL = `fb://profile/${pageId}`;
-    const webURL = `https://facebook.com/${pageId}`;
-
-    try {
-      const canOpen = await Linking.canOpenURL(appURL);
-      if (canOpen) {
-        await Linking.openURL(appURL);
-      } else {
-        // Prompt to download Facebook app
-        Alert.alert(
-          'Alert',
-          'You need to download the Facebook app first',
-          [
-            { text: 'Cancel', style: 'destructive' },
-            {
-              text: 'Download',
-              onPress: () => {
-                const storeURL = Platform.OS === 'ios'
-                  ? 'itms-apps://itunes.apple.com/app/id284882215'
-                  : 'market://details?id=com.facebook.katana';
-                Linking.openURL(storeURL);
-              },
-            },
-          ]
-        );
-      }
-    } catch (error) {
-      // Fallback to web
-      Linking.openURL(webURL);
-    }
-  };
-
-  const openInstagram = async (username: string) => {
-    const appURL = `instagram://user?username=${username}`;
-    const webURL = `https://instagram.com/${username}`;
-
-    try {
-      const canOpen = await Linking.canOpenURL(appURL);
-      if (canOpen) {
-        await Linking.openURL(appURL);
-      } else {
-        Alert.alert(
-          'Alert',
-          'You need to download the Instagram app first',
-          [
-            { text: 'Cancel', style: 'destructive' },
-            {
-              text: 'Download',
-              onPress: () => {
-                const storeURL = Platform.OS === 'ios'
-                  ? 'itms-apps://itunes.apple.com/app/id389801252'
-                  : 'market://details?id=com.instagram.android';
-                Linking.openURL(storeURL);
-              },
-            },
-          ]
-        );
-      }
-    } catch (error) {
-      Linking.openURL(webURL);
-    }
-  };
-
-  const openTwitter = async (username: string) => {
-    const appURL = `twitter://user?screen_name=${username}`;
-    const webURL = `https://twitter.com/${username}`;
-
-    try {
-      const canOpen = await Linking.canOpenURL(appURL);
-      if (canOpen) {
-        await Linking.openURL(appURL);
-      } else {
-        Alert.alert(
-          'Alert',
-          'You need to download the X app first',
-          [
-            { text: 'Cancel', style: 'destructive' },
-            {
-              text: 'Download',
-              onPress: () => {
-                const storeURL = Platform.OS === 'ios'
-                  ? 'itms-apps://itunes.apple.com/app/id409789998'
-                  : 'market://details?id=com.twitter.android';
-                Linking.openURL(storeURL);
-              },
-            },
-          ]
-        );
-      }
-    } catch (error) {
-      Linking.openURL(webURL);
-    }
-  };
-
-  const handleTeam = (config: ConfigSetting) => {
-    navigation.navigate('WebView', {
-      url: config.Value,
-      title: 'Meet the team',
-    });
-  };
+  const handleTeam = useCallback(() => {
+    // Navigate to native MeetTheTeam screen
+    navigation.navigate('MeetTheTeam');
+  }, [navigation]);
 
   const handleBible = () => {
     // Navigate to Bible tab
@@ -332,7 +132,7 @@ export const MoreScreen: React.FC = () => {
     navigation.navigate('Settings');
   };
 
-  const handleSendLogs = async () => {
+  const handleSendLogs = useCallback(async () => {
     try {
       // Check if we're on a simulator (simulators often can't send emails)
       const isEmulator = !Device.isDevice;
@@ -360,9 +160,9 @@ export const MoreScreen: React.FC = () => {
         await logError(errorMsg);
 
         Alert.alert(
-          'Error',
-          'Unable to retrieve device information. Please try again.',
-          [{ text: 'OK' }]
+          t('more.sendLogs.deviceInfoError'),
+          t('more.sendLogs.deviceInfoErrorMessage'),
+          [{ text: t('more.sendLogs.ok') }]
         );
         return;
       }
@@ -384,19 +184,22 @@ export const MoreScreen: React.FC = () => {
         await logError(errorMsg);
 
         Alert.alert(
-          'Error',
-          'Unable to create log file. Please try again.',
-          [{ text: 'OK' }]
+          t('more.sendLogs.exportError'),
+          t('more.sendLogs.exportErrorMessage'),
+          [{ text: t('more.sendLogs.ok') }]
         );
         return;
       }
 
       // Prepare share options for email only
       const shareOptions: any = {
-        title: 'Send Logs to Support',
-        message: 'Please describe any issues you\'re experiencing with the app:',
+        title: t('more.sendLogs.title'),
+        message: t('more.sendLogs.message'),
         url: `file://${logFilePath}`,
-        subject: `Thrive ${Platform.OS === 'ios' ? 'iOS' : 'Android'} - ID: ${feedbackId}`,
+        subject: t('more.sendLogs.subject', {
+          platform: Platform.OS === 'ios' ? 'iOS' : 'Android',
+          feedbackId
+        }),
         email: 'wyatt@thrive-fl.org',
         social: Share.Social.EMAIL,
         type: 'text/plain',
@@ -439,11 +242,11 @@ export const MoreScreen: React.FC = () => {
             await logError(errorMsg);
 
             Alert.alert(
-              'Unable to Send Logs',
+              t('more.sendLogs.unableToSend'),
               Platform.OS === 'ios'
-                ? 'No email app is configured on this device. Please install and configure the Mail app or another email client to send logs.'
-                : 'No email app is installed on this device. Please install an email app (such as Gmail) to send logs.',
-              [{ text: 'OK' }]
+                ? t('more.sendLogs.noEmailIOS')
+                : t('more.sendLogs.noEmailAndroid'),
+              [{ text: t('more.sendLogs.ok') }]
             );
             return;
           }
@@ -455,20 +258,20 @@ export const MoreScreen: React.FC = () => {
         await logError(errorMsg);
 
         // Show user-friendly error message
-        let alertMessage = 'Unable to send logs. ';
+        let alertMessage: string;
 
         if (isEmulator) {
-          alertMessage += 'Email functionality is not available on simulators. Please test on a physical device.';
+          alertMessage = t('more.sendLogs.genericErrorSimulator');
         } else if (Platform.OS === 'ios') {
-          alertMessage += 'Please make sure the Mail app is configured on your device, or try using another email app.';
+          alertMessage = t('more.sendLogs.genericErrorIOS');
         } else {
-          alertMessage += 'Please make sure you have an email app installed and configured on your device.';
+          alertMessage = t('more.sendLogs.genericErrorAndroid');
         }
 
         Alert.alert(
-          'Error',
+          t('more.sendLogs.genericError'),
           alertMessage,
-          [{ text: 'OK' }]
+          [{ text: t('more.sendLogs.ok') }]
         );
       }
     } catch (error) {
@@ -484,26 +287,16 @@ export const MoreScreen: React.FC = () => {
       }
 
       Alert.alert(
-        'Error',
-        'An unexpected error occurred. Please try again later.',
-        [{ text: 'OK' }]
+        t('more.sendLogs.unexpectedError'),
+        t('more.sendLogs.unexpectedErrorMessage'),
+        [{ text: t('more.sendLogs.ok') }]
       );
     }
-  };
+  }, [t]);
 
-  const handleAbout = () => {
-    const version = Application.nativeApplicationVersion || '1.0.0';
-    const buildNumber = Application.nativeBuildVersion || '1';
-    const year = new Date().getFullYear();
-
-    const message = `Version: ${version} (Build ${buildNumber})\n\n©${year} Thrive Community Church\n\nThis app helps you stay connected with our church community, access sermons, take notes, and more.`;
-
-    if (Platform.OS === 'ios') {
-      Alert.alert('About Thrive Church App', message, [{ text: 'OK', style: 'cancel' }]);
-    } else {
-      Alert.alert('About Thrive Church App', message, [{ text: 'OK' }]);
-    }
-  };
+  const handleAbout = useCallback(() => {
+    navigation.navigate('About');
+  }, [navigation]);
 
   const renderItem = ({ item }: { item: MoreMenuItem }) => (
     <MoreMenuCard item={item} theme={theme} />

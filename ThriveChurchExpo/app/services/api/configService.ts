@@ -104,6 +104,7 @@ export const fetchAndStoreConfigs = async (silent: boolean = false): Promise<voi
       ConfigKeys.IG_SOCIAL,
       ConfigKeys.WEBSITE,
       ConfigKeys.TEAM,
+      ConfigKeys.TEAM_MEMBERS,
       ConfigKeys.LOCATION_NAME,
       ConfigKeys.FB_PAGE_ID,
       ConfigKeys.TW_USERNAME,

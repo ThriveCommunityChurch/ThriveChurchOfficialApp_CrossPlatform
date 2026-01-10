@@ -95,7 +95,9 @@ function validateCredentials(credentials) {
 function credentialsToExpoExtra(credentials) {
   return {
     // API Configuration
-    API_BASE_URL: `http://${credentials.api.baseUrl}`,
+	    // Use the baseUrl exactly as provided so it can be either
+	    // http://localhost:8080 for dev or a full https:// URL in prod.
+	    API_BASE_URL: credentials.api.baseUrl,
     THRIVE_API_KEY: credentials.api.thriveApiKey,
     ESV_API_KEY: credentials.api.esvApiKey,
     
@@ -125,6 +127,10 @@ function credentialsToExpoExtra(credentials) {
     
     // Environment
     ENVIRONMENT: credentials.environment,
+
+    // YouTube Configuration
+    YOUTUBE_API_KEY: credentials.youtube?.apiKey || '',
+    YOUTUBE_CHANNEL_ID: credentials.youtube?.channelId || '',
   };
 }
 

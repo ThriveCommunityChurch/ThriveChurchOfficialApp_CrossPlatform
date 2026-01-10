@@ -21,11 +21,16 @@ import {
   Linking,
   Alert,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../hooks/useTheme';
 import { useSettings } from '../../hooks/useSettings';
+import { useTranslation } from '../../hooks/useTranslation';
 import { BIBLE_TRANSLATIONS } from '../../data/bibleTranslations';
+import { LANGUAGES } from '../../i18n/types';
 import type { Theme } from '../../theme/types';
 import type { BibleTranslation, ThemeMode } from '../../types/settings';
+import type { Language } from '../../i18n/types';
 import { setCurrentScreen } from '../../services/analytics/analyticsService';
 
 /**
@@ -153,11 +158,16 @@ const ThemeModeOption: React.FC<ThemeModeOptionProps> = ({
  */
 export const SettingsScreen: React.FC = () => {
   const { theme } = useTheme();
-  const { settings, isLoading, updateBibleTranslation, updateThemeMode } = useSettings();
+  const { t } = useTranslation();
+  const navigation = useNavigation<any>();
+  const { settings, isLoading, updateBibleTranslation, updateThemeMode, updateLanguage } = useSettings();
   const styles = createStyles(theme);
 
   // State for Bible translation dropdown
   const [isTranslationExpanded, setIsTranslationExpanded] = useState(false);
+
+  // State for language dropdown
+  const [isLanguageExpanded, setIsLanguageExpanded] = useState(false);
 
   // Track screen view
   useEffect(() => {
@@ -175,14 +185,20 @@ export const SettingsScreen: React.FC = () => {
     await updateThemeMode(mode);
   };
 
+  // Handle language selection
+  const handleLanguageSelect = async (language: Language) => {
+    await updateLanguage(language);
+    setIsLanguageExpanded(false);
+  };
+
   // Handle device settings navigation
   const handleDeviceSettings = () => {
     Linking.openSettings().catch((error) => {
       console.error('Error opening settings:', error);
       Alert.alert(
-        'Unable to Open Settings',
-        'Could not open device settings. Please try again.',
-        [{ text: 'OK' }]
+        t('settings.alerts.unableToOpenSettings'),
+        t('settings.alerts.unableToOpenSettingsMessage'),
+        [{ text: t('common.ok') }]
       );
     });
   };
@@ -191,7 +207,7 @@ export const SettingsScreen: React.FC = () => {
     return (
       <View style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading settings...</Text>
+          <Text style={styles.loadingText}>{t('settings.loadingSettings')}</Text>
         </View>
       </View>
     );
@@ -205,15 +221,15 @@ export const SettingsScreen: React.FC = () => {
         showsVerticalScrollIndicator={false}
       >
         {/* Bible Translation Section */}
-        <Text style={styles.sectionTitle}>Bible Translation</Text>
-        
+        <Text style={styles.sectionTitle}>{t('settings.bibleTranslation.title')}</Text>
+
         <AnimatedCard
           onPress={() => setIsTranslationExpanded(!isTranslationExpanded)}
           theme={theme}
         >
           <View style={styles.cardContent}>
             <View style={styles.textContainer}>
-              <Text style={styles.cardLabel}>Translation</Text>
+              <Text style={styles.cardLabel}>{t('settings.bibleTranslation.label')}</Text>
               <Text style={styles.cardValue}>{settings.bibleTranslation.fullName}</Text>
             </View>
             <Text style={styles.chevron}>{isTranslationExpanded ? '⌄' : '›'}</Text>
@@ -255,50 +271,135 @@ export const SettingsScreen: React.FC = () => {
           </View>
         )}
 
+        {/* Language Section */}
+        <Text style={styles.sectionTitle}>{t('settings.language.title')}</Text>
+
+        <AnimatedCard
+          onPress={() => setIsLanguageExpanded(!isLanguageExpanded)}
+          theme={theme}
+        >
+          <View style={styles.cardContent}>
+            <View style={styles.textContainer}>
+              <Text style={styles.cardLabel}>{t('settings.language.label')}</Text>
+              <Text style={styles.cardValue}>
+                {LANGUAGES.find(lang => lang.code === settings.language)?.nativeName || 'English'}
+              </Text>
+            </View>
+            <Text style={styles.chevron}>{isLanguageExpanded ? '⌄' : '›'}</Text>
+          </View>
+        </AnimatedCard>
+
+        {/* Language Dropdown */}
+        {isLanguageExpanded && (
+          <View style={styles.dropdown}>
+            <ScrollView
+              style={styles.dropdownScroll}
+              nestedScrollEnabled={true}
+              showsVerticalScrollIndicator={true}
+            >
+              {LANGUAGES.map((lang) => {
+                const isSelected = lang.code === settings.language;
+                return (
+                  <TouchableOpacity
+                    key={lang.code}
+                    style={[
+                      styles.dropdownItem,
+                      isSelected && styles.dropdownItemSelected,
+                    ]}
+                    onPress={() => handleLanguageSelect(lang.code)}
+                  >
+                    <View style={styles.dropdownItemContent}>
+                      <Text style={[styles.dropdownItemName, isSelected && styles.dropdownItemNameSelected]}>
+                        {lang.nativeName}
+                      </Text>
+                      <Text style={[styles.dropdownItemFullName, isSelected && styles.dropdownItemFullNameSelected]}>
+                        {t(`settings.language.${lang.code}FullDescription`)}
+                      </Text>
+                    </View>
+                    {isSelected && <Text style={styles.checkmark}>✓</Text>}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        )}
+
         {/* Appearance Section */}
-        <Text style={styles.sectionTitle}>Appearance</Text>
-        
+        <Text style={styles.sectionTitle}>{t('settings.appearance.title')}</Text>
+
         <View style={styles.card}>
           <ThemeModeOption
             mode="auto"
-            label="Auto"
-            description="Follow system appearance"
+            label={t('settings.appearance.auto')}
+            description={t('settings.appearance.autoDescription')}
             isSelected={settings.themeMode === 'auto'}
             onPress={() => handleThemeModeSelect('auto')}
             theme={theme}
           />
-          
+
           <View style={styles.divider} />
-          
+
           <ThemeModeOption
             mode="light"
-            label="Light"
-            description="Always use light theme"
+            label={t('settings.appearance.light')}
+            description={t('settings.appearance.lightDescription')}
             isSelected={settings.themeMode === 'light'}
             onPress={() => handleThemeModeSelect('light')}
             theme={theme}
           />
-          
+
           <View style={styles.divider} />
-          
+
           <ThemeModeOption
             mode="dark"
-            label="Dark"
-            description="Always use dark theme"
+            label={t('settings.appearance.dark')}
+            description={t('settings.appearance.darkDescription')}
             isSelected={settings.themeMode === 'dark'}
             onPress={() => handleThemeModeSelect('dark')}
             theme={theme}
           />
         </View>
 
+        {/* Downloads Section */}
+        <Text style={styles.sectionTitle}>{t('settings.downloads.title')}</Text>
+
+        <AnimatedCard onPress={() => navigation.navigate('DownloadSettings')} theme={theme}>
+          <View style={styles.cardContent}>
+            <View style={styles.iconContainer}>
+              <Ionicons name="download-outline" size={24} color={theme.colors.primary} />
+            </View>
+            <View style={styles.textContainer}>
+              <Text style={styles.cardLabel}>{t('settings.downloads.manageDownloads')}</Text>
+              <Text style={styles.cardDescription}>{t('settings.downloads.manageDownloadsDescription')}</Text>
+            </View>
+            <Text style={styles.chevron}>›</Text>
+          </View>
+        </AnimatedCard>
+
+        {/* Playback Section */}
+        <Text style={styles.sectionTitle}>{t('settings.playback.title')}</Text>
+
+        <AnimatedCard onPress={() => navigation.navigate('PlaybackSettings')} theme={theme}>
+          <View style={styles.cardContent}>
+            <View style={styles.iconContainer}>
+              <Ionicons name="play-circle-outline" size={24} color={theme.colors.primary} />
+            </View>
+            <View style={styles.textContainer}>
+              <Text style={styles.cardLabel}>{t('settings.playback.managePlayback')}</Text>
+              <Text style={styles.cardDescription}>{t('settings.playback.managePlaybackDescription')}</Text>
+            </View>
+            <Text style={styles.chevron}>›</Text>
+          </View>
+        </AnimatedCard>
+
         {/* System Section */}
-        <Text style={styles.sectionTitle}>System</Text>
-        
+        <Text style={styles.sectionTitle}>{t('settings.system.title')}</Text>
+
         <AnimatedCard onPress={handleDeviceSettings} theme={theme}>
           <View style={styles.cardContent}>
             <View style={styles.textContainer}>
-              <Text style={styles.cardLabel}>Device Settings</Text>
-              <Text style={styles.cardDescription}>Manage notifications and permissions</Text>
+              <Text style={styles.cardLabel}>{t('settings.system.deviceSettings')}</Text>
+              <Text style={styles.cardDescription}>{t('settings.system.deviceSettingsDescription')}</Text>
             </View>
             <Text style={styles.chevron}>›</Text>
           </View>
@@ -359,6 +460,9 @@ const createStyles = (theme: Theme) =>
       alignItems: 'center',
       justifyContent: 'space-between',
       padding: 16,
+    },
+    iconContainer: {
+      marginRight: 12,
     },
     textContainer: {
       flex: 1,

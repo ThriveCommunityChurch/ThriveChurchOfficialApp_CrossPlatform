@@ -14,6 +14,12 @@ export interface SermonsSummaryPagedResponse {
   PagingInfo: PagingInfo;
 }
 
+/**
+ * Available transcript-related features for a sermon message.
+ * Use these to determine which API endpoints can be called for additional content.
+ */
+export type TranscriptFeature = 'Transcript' | 'Notes' | 'StudyGuide';
+
 export interface SermonMessage {
   AudioUrl?: string;
   AudioDuration?: number;
@@ -33,6 +39,119 @@ export interface SermonMessage {
   previouslyPlayed?: number;
   seriesTitle?: string;
   Tags?: string[];
+  /**
+   * List of transcript features available for this message.
+   * Use to determine which API endpoints to call:
+   * - 'Transcript': GET /api/sermons/series/message/{id}/transcript
+   * - 'Notes': GET /api/sermons/series/message/{id}/notes
+   * - 'StudyGuide': GET /api/sermons/series/message/{id}/study-guide
+   */
+  AvailableTranscriptFeatures?: TranscriptFeature[];
+}
+
+// ===== Sermon Notes & Study Guide Types =====
+  
+/**
+ * AI-generated sermon notes containing key points, quotes, and application points
+ */
+export interface SermonNotesResponse {
+  Title: string;
+  Speaker: string;
+  Date: string;
+  MainScripture: string;
+  Summary: string;
+  KeyPoints: KeyPointResponse[];
+  Quotes: QuoteResponse[];
+  ApplicationPoints: string[];
+  GeneratedAt: string;
+  ModelUsed: string;
+  WordCount: number;
+}
+
+/**
+ * A key point from the sermon
+ */
+export interface KeyPointResponse {
+  Point: string;
+  Scripture?: string;
+  Detail?: string;
+  TheologicalContext?: string;
+  DirectlyQuoted?: boolean;
+}
+
+/**
+ * A notable quote from the sermon
+ */
+export interface QuoteResponse {
+  Text: string;
+  Context?: string;
+}
+
+/**
+ * AI-generated study guide for small groups
+ */
+export interface StudyGuideResponse {
+  Title: string;
+  Speaker: string;
+  Date: string;
+  MainScripture: string;
+  Summary: string;
+  KeyPoints: KeyPointResponse[];
+  ScriptureReferences: ScriptureReferenceResponse[];
+  DiscussionQuestions: DiscussionQuestionsResponse;
+  Illustrations: IllustrationResponse[];
+  PrayerPrompts: string[];
+  TakeHomeChallenges: string[];
+  Devotional?: string;
+  AdditionalStudy: AdditionalStudyResponse[];
+  EstimatedStudyTime: string;
+  GeneratedAt: string;
+  ModelUsed: string;
+  Confidence: ConfidenceResponse;
+}
+
+/**
+ * Scripture reference with context
+ */
+export interface ScriptureReferenceResponse {
+  Reference: string;
+  Context: string;
+  DirectlyQuoted: boolean;
+}
+
+/**
+ * Categorized discussion questions
+ */
+export interface DiscussionQuestionsResponse {
+  Icebreaker: string[];
+  Reflection: string[];
+  Application: string[];
+  ForLeaders?: string[];
+}
+
+/**
+ * Illustration or story from the sermon
+ */
+export interface IllustrationResponse {
+  Summary: string;
+  Point: string;
+}
+
+/**
+ * Additional study topics
+ */
+export interface AdditionalStudyResponse {
+  Topic: string;
+  Scriptures: string[];
+  Note: string;
+}
+
+/**
+ * Confidence indicators for study guide accuracy
+ */
+export interface ConfidenceResponse {
+  ScriptureAccuracy: string;
+  ContentCoverage: string;
 }
 
 export interface SermonSeries {

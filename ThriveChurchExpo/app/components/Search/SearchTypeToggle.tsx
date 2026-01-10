@@ -14,6 +14,7 @@ import {
   Animated,
 } from 'react-native';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 import { SearchTarget } from '../../types/api';
 
@@ -27,6 +28,7 @@ export const SearchTypeToggle: React.FC<SearchTypeToggleProps> = ({
   onChange,
 }) => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme);
 
   // Helper function to get animation value for current search target
@@ -79,7 +81,7 @@ export const SearchTypeToggle: React.FC<SearchTypeToggleProps> = ({
         ]}
         onPress={() => handlePress(SearchTarget.Series)}
         activeOpacity={0.7}
-        accessibilityLabel="Search for sermon series"
+        accessibilityLabel={t('components.searchTypeToggle.seriesAccessibility')}
         accessibilityRole="button"
         accessibilityState={{ selected: value === SearchTarget.Series }}
       >
@@ -89,7 +91,7 @@ export const SearchTypeToggle: React.FC<SearchTypeToggleProps> = ({
             value === SearchTarget.Series && styles.activeButtonText,
           ]}
         >
-          Series
+          {t('components.searchTypeToggle.series')}
         </Text>
       </TouchableOpacity>
 
@@ -101,7 +103,7 @@ export const SearchTypeToggle: React.FC<SearchTypeToggleProps> = ({
         ]}
         onPress={() => handlePress(SearchTarget.Message)}
         activeOpacity={0.7}
-        accessibilityLabel="Search for sermon messages"
+        accessibilityLabel={t('components.searchTypeToggle.messagesAccessibility')}
         accessibilityRole="button"
         accessibilityState={{ selected: value === SearchTarget.Message }}
       >
@@ -111,7 +113,7 @@ export const SearchTypeToggle: React.FC<SearchTypeToggleProps> = ({
             value === SearchTarget.Message && styles.activeButtonText,
           ]}
         >
-          Messages
+          {t('components.searchTypeToggle.messages')}
         </Text>
       </TouchableOpacity>
 
@@ -123,7 +125,7 @@ export const SearchTypeToggle: React.FC<SearchTypeToggleProps> = ({
         ]}
         onPress={() => handlePress(SearchTarget.Speaker)}
         activeOpacity={0.7}
-        accessibilityLabel="Search for messages by speaker"
+        accessibilityLabel={t('components.searchTypeToggle.speakerAccessibility')}
         accessibilityRole="button"
         accessibilityState={{ selected: value === SearchTarget.Speaker }}
       >
@@ -133,7 +135,7 @@ export const SearchTypeToggle: React.FC<SearchTypeToggleProps> = ({
             value === SearchTarget.Speaker && styles.activeButtonText,
           ]}
         >
-          Speaker
+          {t('components.searchTypeToggle.speaker')}
         </Text>
       </TouchableOpacity>
     </View>

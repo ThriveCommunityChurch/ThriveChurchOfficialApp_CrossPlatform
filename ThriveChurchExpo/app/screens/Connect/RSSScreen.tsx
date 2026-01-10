@@ -3,14 +3,17 @@
  * Displays RSS feed from MailChimp with card design
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as rssParser from 'react-native-rss-parser';
 import { FlashList } from '@shopify/flash-list';
+import { useNetInfo } from '@react-native-community/netinfo';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
+import OfflineEmptyState from '../../components/OfflineEmptyState';
 import { setCurrentScreen, logViewAnnouncements } from '../../services/analytics/analyticsService';
 
 const feedURL = 'https://us4.campaign-archive.com/feed?u=1c5116a71792ef373ee131ea0&id=e6caee03a4';
@@ -34,9 +37,10 @@ interface RSSCardProps {
   item: RSSItem;
   onPress: (item: RSSItem) => void;
   theme: Theme;
+  t: (key: string) => string;
 }
 
-const RSSCard: React.FC<RSSCardProps> = ({ item, onPress, theme }) => {
+const RSSCard: React.FC<RSSCardProps> = ({ item, onPress, theme, t }) => {
   const styles = createStyles(theme);
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
@@ -88,7 +92,7 @@ const RSSCard: React.FC<RSSCardProps> = ({ item, onPress, theme }) => {
         <View style={styles.cardContent}>
           <View style={styles.textContainer}>
             <Text style={styles.title} numberOfLines={2}>
-              {item.title || 'Untitled'}
+              {item.title || t('connect.rss.untitled')}
             </Text>
             <Text style={styles.date}>
               {formatDate(item.pubDate)}
@@ -103,11 +107,16 @@ const RSSCard: React.FC<RSSCardProps> = ({ item, onPress, theme }) => {
 
 export default function RSSScreen() {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme);
   const navigation = useNavigation<NavigationProp>();
   const [loading, setLoading] = React.useState(true);
   const [items, setItems] = React.useState<RSSItem[]>([]);
   const [error, setError] = React.useState<string | null>(null);
+
+  // Network status for offline detection
+  const netInfo = useNetInfo();
+  const isOffline = netInfo.isConnected === false;
 
   // Track screen view
   useEffect(() => {
@@ -115,7 +124,9 @@ export default function RSSScreen() {
     logViewAnnouncements();
   }, []);
 
-  React.useEffect(() => {
+  const fetchRSS = useCallback(() => {
+    setLoading(true);
+    setError(null);
     fetch(feedURL)
       .then((response) => response.text())
       .then((responseData) => rssParser.parse(responseData))
@@ -132,10 +143,15 @@ export default function RSSScreen() {
       })
       .catch((err) => {
         console.error('RSS Feed parsing failed:', err);
-        setError('Unable to load announcements. Please try again later.');
+        setError(t('connect.rss.errorMessage'));
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [t]);
+
+  // Initial fetch on mount
+  React.useEffect(() => {
+    fetchRSS();
+  }, [fetchRSS]);
 
   const handleItemPress = (item: RSSItem) => {
     const date = item.pubDate ? new Date(item.pubDate).toLocaleDateString('en-US', {
@@ -146,27 +162,46 @@ export default function RSSScreen() {
     }) : '';
 
     navigation.navigate('RSSDetail', {
-      title: item.title || 'Announcement',
+      title: item.title || t('connect.rss.announcement'),
       content: item.content || item.contentSnippet || '',
       date,
     });
   };
 
   const renderItem = ({ item }: { item: RSSItem }) => (
-    <RSSCard item={item} onPress={handleItemPress} theme={theme} />
+    <RSSCard item={item} onPress={handleItemPress} theme={theme} t={t} />
   );
 
   const keyExtractor = (item: RSSItem, index: number) =>
     item.link || item.title || index.toString();
+
+  // Render offline state or error
+  const renderErrorOrOffline = () => {
+    if (isOffline) {
+      return (
+        <OfflineEmptyState
+          message={t('offline.noAnnouncementsMessage')}
+          showDownloadsCta={true}
+          showBibleCta={true}
+          showRetry={true}
+          onRetry={fetchRSS}
+        />
+      );
+    }
+
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  };
 
   return (
     <View style={styles.container}>
       {loading ? (
         <ActivityIndicator style={styles.loading} color={theme.colors.text} size="large" />
       ) : error ? (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
+        renderErrorOrOffline()
       ) : (
         <FlashList
           data={items}

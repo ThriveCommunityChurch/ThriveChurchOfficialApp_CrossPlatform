@@ -4,7 +4,7 @@
  * Shows selected tags as removable chips with "Add Tags" button to open modal
  */
 
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -15,10 +15,12 @@ import {
   Platform,
   Modal,
   Pressable,
+  LayoutChangeEvent,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 import { MessageTag, getTagDisplayLabel } from '../../types/messageTag';
 
@@ -34,9 +36,12 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
   onClearAll,
 }) => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme);
   const [modalVisible, setModalVisible] = useState(false);
   const [searchText, setSearchText] = useState('');
+  // Track when list container has been laid out (FlashList needs explicit dimensions)
+  const [listLayoutReady, setListLayoutReady] = useState(false);
 
   // Get all tag names from MessageTag enum (excluding Unknown)
   const allTags = useMemo(() => {
@@ -57,6 +62,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
   }, [allTags, searchText]);
 
   const handleOpenModal = () => {
+    setListLayoutReady(false); // Reset layout state when opening
     setModalVisible(true);
     setSearchText('');
   };
@@ -65,6 +71,15 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
     setModalVisible(false);
     setSearchText('');
   };
+
+  // Handle list container layout - FlashList needs explicit dimensions to render correctly
+  const handleListLayout = useCallback((event: LayoutChangeEvent) => {
+    const { height } = event.nativeEvent.layout;
+    // Only mark as ready when we have a meaningful height
+    if (height > 0) {
+      setListLayoutReady(true);
+    }
+  }, []);
 
   const handleTagPress = (tag: string) => {
     onTagToggle(tag);
@@ -107,10 +122,10 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
         <View style={styles.selectedTagsContainer}>
           <View style={styles.selectedTagsHeader}>
             <Text style={styles.selectedTagsCount}>
-              {selectedTags.length} {selectedTags.length === 1 ? 'tag' : 'tags'} selected
+              {selectedTags.length} {selectedTags.length === 1 ? t('components.tagSelector.tag') : t('components.tagSelector.tags')} {t('components.tagSelector.selected')}
             </Text>
             <TouchableOpacity onPress={onClearAll} style={styles.clearAllButton}>
-              <Text style={styles.clearAllText}>Clear All</Text>
+              <Text style={styles.clearAllText}>{t('components.tagSelector.clearAll')}</Text>
             </TouchableOpacity>
           </View>
           <ScrollView
@@ -139,7 +154,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
       <TouchableOpacity style={styles.addTagsButton} onPress={handleOpenModal} activeOpacity={0.7}>
         <Ionicons name="add-circle-outline" size={24} color={theme.colors.primary} />
         <Text style={styles.addTagsButtonText}>
-          {selectedTags.length === 0 ? 'Select Tags' : 'Add More Tags'}
+          {selectedTags.length === 0 ? t('components.tagSelector.selectTags') : t('components.tagSelector.addMoreTags')}
         </Text>
       </TouchableOpacity>
 
@@ -153,7 +168,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
         <View style={styles.modalContainer}>
           {/* Modal Header */}
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Select Tags</Text>
+            <Text style={styles.modalTitle}>{t('components.tagSelector.modalTitle')}</Text>
             <TouchableOpacity onPress={handleCloseModal} style={styles.modalCloseButton}>
               <Ionicons name="close" size={28} color={theme.colors.text} />
             </TouchableOpacity>
@@ -169,7 +184,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
             />
             <TextInput
               style={styles.modalSearchInput}
-              placeholder="Search tags..."
+              placeholder={t('components.tagSelector.searchPlaceholder')}
               placeholderTextColor={theme.colors.textTertiary}
               value={searchText}
               onChangeText={setSearchText}
@@ -188,28 +203,30 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
           {selectedTags.length > 0 && (
             <View style={styles.modalSelectedCount}>
               <Text style={styles.modalSelectedCountText}>
-                {selectedTags.length} {selectedTags.length === 1 ? 'tag' : 'tags'} selected
+                {selectedTags.length} {selectedTags.length === 1 ? t('components.tagSelector.tag') : t('components.tagSelector.tags')} {t('components.tagSelector.selected')}
               </Text>
             </View>
           )}
 
           {/* Tags List */}
-          <View style={styles.modalListContainer}>
-            <FlashList
-              data={filteredTags}
-              renderItem={renderTagItem}
-              keyExtractor={(item) => item}
-              estimatedItemSize={56}
-              showsVerticalScrollIndicator={true}
-              contentContainerStyle={styles.modalListContent}
-              ListEmptyComponent={
-                <View style={styles.modalEmptyState}>
-                  <Ionicons name="search-outline" size={48} color={theme.colors.textTertiary} />
-                  <Text style={styles.modalEmptyText}>No tags found</Text>
-                  <Text style={styles.modalEmptySubtext}>Try a different search term</Text>
-                </View>
-              }
-            />
+          <View style={styles.modalListContainer} onLayout={handleListLayout}>
+            {listLayoutReady && (
+              <FlashList
+                data={filteredTags}
+                renderItem={renderTagItem}
+                keyExtractor={(item) => item}
+                estimatedItemSize={56}
+                showsVerticalScrollIndicator={true}
+                contentContainerStyle={styles.modalListContent}
+                ListEmptyComponent={
+                  <View style={styles.modalEmptyState}>
+                    <Ionicons name="search-outline" size={48} color={theme.colors.textTertiary} />
+                    <Text style={styles.modalEmptyText}>{t('components.tagSelector.noTagsFound')}</Text>
+                    <Text style={styles.modalEmptySubtext}>{t('components.tagSelector.tryDifferentSearch')}</Text>
+                  </View>
+                }
+              />
+            )}
           </View>
 
           {/* Modal Footer */}
@@ -219,7 +236,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
               onPress={handleCloseModal}
               activeOpacity={0.8}
             >
-              <Text style={styles.modalDoneButtonText}>Done</Text>
+              <Text style={styles.modalDoneButtonText}>{t('components.tagSelector.done')}</Text>
             </TouchableOpacity>
           </View>
         </View>

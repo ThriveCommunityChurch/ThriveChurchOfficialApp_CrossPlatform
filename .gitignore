@@ -91,6 +91,10 @@ dist
 # vuepress build output
 .vuepress/dist
 
+# Jetbrains
+*.idea/
+*local.properties
+
 # Serverless directories
 .serverless/
 

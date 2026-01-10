@@ -1,4 +1,6 @@
-# Thrive Church Expo - Quick Start Guide
+# Thrive Church Expo - Developer Quick Start
+
+> For app features and overview, see the [main README](../README.md).
 
 ## 📋 Prerequisites
 
@@ -6,32 +8,6 @@
 - Xcode (for iOS development)
 - Android Studio (for Android development)
 - Git
-
----
-
-## Key Features
-
-### Listen Screen
-- Sermon audio playback
-- Video playback
-- Downloads for offline listening
-- Recently played history
-
-### Bible Screen
-- ESV Bible passage reading
-- Book/chapter/verse selection
-- Bible passage integration with sermons
-
-### Connect Screen
-- RSS feed reading
-- Web view for external content
-- Social media links
-
-### More Screen
-- App settings
-- About information
-- Device information
-- Log sharing (for debugging)
 
 ---
 

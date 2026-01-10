@@ -10,17 +10,21 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 import { SermonMessage } from '../../types/api';
-import { getRecentlyPlayed, clearRecentlyPlayed } from '../../services/storage/storage';
+import { getRecentlyPlayed, clearRecentlyPlayed, getPlaybackProgressMap } from '../../services/storage/storage';
 import { getDownloadedMessage } from '../../services/storage/storage';
 import { usePlayer } from '../../hooks/usePlayer';
 import { setCurrentScreen } from '../../services/analytics/analyticsService';
+import { PlaybackProgressMap } from '../../types/playback';
 
 export default function RecentlyPlayedScreen() {
   const navigation = useNavigation();
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const [recentlyPlayed, setRecentlyPlayed] = useState<SermonMessage[]>([]);
+  const [playbackProgress, setPlaybackProgress] = useState<PlaybackProgressMap>({});
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const player = usePlayer();
@@ -32,8 +36,12 @@ export default function RecentlyPlayedScreen() {
 
   const loadRecentlyPlayed = useCallback(async () => {
     try {
-      const messages = await getRecentlyPlayed();
+      const [messages, progressMap] = await Promise.all([
+        getRecentlyPlayed(),
+        getPlaybackProgressMap(),
+      ]);
       setRecentlyPlayed(messages);
+      setPlaybackProgress(progressMap);
     } catch (error) {
       console.error('Error loading recently played:', error);
     } finally {
@@ -56,56 +64,64 @@ export default function RecentlyPlayedScreen() {
     const downloadedMessage = await getDownloadedMessage(message.MessageId);
     const isDownloaded = !!downloadedMessage;
 
+    // Check if there's playback progress (not finished)
+    const progress = playbackProgress[message.MessageId];
+    const hasProgress = progress && progress.positionSeconds > 30;
+    const isFinished = progress && progress.positionSeconds >= progress.durationSeconds - 10; // Within 10 seconds of end
+
     const options = [];
 
     options.push({
-      text: 'Listen',
+      text: hasProgress && !isFinished
+        ? t('listen.recentlyPlayed.resume')
+        : t('listen.recentlyPlayed.listen'),
       onPress: () => handleListen(message, isDownloaded),
     });
 
     if (message.VideoUrl) {
       options.push({
-        text: 'Watch in HD',
+        text: t('listen.recentlyPlayed.watchHD'),
         onPress: () => handleWatch(message),
       });
     }
 
     if (message.PassageRef) {
       options.push({
-        text: `Read ${message.PassageRef}`,
+        text: `${t('listen.recentlyPlayed.read')} ${message.PassageRef}`,
         onPress: () => handleReadPassage(message),
       });
     }
 
     options.push({
-      text: 'Cancel',
+      text: t('common.cancel'),
       style: 'cancel',
     });
 
     Alert.alert(
       message.Title,
-      'Please select an action',
+      t('listen.recentlyPlayed.selectAction'),
       options as any
     );
-  }, []);
+  }, [t, playbackProgress]);
 
   const handleListen = useCallback(async (message: SermonMessage, isDownloaded: boolean) => {
     try {
       await player.play({
         message,
+        seriesId: message.SeriesId,
         seriesTitle: message.seriesTitle,
         seriesArt: message.seriesArt,
         isLocal: isDownloaded,
       });
     } catch (error) {
       console.error('Error playing message:', error);
-      Alert.alert('Error', 'Failed to play audio. Please try again.');
+      Alert.alert(t('common.error'), t('listen.recentlyPlayed.errorPlayAudio'));
     }
-  }, [player]);
+  }, [player, t]);
 
   const handleWatch = useCallback((message: SermonMessage) => {
     if (!message.VideoUrl) {
-      Alert.alert('No Video', 'This sermon does not have a video available.');
+      Alert.alert(t('listen.sermon.noVideo'), t('listen.sermon.noVideoMessage'));
       return;
     }
 
@@ -114,11 +130,11 @@ export default function RecentlyPlayedScreen() {
       message,
       seriesTitle: message.seriesTitle,
     });
-  }, [navigation]);
+  }, [navigation, t]);
 
   const handleReadPassage = useCallback((message: SermonMessage) => {
     if (!message.PassageRef) {
-      Alert.alert('No Passage', 'This sermon does not have a Bible passage reference.');
+      Alert.alert(t('listen.sermon.noPassage'), t('listen.sermon.noPassageMessage'));
       return;
     }
 
@@ -127,19 +143,19 @@ export default function RecentlyPlayedScreen() {
       message,
       seriesTitle: message.seriesTitle,
     });
-  }, [navigation]);
+  }, [navigation, t]);
 
   const handleClearAll = useCallback(() => {
     Alert.alert(
-      'Clear Recently Played',
-      'Are you sure you want to clear your recently played history?',
+      t('listen.recentlyPlayed.clearAllTitle'),
+      t('listen.recentlyPlayed.clearAllMessage'),
       [
         {
-          text: 'Cancel',
+          text: t('common.cancel'),
           style: 'cancel',
         },
         {
-          text: 'Clear',
+          text: t('listen.recentlyPlayed.clear'),
           style: 'destructive',
           onPress: async () => {
             await clearRecentlyPlayed();
@@ -148,7 +164,7 @@ export default function RecentlyPlayedScreen() {
         },
       ]
     );
-  }, [loadRecentlyPlayed]);
+  }, [loadRecentlyPlayed, t]);
 
   const formatDate = (timestamp?: number): string => {
     if (!timestamp) return '';
@@ -171,7 +187,25 @@ export default function RecentlyPlayedScreen() {
     }
   };
 
+  const formatTimeRemaining = (positionSeconds: number, durationSeconds: number): string => {
+    const remaining = Math.max(0, durationSeconds - positionSeconds);
+    const minutes = Math.floor(remaining / 60);
+    const seconds = Math.floor(remaining % 60);
+    if (minutes > 60) {
+      const hours = Math.floor(minutes / 60);
+      const mins = minutes % 60;
+      return `${hours}h ${mins}m ${t('listen.recentlyPlayed.remaining')}`;
+    }
+    return `${minutes}:${seconds.toString().padStart(2, '0')} ${t('listen.recentlyPlayed.remaining')}`;
+  };
+
   const renderRecentlyPlayedItem = useCallback(({ item }: { item: SermonMessage }) => {
+    const progress = playbackProgress[item.MessageId];
+    const hasProgress = progress && progress.positionSeconds > 30; // Only show if meaningful progress
+    const progressPercent = hasProgress
+      ? Math.min((progress.positionSeconds / progress.durationSeconds) * 100, 100)
+      : 0;
+
     return (
       <TouchableOpacity
         style={{
@@ -180,69 +214,94 @@ export default function RecentlyPlayedScreen() {
           paddingVertical: 16,
           borderBottomWidth: 0.5,
           borderBottomColor: theme.colors.border,
-          flexDirection: 'row',
-          alignItems: 'center',
         }}
         onPress={() => handleMessagePress(item)}
         activeOpacity={0.7}
       >
-        {/* Series Art Thumbnail */}
-        {item.seriesArt ? (
-          <Image
-            source={{ uri: item.seriesArt }}
-            style={{
-              width: 106,
-              height: 60,
-              borderRadius: 8,
-              backgroundColor: theme.colors.card,
-              marginRight: 12,
-            }}
-            resizeMode="cover"
-          />
-        ) : (
-          <View
-            style={{
-              width: 106,
-              height: 60,
-              borderRadius: 8,
-              backgroundColor: theme.colors.card,
-              marginRight: 12,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Text style={[theme.typography.label as any, { color: theme.colors.textSecondary }]}>
-              {item.WeekNum || '?'}
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          {/* Series Art Thumbnail */}
+          {item.seriesArt ? (
+            <Image
+              source={{ uri: item.seriesArt }}
+              style={{
+                width: 106,
+                height: 60,
+                borderRadius: 8,
+                backgroundColor: theme.colors.card,
+                marginRight: 12,
+              }}
+              resizeMode="cover"
+            />
+          ) : (
+            <View
+              style={{
+                width: 106,
+                height: 60,
+                borderRadius: 8,
+                backgroundColor: theme.colors.card,
+                marginRight: 12,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Text style={[theme.typography.label as any, { color: theme.colors.textSecondary }]}>
+                {item.WeekNum || '?'}
+              </Text>
+            </View>
+          )}
+
+          {/* Message Info */}
+          <View style={{ flex: 1 }}>
+            <Text style={[theme.typography.h3 as any, { marginBottom: 4 }]} numberOfLines={2}>
+              {item.Title}
+            </Text>
+            <Text style={[theme.typography.body as any, { color: theme.colors.textTertiary, marginBottom: 2 }]}>
+              {item.seriesTitle || 'Sermon'}
+            </Text>
+            <Text style={[theme.typography.caption as any, { color: theme.colors.textSecondary }]}>
+              {item.Speaker} • {formatDate(item.previouslyPlayed)}
+            </Text>
+          </View>
+        </View>
+
+        {/* Resume Progress Indicator */}
+        {hasProgress && (
+          <View style={{ marginTop: 10, marginLeft: 118 }}>
+            <View style={{
+              height: 3,
+              backgroundColor: theme.colors.border,
+              borderRadius: 1.5,
+              overflow: 'hidden',
+            }}>
+              <View style={{
+                height: '100%',
+                width: `${progressPercent}%`,
+                backgroundColor: theme.colors.primary,
+                borderRadius: 1.5,
+              }} />
+            </View>
+            <Text style={[
+              theme.typography.caption as any,
+              { color: theme.colors.primary, marginTop: 4, fontSize: 11 }
+            ]}>
+              {formatTimeRemaining(progress.positionSeconds, progress.durationSeconds)}
             </Text>
           </View>
         )}
-
-        {/* Message Info */}
-        <View style={{ flex: 1 }}>
-          <Text style={[theme.typography.h3 as any, { marginBottom: 4 }]} numberOfLines={2}>
-            {item.Title}
-          </Text>
-          <Text style={[theme.typography.body as any, { color: theme.colors.textTertiary, marginBottom: 2 }]}>
-            {item.seriesTitle || 'Sermon'}
-          </Text>
-          <Text style={[theme.typography.caption as any, { color: theme.colors.textSecondary }]}>
-            {item.Speaker} • {formatDate(item.previouslyPlayed)}
-          </Text>
-        </View>
       </TouchableOpacity>
     );
-  }, [handleMessagePress, formatDate, theme]);
+  }, [handleMessagePress, formatDate, theme, playbackProgress, t]);
 
   const renderEmptyState = useCallback(() => (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}>
       <Text style={[theme.typography.h2 as any, { textAlign: 'center', marginBottom: 16 }]}>
-        No Recently Played
+        {t('listen.recentlyPlayed.empty')}
       </Text>
       <Text style={[theme.typography.body as any, { textAlign: 'center', color: theme.colors.textTertiary }]}>
-        Sermons you listen to will appear here
+        {t('listen.recentlyPlayed.emptyDescription')}
       </Text>
     </View>
-  ), [theme]);
+  ), [theme, t]);
 
   const renderHeader = useCallback(() => {
     if (recentlyPlayed.length === 0) return null;
@@ -257,16 +316,16 @@ export default function RecentlyPlayedScreen() {
         alignItems: 'center',
       }}>
         <Text style={[theme.typography.body as any, { color: theme.colors.textSecondary }]}>
-          {recentlyPlayed.length} {recentlyPlayed.length === 1 ? 'sermon' : 'sermons'}
+          {recentlyPlayed.length} {recentlyPlayed.length === 1 ? t('listen.recentlyPlayed.sermon') : t('listen.recentlyPlayed.sermons')}
         </Text>
         <TouchableOpacity onPress={handleClearAll}>
           <Text style={[theme.typography.body as any, { color: theme.colors.primary }]}>
-            Clear All
+            {t('listen.recentlyPlayed.clearAll')}
           </Text>
         </TouchableOpacity>
       </View>
     );
-  }, [recentlyPlayed.length, handleClearAll, theme]);
+  }, [recentlyPlayed.length, handleClearAll, theme, t]);
 
   if (loading) {
     return (
