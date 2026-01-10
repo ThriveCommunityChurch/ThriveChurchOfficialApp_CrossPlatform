@@ -349,9 +349,33 @@ export const SermonDetailScreen: React.FC = () => {
     });
   }, [navigation, message, displaySeriesTitle, displaySeriesArtUrl, seriesId]);
 
+  // Navigate to AI-generated sermon notes
+  const handleViewSermonNotes = useCallback(() => {
+    navigation.navigate('SermonNotesScreen', {
+      message,
+      seriesTitle: displaySeriesTitle,
+      seriesArtUrl: displaySeriesArtUrl,
+      seriesId,
+    });
+  }, [navigation, message, displaySeriesTitle, displaySeriesArtUrl, seriesId]);
+
+  // Navigate to study guide
+  const handleViewStudyGuide = useCallback(() => {
+    navigation.navigate('StudyGuideScreen', {
+      message,
+      seriesTitle: displaySeriesTitle,
+      seriesArtUrl: displaySeriesArtUrl,
+      seriesId,
+    });
+  }, [navigation, message, displaySeriesTitle, displaySeriesArtUrl, seriesId]);
+
   const hasAudio = !!message.AudioUrl;
   const hasVideo = !!message.VideoUrl;
   const hasPassage = !!message.PassageRef;
+
+  // Check for available transcript features
+  const hasNotes = message.AvailableTranscriptFeatures?.includes('Notes') ?? false;
+  const hasStudyGuide = message.AvailableTranscriptFeatures?.includes('StudyGuide') ?? false;
 
   // Render tablet layout with hero section and improved content layout
   const renderTabletLayout = () => {
@@ -590,7 +614,7 @@ export const SermonDetailScreen: React.FC = () => {
             </View>
           </View>
 
-          {/* Right Main Content - Summary and Topics */}
+          {/* Right Main Content - Summary, Resources, and Topics */}
           <View style={styles.tabletMainContent}>
             {/* Summary Section */}
             {message.Summary && (
@@ -598,6 +622,35 @@ export const SermonDetailScreen: React.FC = () => {
                 <Text style={styles.tabletSectionTitle}>{t('listen.aboutThisMessage')}</Text>
                 <View style={styles.tabletSummaryCard}>
                   <Text style={styles.tabletSummaryText}>{message.Summary}</Text>
+                </View>
+              </View>
+            )}
+
+            {/* Resources Section - Notes & Study Guide (Above Topics) */}
+            {(hasNotes || hasStudyGuide) && (
+              <View style={styles.tabletSection}>
+                <Text style={styles.tabletSectionTitle}>{t('listen.sermon.resources')}</Text>
+                <View style={styles.tabletResourcesButtonsRow}>
+                  {hasNotes && (
+                    <TouchableOpacity
+                      style={styles.tabletResourceButton}
+                      onPress={handleViewSermonNotes}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="document-text" size={18} color={theme.colors.primary} />
+                      <Text style={styles.tabletResourceButtonText}>{t('listen.sermon.viewNotes')}</Text>
+                    </TouchableOpacity>
+                  )}
+                  {hasStudyGuide && (
+                    <TouchableOpacity
+                      style={styles.tabletResourceButton}
+                      onPress={handleViewStudyGuide}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="library" size={18} color={theme.colors.primary} />
+                      <Text style={styles.tabletResourceButtonText}>{t('listen.sermon.studyGuide')}</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
               </View>
             )}
@@ -719,6 +772,35 @@ export const SermonDetailScreen: React.FC = () => {
             <View style={styles.summaryCard}>
               <Text style={styles.summaryLabel}>{t('listen.aboutThisMessage')}</Text>
               <Text style={styles.summaryText}>{message.Summary}</Text>
+            </View>
+          )}
+
+          {/* Resources Section - Notes & Study Guide (Above Topics) */}
+          {(hasNotes || hasStudyGuide) && (
+            <View style={styles.resourcesSection}>
+              <Text style={styles.resourcesSectionTitle}>{t('listen.sermon.resources')}</Text>
+              <View style={styles.resourcesButtonsRow}>
+                {hasNotes && (
+                  <TouchableOpacity
+                    style={styles.resourceButton}
+                    onPress={handleViewSermonNotes}
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons name="document-text" size={20} color={theme.colors.primary} />
+                    <Text style={styles.resourceButtonText}>{t('listen.sermon.viewNotes')}</Text>
+                  </TouchableOpacity>
+                )}
+                {hasStudyGuide && (
+                  <TouchableOpacity
+                    style={styles.resourceButton}
+                    onPress={handleViewStudyGuide}
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons name="library" size={20} color={theme.colors.primary} />
+                    <Text style={styles.resourceButtonText}>{t('listen.sermon.studyGuide')}</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
           )}
 
@@ -1090,6 +1172,41 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     borderColor: theme.colors.border,
     marginTop: 12,
   },
+  // Resources Section (Notes & Study Guide) - Above Topics
+  resourcesSection: {
+    marginTop: 16,
+    marginBottom: 24,
+  },
+  resourcesSectionTitle: {
+    ...theme.typography.h3,
+    fontSize: 14,
+    color: theme.colors.textSecondary,
+    marginBottom: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  resourcesButtonsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  resourceButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.primaryLight,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+  },
+  resourceButtonText: {
+    ...theme.typography.button,
+    fontSize: 12,
+    color: theme.colors.primary,
+    marginLeft: 8,
+  },
   // Tablet-specific styles - New iPad Design
   // Hero Section
   tabletHeroSection: {
@@ -1327,6 +1444,30 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     color: theme.colors.text, // ← ONLY COLOR CHANGED
     marginLeft: 8,
     fontWeight: '600',
+  },
+
+  // Tablet Resources Section - In main content area above Topics
+  tabletResourcesButtonsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  tabletResourceButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.primaryLight,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+  },
+  tabletResourceButtonText: {
+    ...theme.typography.button,
+    fontSize: 14,
+    color: theme.colors.primary,
+    marginLeft: 8,
   },
 
   // Right Main Content

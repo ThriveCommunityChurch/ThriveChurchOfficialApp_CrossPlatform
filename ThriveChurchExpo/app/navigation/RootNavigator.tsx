@@ -30,6 +30,8 @@ import DownloadsScreen from '../screens/Listen/DownloadsScreen';
 import VideoPlayerScreen from '../screens/Listen/VideoPlayerScreen';
 import BiblePassageScreen from '../screens/Listen/BiblePassageScreen';
 import LiveScreen from '../screens/Listen/LiveScreen';
+import { SermonNotesScreen } from '../screens/Listen/SermonNotesScreen';
+import { StudyGuideScreen } from '../screens/Listen/StudyGuideScreen';
 import { BibleSelectionScreen } from '../screens/Bible/BibleSelectionScreen';
 import { BookListScreen } from '../screens/Bible/BookListScreen';
 import { NotesListScreen, NoteDetailScreen } from '../screens/Notes';
@@ -251,6 +253,24 @@ function ListenStackNavigator({ theme }: { theme: Theme }) {
         component={BiblePassageScreen}
         options={{
           headerShown: false, // Hide header for immersive reading experience
+        }}
+      />
+      <ListenStack.Screen
+        name="SermonNotesScreen"
+        component={SermonNotesScreen}
+        options={{
+          title: t('listen.sermonNotes.title'),
+          headerBackTitle: t('navigation.sermon'),
+          headerTitleAlign: 'center',
+        }}
+      />
+      <ListenStack.Screen
+        name="StudyGuideScreen"
+        component={StudyGuideScreen}
+        options={{
+          title: t('listen.studyGuide.title'),
+          headerBackTitle: t('navigation.sermon'),
+          headerTitleAlign: 'center',
         }}
       />
     </ListenStack.Navigator>

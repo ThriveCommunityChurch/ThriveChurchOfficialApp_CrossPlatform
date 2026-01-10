@@ -169,7 +169,10 @@
       "removeDownloadMessage": "¿Estás seguro de que deseas eliminar este sermón descargado?",
       "removeSuccess": "Descarga eliminada exitosamente",
       "removeFailed": "Error al eliminar la descarga",
-      "takeNotes": "Tomar Notas"
+      "takeNotes": "Tomar Notas",
+      "resources": "Recursos",
+      "viewNotes": "Ver Notas (Inglés)",
+      "studyGuide": "Guía de Estudio (Inglés)"
     },
     "search": {
       "title": "Buscar",
@@ -328,7 +331,26 @@
       "emptyNote": "Nota Vacía",
       "emptyNoteMessage": "No hay contenido para compartir.",
       "shareError": "Error",
-      "shareErrorMessage": "No se pudo compartir la nota. Por favor, intenta de nuevo."
+      "shareErrorMessage": "No se pudo compartir la nota. Por favor, intenta de nuevo.",
+      "tapToEdit": "Toca para editar"
+    },
+    "markdownHelp": {
+      "title": "Consejos de Formato",
+      "description": "Las notas admiten formato Markdown. Usa estos códigos simples para dar estilo a tu texto:",
+      "headers": "Encabezados",
+      "headerExample1": "Encabezado Grande",
+      "headerExample2": "Encabezado Mediano",
+      "headerExample3": "Encabezado Pequeño",
+      "emphasis": "Negrita y Cursiva",
+      "boldText": "texto en negrita",
+      "italicText": "texto en cursiva",
+      "lists": "Listas",
+      "bulletItem": "Punto de lista",
+      "numberedItem": "Elemento numerado",
+      "quotes": "Citas",
+      "quoteExample": "Cita importante o escritura",
+      "links": "Enlaces",
+      "linkText": "Texto del enlace"
     }
   },
   "connect": {

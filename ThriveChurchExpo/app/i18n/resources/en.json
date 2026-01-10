@@ -169,7 +169,49 @@
       "removeDownloadMessage": "Are you sure you want to remove this downloaded sermon?",
       "removeSuccess": "Download removed successfully",
       "removeFailed": "Failed to remove download",
-      "takeNotes": "Take Notes"
+      "takeNotes": "Take Notes",
+      "resources": "Resources",
+      "viewNotes": "View Notes",
+      "studyGuide": "Study Guide"
+    },
+    "sermonNotes": {
+      "title": "Sermon Notes",
+      "loading": "Loading notes...",
+      "notAvailable": "Notes Not Available",
+      "notAvailableMessage": "AI-generated notes are not available for this message yet.",
+      "summary": "Summary",
+      "keyPoints": "Key Points",
+      "quotes": "Notable Quotes",
+      "applicationPoints": "Application Points",
+      "saveToNotes": "Save to My Notes",
+      "savedToNotes": "Notes saved successfully! You can find them in your Notes section.",
+      "saveFailed": "Failed to save notes. Please try again.",
+      "noteExists": "Note Already Exists",
+      "noteExistsMessage": "You already have notes for this sermon. Would you like to append this content?",
+      "appendNote": "Add to Note",
+      "viewNotes": "View Notes"
+    },
+    "studyGuide": {
+      "title": "Study Guide",
+      "loading": "Loading study guide...",
+      "notAvailable": "Study Guide Not Available",
+      "notAvailableMessage": "This study guide is designed for small groups and personal devotional time.",
+      "overview": "Overview",
+      "scriptureReferences": "Scripture References",
+      "directlyQuoted": "Directly Quoted",
+      "devotional": "Devotional",
+      "keyPoints": "Key Points",
+      "illustrations": "Illustrations",
+      "point": "Point",
+      "discussionQuestions": "Discussion Questions",
+      "icebreaker": "Icebreaker",
+      "reflection": "Reflection",
+      "application": "Application",
+      "forLeaders": "For Leaders",
+      "prayerPrompts": "Prayer Prompts",
+      "takeHomeChallenges": "Take Home Challenges",
+      "additionalStudy": "Additional Study",
+      "estimatedTime": "Estimated Time"
     },
     "search": {
       "title": "Search",
@@ -329,7 +371,26 @@
       "emptyNote": "Empty Note",
       "emptyNoteMessage": "There is no content to share.",
       "shareError": "Error",
-      "shareErrorMessage": "Unable to share note. Please try again."
+      "shareErrorMessage": "Unable to share note. Please try again.",
+      "tapToEdit": "Tap to edit"
+    },
+    "markdownHelp": {
+      "title": "Formatting Tips",
+      "description": "Notes support Markdown formatting. Use these simple codes to style your text:",
+      "headers": "Headers",
+      "headerExample1": "Large Header",
+      "headerExample2": "Medium Header",
+      "headerExample3": "Small Header",
+      "emphasis": "Bold & Italic",
+      "boldText": "bold text",
+      "italicText": "italic text",
+      "lists": "Lists",
+      "bulletItem": "Bullet point",
+      "numberedItem": "Numbered item",
+      "quotes": "Block Quotes",
+      "quoteExample": "Important quote or scripture",
+      "links": "Links",
+      "linkText": "Link text"
     }
   },
   "connect": {
