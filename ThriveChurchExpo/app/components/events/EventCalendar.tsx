@@ -184,7 +184,7 @@ export const EventCalendar: React.FC<EventCalendarProps> = ({
                     styles.dayText,
                     !day.isCurrentMonth && styles.dayTextOtherMonth,
                     dayIsToday && styles.dayTextToday,
-                    dayIsSelected && styles.dayTextSelected,
+                    dayIsSelected && !dayIsToday && styles.dayTextSelected,
                   ]}
                 >
                   {day.date.getDate()}
