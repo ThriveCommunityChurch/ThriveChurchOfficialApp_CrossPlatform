@@ -10,6 +10,7 @@ export {
   checkLiveStatus,
   getYouTubeWatchUrl,
   getYouTubeEmbedUrl,
+  getYouTubeEmbedHtml,
   getYouTubeAppUrl,
 } from './youtubeService';
 

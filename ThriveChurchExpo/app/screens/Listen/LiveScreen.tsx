@@ -21,8 +21,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../hooks/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useLiveStream } from '../../hooks/useLiveStream';
-import { getYouTubeWatchUrl, getYouTubeEmbedUrl } from '../../services/youtube';
-import { youtubeConfig } from '../../config/app.config';
+import { getYouTubeWatchUrl, getYouTubeEmbedHtml } from '../../services/youtube';
 import { LiveBadge } from '../../components/LiveBadge';
 import { setCurrentScreen } from '../../services/analytics/analyticsService';
 import type { Theme } from '../../theme/types';
@@ -109,16 +108,17 @@ export const LiveScreen: React.FC = () => {
           </View>
         )}
 
-        {/* YouTube Player (WebView) */}
+        {/* YouTube Player (WebView with HTML wrapper to avoid Error 153) */}
         <View style={styles.playerContainer}>
           <WebView
-            source={{ uri: getYouTubeEmbedUrl(liveStatus.videoId) }}
+            source={{ html: getYouTubeEmbedHtml(liveStatus.videoId) }}
             style={styles.webView}
             allowsFullscreenVideo={true}
             allowsInlineMediaPlayback={true}
             mediaPlaybackRequiresUserAction={false}
             javaScriptEnabled={true}
             allowsPictureInPictureMediaPlayback={true}
+            originWhitelist={['*']}
           />
         </View>
 
