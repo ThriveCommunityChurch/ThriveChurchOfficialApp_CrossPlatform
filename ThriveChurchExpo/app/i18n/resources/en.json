@@ -860,7 +860,11 @@
       "calendarError": "Unable to add event to calendar",
       "calendarPermission": "Calendar permission is required to add events",
       "mapsError": "Unable to open maps",
-      "shareError": "Unable to share event"
+      "shareError": "Unable to share event",
+      "addToCalendarTitle": "Add to Calendar",
+      "addToCalendarMessage": "This is a recurring event. Would you like to add just this occurrence or all future occurrences?",
+      "thisEventOnly": "This Event Only",
+      "allFutureEvents": "All Future Events"
     },
     "menu": {
       "title": "Events",

@@ -29,6 +29,7 @@ import {
   formatEventDateTime,
   formatEventLocation,
   getRecurrencePatternLabel,
+  getCalendarRecurrenceRule,
 } from '../../services/api/eventService';
 import { setCurrentScreen, logCustomEvent } from '../../services/analytics/analyticsService';
 
@@ -98,8 +99,8 @@ export const EventDetailScreen: React.FC = () => {
     }
   };
 
-  // Handle add to calendar
-  const handleAddToCalendar = async () => {
+  // Add event to calendar (helper function)
+  const addEventToCalendar = async (includeRecurrence: boolean) => {
     if (!event) return;
 
     try {
@@ -127,7 +128,8 @@ export const EventDetailScreen: React.FC = () => {
         ? new Date(event.EndTime)
         : new Date(startDate.getTime() + 60 * 60 * 1000); // Default 1 hour
 
-      await Calendar.createEventAsync(defaultCalendar.id, {
+      // Build event details
+      const eventDetails: Parameters<typeof Calendar.createEventAsync>[1] = {
         title: event.Title,
         startDate,
         endDate,
@@ -135,13 +137,62 @@ export const EventDetailScreen: React.FC = () => {
         location: formatEventLocation(event.Location, event.LocationName),
         notes: event.Description || event.Summary,
         url: event.OnlineLink,
-      });
+      };
+
+      // Add recurrence rule if requested (infinite recurrence - no end date)
+      const recurrencePattern = event.Recurrence?.Pattern ?? event.RecurrencePattern;
+      if (includeRecurrence && event.IsRecurring && recurrencePattern) {
+        const recurrenceRule = getCalendarRecurrenceRule(recurrencePattern);
+        if (recurrenceRule) {
+          eventDetails.recurrenceRule = recurrenceRule;
+        }
+      }
+
+      await Calendar.createEventAsync(defaultCalendar.id, eventDetails);
 
       Alert.alert(t('events.alerts.calendarSuccess'));
-      logCustomEvent('add_to_calendar', { event_id: eventId });
+      logCustomEvent('add_to_calendar', {
+        event_id: eventId,
+        is_recurring: event.IsRecurring,
+        include_recurrence: includeRecurrence,
+        recurrence_pattern: recurrencePattern,
+      });
     } catch (err) {
       console.error('Error adding to calendar:', err);
       Alert.alert(t('events.alerts.calendarError'));
+    }
+  };
+
+  // Handle add to calendar button press
+  const handleAddToCalendar = () => {
+    if (!event) return;
+
+    // Get pattern from Recurrence.Pattern (detail view) or RecurrencePattern (summary)
+    const recurrencePattern = event.Recurrence?.Pattern ?? event.RecurrencePattern;
+
+    // If event is recurring, show dialog to choose between single or all instances
+    if (event.IsRecurring && recurrencePattern) {
+      Alert.alert(
+        t('events.alerts.addToCalendarTitle'),
+        t('events.alerts.addToCalendarMessage'),
+        [
+          {
+            text: t('common.cancel'),
+            style: 'cancel',
+          },
+          {
+            text: t('events.alerts.thisEventOnly'),
+            onPress: () => addEventToCalendar(false),
+          },
+          {
+            text: t('events.alerts.allFutureEvents'),
+            onPress: () => addEventToCalendar(true),
+          },
+        ]
+      );
+    } else {
+      // Non-recurring event, add directly
+      addEventToCalendar(false);
     }
   };
 
@@ -281,7 +332,7 @@ export const EventDetailScreen: React.FC = () => {
             <View style={[styles.badge, styles.recurringBadge]}>
               <Ionicons name="repeat" size={12} color={theme.colors.primary} />
               <Text style={styles.recurringBadgeText}>
-                {getRecurrencePatternLabel(event.RecurrencePattern)}
+                {getRecurrencePatternLabel(event.Recurrence?.Pattern) || getRecurrencePatternLabel(event.RecurrencePattern) || t('events.badges.recurring')}
               </Text>
             </View>
           )}

@@ -223,7 +223,7 @@ const createStyles = (theme: Theme) =>
     container: {
       backgroundColor: theme.colors.card,
       borderRadius: 12,
-      padding: 12,
+      padding: 16,
       marginHorizontal: 16,
       marginVertical: 8,
       borderWidth: 1,
@@ -233,10 +233,12 @@ const createStyles = (theme: Theme) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginBottom: 12,
+      marginBottom: 16,
+      paddingHorizontal: 4,
     },
     navButton: {
       padding: 8,
+      borderRadius: 8,
     },
     monthTitle: {
       flex: 1,
@@ -247,23 +249,25 @@ const createStyles = (theme: Theme) =>
       fontWeight: '600',
       fontFamily: Platform.OS === 'ios' ? 'Avenir-Heavy' : 'Lato-Bold',
       color: theme.colors.text,
+      textAlign: 'center',
     },
     weekHeader: {
       flexDirection: 'row',
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
-      paddingBottom: 8,
-      marginBottom: 4,
+      paddingBottom: 12,
+      marginBottom: 8,
     },
     weekDayCell: {
       flex: 1,
       alignItems: 'center',
     },
     weekDayText: {
-      fontSize: 12,
+      fontSize: 13,
       fontWeight: '500',
       fontFamily: Platform.OS === 'ios' ? 'Avenir-Medium' : 'Lato-Semibold',
       color: theme.colors.textSecondary,
+      textAlign: 'center',
     },
     grid: {
       flexDirection: 'row',
@@ -274,21 +278,19 @@ const createStyles = (theme: Theme) =>
       aspectRatio: 1,
       alignItems: 'center',
       justifyContent: 'center',
-      padding: 2,
     },
     dayCellOtherMonth: {
-      opacity: 0.4,
+      opacity: 0.35,
     },
     dayCellSelected: {
-      backgroundColor: theme.colors.primaryLight || 'rgba(0, 122, 153, 0.08)',
-      borderRadius: 8,
+      // No background on selected cell - the circle handles it
     },
     dayNumber: {
-      width: 32,
-      height: 32,
+      width: 36,
+      height: 36,
       alignItems: 'center',
       justifyContent: 'center',
-      borderRadius: 16,
+      borderRadius: 18,
     },
     dayNumberToday: {
       backgroundColor: theme.colors.primary,
@@ -296,11 +298,13 @@ const createStyles = (theme: Theme) =>
     dayNumberSelected: {
       borderWidth: 2,
       borderColor: theme.colors.primary,
+      backgroundColor: theme.colors.primaryLight || 'rgba(0, 122, 153, 0.1)',
     },
     dayText: {
-      fontSize: 14,
+      fontSize: 15,
       fontFamily: Platform.OS === 'ios' ? 'Avenir-Book' : 'Lato-Regular',
       color: theme.colors.text,
+      textAlign: 'center',
     },
     dayTextOtherMonth: {
       color: theme.colors.textTertiary,
@@ -316,13 +320,13 @@ const createStyles = (theme: Theme) =>
     eventDotsContainer: {
       flexDirection: 'row',
       position: 'absolute',
-      bottom: 4,
-      gap: 2,
+      bottom: 2,
+      gap: 3,
     },
     eventDot: {
-      width: 4,
-      height: 4,
-      borderRadius: 2,
+      width: 5,
+      height: 5,
+      borderRadius: 2.5,
       backgroundColor: theme.colors.primary,
     },
     eventDotFeatured: {
@@ -332,15 +336,15 @@ const createStyles = (theme: Theme) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      paddingVertical: 8,
-      marginTop: 8,
+      paddingVertical: 12,
+      marginTop: 12,
       borderTopWidth: 1,
       borderTopColor: theme.colors.border,
-      gap: 6,
+      gap: 8,
     },
     todayButtonText: {
-      fontSize: 14,
-      fontWeight: '500',
+      fontSize: 15,
+      fontWeight: '600',
       fontFamily: Platform.OS === 'ios' ? 'Avenir-Medium' : 'Lato-Semibold',
       color: theme.colors.primary,
     },

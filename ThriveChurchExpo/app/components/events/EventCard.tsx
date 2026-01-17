@@ -22,9 +22,11 @@ import { formatEventDateTime, getRecurrencePatternLabel } from '../../services/a
 interface EventCardProps {
   event: EventSummary;
   onPress: () => void;
+  /** If true, hides the featured badge (e.g., when shown in main list after featured carousel) */
+  hideFeaturedBadge?: boolean;
 }
 
-export const EventCard: React.FC<EventCardProps> = ({ event, onPress }) => {
+export const EventCard: React.FC<EventCardProps> = ({ event, onPress, hideFeaturedBadge = false }) => {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const styles = createStyles(theme);
@@ -63,33 +65,35 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onPress }) => {
       accessibilityRole="button"
     >
       <Animated.View style={[styles.container, { transform: [{ scale: scaleAnim }] }]}>
-        {/* Badges Row */}
-        <View style={styles.badgesRow}>
-          {event.IsFeatured && (
-            <View style={[styles.badge, styles.featuredBadge]}>
-              <Ionicons name="star" size={10} color={theme.colors.warning} />
-              <Text style={[styles.badgeText, styles.featuredBadgeText]}>
-                {t('events.badges.featured')}
-              </Text>
-            </View>
-          )}
-          {event.IsOnline && (
-            <View style={[styles.badge, styles.onlineBadge]}>
-              <Ionicons name="videocam" size={10} color={theme.colors.info} />
-              <Text style={[styles.badgeText, styles.onlineBadgeText]}>
-                {t('events.badges.online')}
-              </Text>
-            </View>
-          )}
-          {event.IsRecurring && (
-            <View style={[styles.badge, styles.recurringBadge]}>
-              <Ionicons name="repeat" size={10} color={theme.colors.primary} />
-              <Text style={[styles.badgeText, styles.recurringBadgeText]}>
-                {getRecurrencePatternLabel(event.RecurrencePattern)}
-              </Text>
-            </View>
-          )}
-        </View>
+        {/* Badges Row - only show if there are badges to display */}
+        {((!hideFeaturedBadge && event.IsFeatured) || event.IsOnline || event.IsRecurring) && (
+          <View style={styles.badgesRow}>
+            {!hideFeaturedBadge && event.IsFeatured && (
+              <View style={[styles.badge, styles.featuredBadge]}>
+                <Ionicons name="star" size={10} color={theme.colors.warning} />
+                <Text style={[styles.badgeText, styles.featuredBadgeText]}>
+                  {t('events.badges.featured')}
+                </Text>
+              </View>
+            )}
+            {event.IsOnline && (
+              <View style={[styles.badge, styles.onlineBadge]}>
+                <Ionicons name="videocam" size={10} color={theme.colors.info} />
+                <Text style={[styles.badgeText, styles.onlineBadgeText]}>
+                  {t('events.badges.online')}
+                </Text>
+              </View>
+            )}
+            {event.IsRecurring && (
+              <View style={[styles.badge, styles.recurringBadge]}>
+                <Ionicons name="repeat" size={10} color={theme.colors.primary} />
+                <Text style={[styles.badgeText, styles.recurringBadgeText]}>
+                  {getRecurrencePatternLabel(event.RecurrencePattern)}
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
 
         {/* Title */}
         <Text style={styles.title} numberOfLines={2}>

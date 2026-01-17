@@ -4,6 +4,7 @@
  */
 
 import { api } from './client';
+import * as Calendar from 'expo-calendar';
 import {
   AllEventsResponse,
   Event,
@@ -76,22 +77,145 @@ export async function getUpcomingEvents(): Promise<EventSummary[]> {
 
 /**
  * Get recurrence pattern display label
+ * Handles both numeric enum values and string values from API
  */
-export function getRecurrencePatternLabel(pattern: RecurrencePattern): string {
+export function getRecurrencePatternLabel(pattern: RecurrencePattern | string | number | undefined): string {
+  // Handle undefined or null
+  if (pattern === undefined || pattern === null) {
+    return '';
+  }
+
+  // If it's a string, check for string representations
+  if (typeof pattern === 'string') {
+    const lowerPattern = pattern.toLowerCase();
+    switch (lowerPattern) {
+      case 'daily':
+        return 'Daily';
+      case 'weekly':
+        return 'Weekly';
+      case 'biweekly':
+      case 'bi-weekly':
+        return 'Bi-Weekly';
+      case 'monthly':
+        return 'Monthly';
+      case 'yearly':
+        return 'Yearly';
+      case 'none':
+        return '';
+      default:
+        // If it's a numeric string, parse it
+        const numericPattern = parseInt(pattern, 10);
+        if (!isNaN(numericPattern)) {
+          return getRecurrencePatternLabel(numericPattern);
+        }
+        return '';
+    }
+  }
+
+  // Handle numeric enum values
   switch (pattern) {
     case RecurrencePattern.Daily:
+    case 1:
       return 'Daily';
     case RecurrencePattern.Weekly:
+    case 2:
       return 'Weekly';
     case RecurrencePattern.BiWeekly:
+    case 3:
       return 'Bi-Weekly';
     case RecurrencePattern.Monthly:
+    case 4:
       return 'Monthly';
     case RecurrencePattern.Yearly:
+    case 5:
       return 'Yearly';
+    case RecurrencePattern.None:
+    case 0:
     default:
       return '';
   }
+}
+
+/**
+ * Normalize a recurrence pattern to a numeric value
+ * Handles both string and numeric values from API
+ */
+function normalizeRecurrencePattern(pattern: RecurrencePattern | string | number | undefined): number {
+  if (pattern === undefined || pattern === null) {
+    return RecurrencePattern.None;
+  }
+
+  if (typeof pattern === 'string') {
+    const lowerPattern = pattern.toLowerCase();
+    switch (lowerPattern) {
+      case 'daily':
+        return RecurrencePattern.Daily;
+      case 'weekly':
+        return RecurrencePattern.Weekly;
+      case 'biweekly':
+      case 'bi-weekly':
+        return RecurrencePattern.BiWeekly;
+      case 'monthly':
+        return RecurrencePattern.Monthly;
+      case 'yearly':
+        return RecurrencePattern.Yearly;
+      case 'none':
+        return RecurrencePattern.None;
+      default:
+        const numericPattern = parseInt(pattern, 10);
+        return isNaN(numericPattern) ? RecurrencePattern.None : numericPattern;
+    }
+  }
+
+  return pattern as number;
+}
+
+/**
+ * Convert app RecurrencePattern to expo-calendar RecurrenceRule
+ * @param pattern - The app's recurrence pattern (string or number)
+ * @param endDate - Optional end date for the recurring event
+ * @returns RecurrenceRule object for expo-calendar, or null if not recurring
+ */
+export function getCalendarRecurrenceRule(
+  pattern: RecurrencePattern | string | number | undefined,
+  endDate?: string
+): Calendar.RecurrenceRule | null {
+  const normalizedPattern = normalizeRecurrencePattern(pattern);
+  let frequency: Calendar.Frequency;
+  let interval = 1;
+
+  switch (normalizedPattern) {
+    case RecurrencePattern.Daily:
+      frequency = Calendar.Frequency.DAILY;
+      break;
+    case RecurrencePattern.Weekly:
+      frequency = Calendar.Frequency.WEEKLY;
+      break;
+    case RecurrencePattern.BiWeekly:
+      frequency = Calendar.Frequency.WEEKLY;
+      interval = 2;
+      break;
+    case RecurrencePattern.Monthly:
+      frequency = Calendar.Frequency.MONTHLY;
+      break;
+    case RecurrencePattern.Yearly:
+      frequency = Calendar.Frequency.YEARLY;
+      break;
+    default:
+      return null;
+  }
+
+  const rule: Calendar.RecurrenceRule = {
+    frequency,
+    interval,
+  };
+
+  // Add end date if provided
+  if (endDate) {
+    rule.endDate = new Date(endDate);
+  }
+
+  return rule;
 }
 
 /**
@@ -150,43 +274,120 @@ export function formatEventDateTime(
 }
 
 /**
+ * Normalize a date to midnight (start of day) in local time
+ * This helps with date comparisons by ignoring time components
+ */
+function normalizeToMidnight(date: Date): Date {
+  const normalized = new Date(date);
+  normalized.setHours(0, 0, 0, 0);
+  return normalized;
+}
+
+/**
+ * Check if two dates are the same day (ignoring time)
+ */
+function isSameDay(date1: Date, date2: Date): boolean {
+  return (
+    date1.getFullYear() === date2.getFullYear() &&
+    date1.getMonth() === date2.getMonth() &&
+    date1.getDate() === date2.getDate()
+  );
+}
+
+/**
+ * Check if date1 is on or after date2 (comparing dates only, not times)
+ */
+function isDateOnOrAfter(date1: Date, date2: Date): boolean {
+  const d1 = normalizeToMidnight(date1);
+  const d2 = normalizeToMidnight(date2);
+  return d1.getTime() >= d2.getTime();
+}
+
+/**
  * Check if an event occurs on a specific date (handles recurrence)
+ * Handles both numeric and string recurrence patterns from API
  */
 export function eventOccursOnDate(event: EventSummary, date: Date): boolean {
   const eventStart = new Date(event.StartTime);
 
+  // Normalize the pattern to a number (handles string values from API)
+  const normalizedPattern = normalizeRecurrencePattern(event.RecurrencePattern);
+
   // Non-recurring: exact date match
-  if (!event.IsRecurring || event.RecurrencePattern === RecurrencePattern.None) {
-    return (
-      date.getFullYear() === eventStart.getFullYear() &&
-      date.getMonth() === eventStart.getMonth() &&
-      date.getDate() === eventStart.getDate()
-    );
+  if (!event.IsRecurring || normalizedPattern === RecurrencePattern.None) {
+    return isSameDay(date, eventStart);
   }
 
-  // Recurring events
-  switch (event.RecurrencePattern) {
+  // Check if date is before event start
+  if (!isDateOnOrAfter(date, eventStart)) {
+    return false;
+  }
+
+  // Recurring events - check pattern match
+  let matches = false;
+  switch (normalizedPattern) {
     case RecurrencePattern.Daily:
-      return date >= eventStart;
+      matches = true; // Every day after start
+      break;
     case RecurrencePattern.Weekly:
-      return date.getDay() === eventStart.getDay() && date >= eventStart;
+      matches = date.getDay() === eventStart.getDay();
+      break;
     case RecurrencePattern.BiWeekly: {
-      const diffWeeks = Math.floor(
-        (date.getTime() - eventStart.getTime()) / (7 * 24 * 60 * 60 * 1000)
-      );
-      return date.getDay() === eventStart.getDay() && diffWeeks % 2 === 0 && date >= eventStart;
+      // Calculate weeks difference from start date
+      const startNormalized = normalizeToMidnight(eventStart);
+      const dateNormalized = normalizeToMidnight(date);
+      const diffMs = dateNormalized.getTime() - startNormalized.getTime();
+      const diffWeeks = Math.floor(diffMs / (7 * 24 * 60 * 60 * 1000));
+      matches = date.getDay() === eventStart.getDay() && diffWeeks % 2 === 0;
+      break;
     }
     case RecurrencePattern.Monthly:
-      return date.getDate() === eventStart.getDate() && date >= eventStart;
+      matches = date.getDate() === eventStart.getDate();
+      break;
     case RecurrencePattern.Yearly:
-      return (
-        date.getMonth() === eventStart.getMonth() &&
-        date.getDate() === eventStart.getDate() &&
-        date >= eventStart
-      );
+      matches = date.getMonth() === eventStart.getMonth() && date.getDate() === eventStart.getDate();
+      break;
     default:
       return false;
   }
+
+  return matches;
+}
+
+/**
+ * Get the next occurrence date for an event (from today or a given date)
+ * For non-recurring events, returns the event start date if it's in the future, otherwise null
+ * For recurring events, finds the next occurrence
+ * @param event - The event to check
+ * @param fromDate - The date to start searching from (defaults to today)
+ * @param maxDaysToSearch - Maximum days to search ahead for recurring events (default 365)
+ * @returns The next occurrence date, or null if no future occurrence exists
+ */
+export function getNextOccurrence(
+  event: EventSummary,
+  fromDate: Date = new Date(),
+  maxDaysToSearch: number = 365
+): Date | null {
+  const eventStart = new Date(event.StartTime);
+  const normalizedPattern = normalizeRecurrencePattern(event.RecurrencePattern);
+  const from = normalizeToMidnight(fromDate);
+
+  // Non-recurring: return start date if it's today or in the future
+  if (!event.IsRecurring || normalizedPattern === RecurrencePattern.None) {
+    const eventDateNormalized = normalizeToMidnight(eventStart);
+    return eventDateNormalized >= from ? eventDateNormalized : null;
+  }
+
+  // Recurring events: find the next occurrence
+  for (let i = 0; i < maxDaysToSearch; i++) {
+    const checkDate = new Date(from);
+    checkDate.setDate(from.getDate() + i);
+    if (eventOccursOnDate(event, checkDate)) {
+      return checkDate;
+    }
+  }
+
+  return null;
 }
 
 /**

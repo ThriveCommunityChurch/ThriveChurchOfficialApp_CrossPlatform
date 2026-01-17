@@ -21,7 +21,7 @@ import { useTheme } from '../../hooks/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 import { EventSummary } from '../../types/events';
-import { getAllEvents, eventOccursOnDate } from '../../services/api/eventService';
+import { getAllEvents, eventOccursOnDate, getNextOccurrence } from '../../services/api/eventService';
 import { EventCard, EventCardSkeleton, EventCalendar, FeaturedEventsBanner } from '../../components/events';
 import OfflineEmptyState from '../../components/OfflineEmptyState';
 import { setCurrentScreen, logCustomEvent } from '../../services/analytics/analyticsService';
@@ -74,13 +74,31 @@ export const EventsScreen: React.FC = () => {
         return;
       }
 
-      // Sort events by start time
-      const sortedEvents = response.Events.sort(
-        (a, b) => new Date(a.StartTime).getTime() - new Date(b.StartTime).getTime()
-      );
+      const today = new Date();
 
-      // Filter featured events
-      const featured = sortedEvents.filter((e) => e.IsFeatured && e.IsActive);
+      // Sort events by next occurrence date (soonest first)
+      // Events with no upcoming occurrence go to the end
+      const sortedEvents = response.Events.sort((a, b) => {
+        const nextA = getNextOccurrence(a, today);
+        const nextB = getNextOccurrence(b, today);
+
+        // If neither has a next occurrence, sort by original start time
+        if (!nextA && !nextB) {
+          return new Date(a.StartTime).getTime() - new Date(b.StartTime).getTime();
+        }
+        // Events with no upcoming occurrence go to the end
+        if (!nextA) return 1;
+        if (!nextB) return -1;
+        // Sort by next occurrence date
+        return nextA.getTime() - nextB.getTime();
+      });
+
+      // Filter featured events - only show upcoming/current ones
+      const featured = sortedEvents.filter((e) => {
+        if (!e.IsFeatured || !e.IsActive) return false;
+        // Use getNextOccurrence to check if there's an upcoming occurrence
+        return getNextOccurrence(e, today) !== null;
+      });
 
       setEvents(sortedEvents);
       setFeaturedEvents(featured);
@@ -125,12 +143,21 @@ export const EventsScreen: React.FC = () => {
     setSelectedDateEvents(eventsOnDate);
   }, []);
 
-  // Toggle view mode
-  const toggleViewMode = useCallback(() => {
-    const newMode = viewMode === 'list' ? 'calendar' : 'list';
-    setViewMode(newMode);
-    logCustomEvent('toggle_events_view', { view_mode: newMode });
-  }, [viewMode]);
+  // Toggle view mode - auto-select today when switching to calendar
+  const switchToCalendar = useCallback(() => {
+    setViewMode('calendar');
+    // Auto-select today's date and find events for today
+    const today = new Date();
+    setSelectedDate(today);
+    const todayEvents = events.filter((e) => eventOccursOnDate(e, today));
+    setSelectedDateEvents(todayEvents);
+    logCustomEvent('toggle_events_view', { view_mode: 'calendar' });
+  }, [events]);
+
+  const switchToList = useCallback(() => {
+    setViewMode('list');
+    logCustomEvent('toggle_events_view', { view_mode: 'list' });
+  }, []);
 
   // Get events for list display
   const getDisplayEvents = (): EventSummary[] => {
@@ -139,7 +166,15 @@ export const EventsScreen: React.FC = () => {
     }
     // Filter to upcoming events only for list view
     const now = new Date();
-    return events.filter((e) => new Date(e.StartTime) >= now || e.IsRecurring);
+    const upcomingEvents = events.filter((e) => new Date(e.StartTime) >= now || e.IsRecurring);
+
+    // In list view, don't show featured events in the main list since they're in the carousel
+    if (viewMode === 'list' && featuredEvents.length > 0) {
+      const featuredIds = new Set(featuredEvents.map(e => e.Id));
+      return upcomingEvents.filter(e => !featuredIds.has(e.Id));
+    }
+
+    return upcomingEvents;
   };
 
   // Render view mode toggle
@@ -147,7 +182,7 @@ export const EventsScreen: React.FC = () => {
     <View style={styles.toggleContainer}>
       <TouchableOpacity
         style={[styles.toggleButton, viewMode === 'list' && styles.toggleButtonActive]}
-        onPress={() => setViewMode('list')}
+        onPress={switchToList}
         accessibilityLabel={t('events.viewMode.list')}
       >
         <Ionicons
@@ -161,7 +196,7 @@ export const EventsScreen: React.FC = () => {
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.toggleButton, viewMode === 'calendar' && styles.toggleButtonActive]}
-        onPress={() => setViewMode('calendar')}
+        onPress={switchToCalendar}
         accessibilityLabel={t('events.viewMode.calendar')}
       >
         <Ionicons
@@ -187,14 +222,24 @@ export const EventsScreen: React.FC = () => {
 
   // Render empty state
   const renderEmptyState = () => {
-    if (viewMode === 'calendar' && selectedDate && selectedDateEvents.length === 0) {
+    if (viewMode === 'calendar') {
+      if (selectedDate) {
+        return (
+          <View style={styles.emptyState}>
+            <Ionicons name="calendar-outline" size={48} color={theme.colors.textTertiary} />
+            <Text style={styles.emptyTitle}>{t('events.noEvents')}</Text>
+            <Text style={styles.emptyText}>
+              {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+            </Text>
+          </View>
+        );
+      }
+      // Calendar view but no date selected - prompt user
       return (
         <View style={styles.emptyState}>
           <Ionicons name="calendar-outline" size={48} color={theme.colors.textTertiary} />
-          <Text style={styles.emptyTitle}>{t('events.noEvents')}</Text>
-          <Text style={styles.emptyText}>
-            {selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
-          </Text>
+          <Text style={styles.emptyTitle}>{t('events.selectDate') || 'Select a Date'}</Text>
+          <Text style={styles.emptyText}>{t('events.selectDateDescription') || 'Tap on a date to see events'}</Text>
         </View>
       );
     }
@@ -209,7 +254,11 @@ export const EventsScreen: React.FC = () => {
 
   // Render event item
   const renderItem = ({ item }: { item: EventSummary }) => (
-    <EventCard event={item} onPress={() => handleEventPress(item)} />
+    <EventCard
+      event={item}
+      onPress={() => handleEventPress(item)}
+      hideFeaturedBadge={viewMode === 'list' && featuredEvents.length > 0}
+    />
   );
 
   // Render list header
@@ -358,19 +407,26 @@ const createStyles = (theme: Theme) =>
       alignItems: 'center',
       justifyContent: 'space-between',
       marginHorizontal: 16,
-      marginTop: 12,
-      marginBottom: 8,
+      marginTop: 16,
+      marginBottom: 12,
+      paddingBottom: 8,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border,
     },
     selectedDateText: {
-      fontSize: 16,
+      fontSize: 17,
       fontWeight: '600',
       fontFamily: Platform.OS === 'ios' ? 'Avenir-Heavy' : 'Lato-Bold',
       color: theme.colors.text,
     },
     selectedDateCount: {
-      fontSize: 13,
-      fontFamily: Platform.OS === 'ios' ? 'Avenir-Book' : 'Lato-Regular',
+      fontSize: 14,
+      fontFamily: Platform.OS === 'ios' ? 'Avenir-Medium' : 'Lato-Regular',
       color: theme.colors.textSecondary,
+      backgroundColor: theme.colors.backgroundSecondary,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 12,
     },
     skeletonContainer: {
       paddingTop: 8,

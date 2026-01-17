@@ -820,7 +820,11 @@
       "calendarError": "No se pudo agregar el evento al calendario",
       "calendarPermission": "Se requiere permiso del calendario para agregar eventos",
       "mapsError": "No se puede abrir mapas",
-      "shareError": "No se puede compartir el evento"
+      "shareError": "No se puede compartir el evento",
+      "addToCalendarTitle": "Agregar al Calendario",
+      "addToCalendarMessage": "Este es un evento recurrente. ¿Desea agregar solo esta ocasión o todas las ocasiones futuras?",
+      "thisEventOnly": "Solo Este Evento",
+      "allFutureEvents": "Todos los Eventos Futuros"
     },
     "menu": {
       "title": "Eventos",
