@@ -39,6 +39,7 @@ Search for **"Thrive Church Official App"** in the Apple App Store or Google Pla
 ### 🗓️ Events
 - Browse upcoming church events with details
 - View event date, time, location, and description
+- Add event to device calendar via .ics style integration
 
 ### 🤝 Connect
 - Native screens for I'm New, Social, Serve, About, and Meet the Team

@@ -21,7 +21,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../hooks/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useLiveStream } from '../../hooks/useLiveStream';
-import { getYouTubeWatchUrl, getYouTubeEmbedHtml } from '../../services/youtube';
+import { getYouTubeWatchUrl } from '../../services/youtube';
 import { LiveBadge } from '../../components/LiveBadge';
 import { setCurrentScreen } from '../../services/analytics/analyticsService';
 import type { Theme } from '../../theme/types';
@@ -108,15 +108,40 @@ export const LiveScreen: React.FC = () => {
           </View>
         )}
 
-        {/* YouTube Player (WebView with HTML wrapper to avoid Error 153) */}
+        {/* YouTube Player - uses baseUrl for proper Referer header (fixes Error 153/152) */}
         <View style={styles.playerContainer}>
           <WebView
-            source={{ html: getYouTubeEmbedHtml(liveStatus.videoId) }}
+            source={{
+              html: `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                  <meta charset="utf-8">
+                  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+                  <style>
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    html, body { width: 100%; height: 100%; background-color: #000; overflow: hidden; }
+                    iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+                  </style>
+                </head>
+                <body>
+                  <iframe
+                    src="https://www.youtube.com/embed/${liveStatus.videoId}?autoplay=1&playsinline=1&rel=0&modestbranding=1"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowfullscreen
+                    referrerpolicy="strict-origin-when-cross-origin"
+                  ></iframe>
+                </body>
+                </html>
+              `,
+              baseUrl: 'https://thrive-fl.org'
+            }}
             style={styles.webView}
             allowsFullscreenVideo={true}
             allowsInlineMediaPlayback={true}
             mediaPlaybackRequiresUserAction={false}
             javaScriptEnabled={true}
+            domStorageEnabled={true}
             allowsPictureInPictureMediaPlayback={true}
             originWhitelist={['*']}
           />

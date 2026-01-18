@@ -87,19 +87,22 @@ export const getYouTubeEmbedUrl = (videoId: string): string => {
 };
 
 /**
- * Get HTML content for embedding YouTube in a WebView
- * This uses an HTML wrapper to properly set referrer policies and avoid Error 153
+ * Get the direct YouTube embed URL for use in WebView
+ * Uses youtube-nocookie.com for better privacy and embed compatibility
  * @param videoId - The YouTube video ID
- * @returns HTML string to load in WebView
+ * @returns The YouTube embed URL
  */
 export const getYouTubeEmbedHtml = (videoId: string): string => {
+  // Using youtube-nocookie.com domain which has better embedding compatibility
+  // and fewer restrictions in mobile WebViews
+  const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0&modestbranding=1&enablejsapi=0`;
+
   return `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="referrer" content="strict-origin-when-cross-origin">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body {
@@ -126,10 +129,9 @@ export const getYouTubeEmbedHtml = (videoId: string): string => {
 <body>
   <div class="video-container">
     <iframe
-      src="https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&enablejsapi=1&rel=0&modestbranding=1"
+      src="${embedUrl}"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
       allowfullscreen
-      referrerpolicy="strict-origin-when-cross-origin"
     ></iframe>
   </div>
 </body>
