@@ -105,15 +105,25 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        release {
+            // Release keystore configuration - values loaded from gradle.properties or environment
+            // To set up: create a keystore and add these properties to ~/.gradle/gradle.properties
+            // or ThriveChurchExpo/android/gradle.properties (but don't commit secrets!)
+            if (project.hasProperty('THRIVE_RELEASE_STORE_FILE')) {
+                storeFile file(THRIVE_RELEASE_STORE_FILE)
+                storePassword THRIVE_RELEASE_STORE_PASSWORD
+                keyAlias THRIVE_RELEASE_KEY_ALIAS
+                keyPassword THRIVE_RELEASE_KEY_PASSWORD
+            }
+        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            // Use release signing config if configured, otherwise fall back to debug for local dev
+            signingConfig project.hasProperty('THRIVE_RELEASE_STORE_FILE') ? signingConfigs.release : signingConfigs.debug
             def enableShrinkResources = findProperty('android.enableShrinkResourcesInReleaseBuilds') ?: 'false'
             shrinkResources enableShrinkResources.toBoolean()
             minifyEnabled enableMinifyInReleaseBuilds
