@@ -1,11 +1,30 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system/legacy';
+import Constants from 'expo-constants';
 
 // Storage key for logs
 const LOG_STORAGE_KEY = '@thrive_app_logs';
 
 // Maximum number of log lines to keep (FIFO)
 const MAX_LOG_LINES = 1000;
+
+/**
+ * Check if running in production environment
+ * Console logging is disabled in production to reduce noise
+ * File logging is always enabled for user support
+ */
+const isProduction = (): boolean => {
+  const extra = Constants.expoConfig?.extra || {};
+  return extra.ENVIRONMENT === 'production';
+};
+
+/**
+ * Check if console logging should be enabled
+ * Enabled in development, disabled in production
+ */
+const shouldLogToConsole = (): boolean => {
+  return __DEV__ || !isProduction();
+};
 
 // Log levels
 export enum LogLevel {
@@ -117,8 +136,10 @@ const addLogEntry = async (level: LogLevel, message: string): Promise<void> => {
 /**
  * Log an error message
  * @param message - The error message to log
+ * Note: Errors always log to console even in production for debugging critical issues
  */
 export const logError = async (message: string): Promise<void> => {
+  // Always log errors to console (critical for debugging)
   console.error(`[ERROR] ${message}`);
   await addLogEntry(LogLevel.ERROR, message);
 };
@@ -128,7 +149,9 @@ export const logError = async (message: string): Promise<void> => {
  * @param message - The success message to log
  */
 export const logSuccess = async (message: string): Promise<void> => {
-  console.log(`[SUCCESS] ${message}`);
+  if (shouldLogToConsole()) {
+    console.log(`[SUCCESS] ${message}`);
+  }
   await addLogEntry(LogLevel.SUCCESS, message);
 };
 
@@ -137,7 +160,9 @@ export const logSuccess = async (message: string): Promise<void> => {
  * @param message - The warning message to log
  */
 export const logWarning = async (message: string): Promise<void> => {
-  console.warn(`[WARNING] ${message}`);
+  if (shouldLogToConsole()) {
+    console.warn(`[WARNING] ${message}`);
+  }
   await addLogEntry(LogLevel.WARNING, message);
 };
 
@@ -146,7 +171,9 @@ export const logWarning = async (message: string): Promise<void> => {
  * @param message - The info message to log
  */
 export const logInfo = async (message: string): Promise<void> => {
-  console.log(`[INFO] ${message}`);
+  if (shouldLogToConsole()) {
+    console.log(`[INFO] ${message}`);
+  }
   await addLogEntry(LogLevel.INFO, message);
 };
 
@@ -164,7 +191,9 @@ export const getLogs = async (): Promise<LogEntry[]> => {
 export const clearLogs = async (): Promise<void> => {
   try {
     await AsyncStorage.removeItem(LOG_STORAGE_KEY);
-    console.log('All logs cleared');
+    if (shouldLogToConsole()) {
+      console.log('All logs cleared');
+    }
   } catch (error) {
     console.error('Error clearing logs:', error);
     throw error;
@@ -245,8 +274,10 @@ APPLICATION LOGS
     const filePath = `${FileSystem.documentDirectory}${fileName}`;
 
     await FileSystem.writeAsStringAsync(filePath, fileContent);
-    
-    console.log('Log file exported to:', filePath);
+
+    if (shouldLogToConsole()) {
+      console.log('Log file exported to:', filePath);
+    }
     return filePath;
   } catch (error) {
     console.error('Error exporting logs to file:', error);
