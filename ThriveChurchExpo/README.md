@@ -23,10 +23,10 @@ npm install
 ### 2. Setup Credentials
 
 ```bash
-# Copy template
-cp credentials.template.json credentials.json
+# Copy template for development
+cp credentials.template.json credentials.development.json
 
-# Edit credentials.json with actual values
+# Edit credentials.development.json with actual values
 # (Get credentials from team lead)
 
 # Generate Firebase files
@@ -48,33 +48,61 @@ npx expo run:android
 
 ## 🔐 Credentials Setup
 
+### Environment-Based Credentials
+
+The app supports separate credentials for development and production:
+
+| File | Environment | Usage |
+|------|-------------|-------|
+| `credentials.development.json` | Development | Default when running `npx expo run:ios` |
+| `credentials.production.json` | Production | Used with `APP_ENV=production` |
+
 ### First Time Setup
 
 1. **Get credentials** from team lead (via 1Password or secure channel)
 
-2. **Create credentials.json:**
+2. **Create development credentials:**
    ```bash
-   cp credentials.template.json credentials.json
+   cp credentials.template.json credentials.development.json
    ```
 
-3. **Fill in actual values** in `credentials.json`:
-   - API keys (Thrive API, ESV API)
-   - Firebase configuration
+3. **Fill in actual values** in `credentials.development.json`:
+   - API keys (Thrive API, ESV API, YouTube API)
+   - Firebase configuration (from Firebase Console)
    - App bundle IDs
+   - Set `environment: "development"`
 
-4. **Generate Firebase files:**
+4. **Create production credentials** (when ready to ship):
+   ```bash
+   cp credentials.development.json credentials.production.json
+   # Edit and set environment: "production"
+   ```
+
+5. **Generate Firebase files:**
    ```bash
    node generate-firebase-configs.js
    ```
 
-5. **Verify setup:**
+6. **Verify setup:**
    ```bash
    npx expo start
    ```
 
+### Building for Different Environments
+
+```bash
+# Development build (default)
+npx expo run:ios
+npx expo run:android
+
+# Production build
+APP_ENV=production npx expo run:ios
+APP_ENV=production npx expo run:android
+```
+
 ### Important Notes
 
-- ⚠️ **NEVER commit `credentials.json` to git**
+- ⚠️ **NEVER commit credential files to git** (`credentials.*.json`)
 - ⚠️ **NEVER commit Firebase config files** (GoogleService-Info.plist, google-services.json)
 - ✅ These files are in `.gitignore`
 - ✅ Use `credentials.template.json` for reference
@@ -180,17 +208,13 @@ npx expo run:android
 ### Production Builds
 
 ```bash
-# iOS - Using EAS Build (recommended)
-eas build --platform ios --profile production
-
-# iOS - Using Xcode
-open ios/ThriveChurch.xcworkspace
+# iOS - Using Xcode (Archive with Distribution profile)
+APP_ENV=production npx expo prebuild --platform ios --clean
+open ios/ThriveChurchOfficialApp.xcworkspace
 # Then: Product > Archive > Distribute App
 
-# Android - Using EAS Build (recommended)
-eas build --platform android --profile production
-
 # Android - Build AAB for Play Store
+APP_ENV=production npx expo prebuild --platform android --clean
 cd android && ./gradlew bundleRelease
 # Output: android/app/build/outputs/bundle/release/app-release.aab
 
@@ -198,6 +222,52 @@ cd android && ./gradlew bundleRelease
 cd android && ./gradlew assembleRelease
 # Output: android/app/build/outputs/apk/release/app-release.apk
 ```
+
+### Android Release Signing
+
+Release builds require a keystore. Setup steps:
+
+1. **Generate keystore** (one-time):
+   ```bash
+   keytool -genkeypair -v -storetype PKCS12 \
+     -keystore android/app/thrive-release.keystore \
+     -alias thrive-release-key -keyalg RSA -keysize 2048 -validity 10000
+   ```
+
+2. **Configure passwords** in `android/gradle.properties`:
+   ```properties
+   THRIVE_RELEASE_STORE_PASSWORD=your_keystore_password
+   THRIVE_RELEASE_KEY_PASSWORD=your_key_password
+   ```
+
+3. **Verify signing** (optional):
+   ```bash
+   cd android && ./gradlew signingReport
+   ```
+
+> ⚠️ **CRITICAL**: Back up your keystore and passwords securely. If lost, you cannot update your app on the Play Store.
+
+### CI/CD Setup
+
+For automated builds, inject credentials at build time:
+
+```bash
+# 1. Create credentials file from CI secrets
+echo "$CREDENTIALS_JSON" > credentials.production.json
+
+# 2. Set Android keystore password (if building Android)
+export THRIVE_RELEASE_STORE_PASSWORD="$KEYSTORE_PASSWORD"
+export THRIVE_RELEASE_KEY_PASSWORD="$KEY_PASSWORD"
+
+# 3. Build with production environment
+APP_ENV=production npx expo prebuild --clean
+```
+
+Required CI secrets:
+- `CREDENTIALS_JSON` - Contents of `credentials.production.json`
+- `KEYSTORE_PASSWORD` - Android keystore password (Android builds only)
+- `KEY_PASSWORD` - Android key password (Android builds only)
+- Keystore file should be stored as a base64-encoded secret or secure file
 
 ---
 
@@ -223,7 +293,8 @@ ThriveChurchExpo/
 ├── android/                      # Android native code
 ├── assets/                       # Images, fonts, etc.
 │
-├── credentials.json              # ❌ NOT in git - Your credentials
+├── credentials.development.json  # ❌ NOT in git - Dev credentials
+├── credentials.production.json   # ❌ NOT in git - Prod credentials
 ├── credentials.template.json     # ✅ In git - Template
 ├── app.config.js                 # ✅ In git - Expo config
 ├── load-credentials.js           # ✅ In git - Credential loader
@@ -237,26 +308,34 @@ ThriveChurchExpo/
 
 ---
 
-## ⚠️ Known Issues & Current State
+## 🔥 Firebase & Feature Flags
 
-### Firebase Modules Temporarily Disabled
+### Feature-Flagged Services
 
-Due to compatibility issues with Expo SDK 54 + React Native Firebase 23.x + static frameworks:
+Firebase services are controlled by feature flags in `credentials.*.json`:
 
-- ✅ **@react-native-firebase/app** (core) - Working
-- ❌ **@react-native-firebase/analytics** - Disabled (stubbed with console.log)
-- ❌ **@react-native-firebase/crashlytics** - Disabled
-- ❌ **@react-native-firebase/messaging** - Disabled (push notifications stubbed)
+```json
+{
+  "features": {
+    "analytics": true,
+    "crashlytics": true,
+    "pushNotifications": true
+  }
+}
+```
 
-**Workarounds:**
-- Analytics: Currently logs to console with "(disabled)" suffix
-- Push Notifications: Can use `@notifee/react-native` (already installed)
-- Crashlytics: Consider Sentry or Bugsnag as alternatives
+| Service | Package | Status |
+|---------|---------|--------|
+| **Analytics** | `@react-native-firebase/analytics` | ✅ Working (feature-flagged) |
+| **Crashlytics** | `@react-native-firebase/crashlytics` | ✅ Working (feature-flagged) |
+| **Push Notifications** | `@react-native-firebase/messaging` + `@notifee/react-native` | ✅ Working (feature-flagged) |
 
-**Future Solutions:**
-1. Wait for Expo SDK 55 (may have better compatibility)
-2. Downgrade React Native Firebase to v20 or v21
-3. Use Firebase JS SDK for some services (loses native features)
+### How Feature Flags Work
+
+- **Enabled (`true`)**: Full native Firebase functionality
+- **Disabled (`false`)**: Gracefully stubbed (logs to console in dev)
+
+Feature flags are loaded at build time via `app.config.js` and available at runtime via `Constants.expoConfig.extra`.
 
 ### Important Configuration Notes
 
@@ -280,16 +359,25 @@ npm install --legacy-peer-deps <package-name>
 
 ## 🔧 Troubleshooting
 
-### "credentials.json not found"
+### "No credentials file found"
 
 ```bash
-cp credentials.template.json credentials.json
-# Edit credentials.json with actual values
+# Create development credentials
+cp credentials.template.json credentials.development.json
+# Edit credentials.development.json with actual values
+
+# For production builds, also create:
+cp credentials.template.json credentials.production.json
 ```
 
 ### "Missing required credentials"
 
-Check that all required fields in `credentials.json` are filled in. Compare with `credentials.template.json`.
+Check that all required fields in your credentials file are filled in. Compare with `credentials.template.json`.
+
+Required fields:
+- `api.baseUrl`, `api.thriveApiKey`, `api.esvApiKey`
+- `firebase.ios.apiKey`, `firebase.ios.projectId`
+- `firebase.android.apiKey`, `firebase.android.projectId`
 
 ### Firebase not working
 
@@ -337,18 +425,18 @@ npx tsc --noEmit
 ## 🔒 Security Reminders
 
 ### ✅ DO
-- Keep `credentials.json` secure
-- Use different credentials for dev/prod
+- Keep `credentials.*.json` files secure
+- Use `credentials.development.json` for dev, `credentials.production.json` for prod
 - Rotate API keys periodically
 - Share credentials via secure channels (1Password)
 - Review `.gitignore` before commits
 
 ### ❌ DON'T
-- Commit `credentials.json` to git
+- Commit `credentials.*.json` files to git
 - Share credentials in plain text (Slack, email)
 - Use production keys in development
 - Hardcode credentials in source files
-- Commit Firebase config files
+- Commit Firebase config files or keystores
 
 ---
 
@@ -376,11 +464,11 @@ npx tsc --noEmit
 Before committing code:
 
 - [ ] No credentials in source files
-- [ ] `credentials.json` is in `.gitignore`
-- [ ] Firebase config files are in `.gitignore`
+- [ ] `credentials.*.json` files are NOT staged (`git status`)
+- [ ] Firebase config files are NOT staged
+- [ ] Keystore files are NOT staged
 - [ ] TypeScript compiles (`npx tsc --noEmit`)
 - [ ] Code follows project conventions
-- [ ] No console.logs left in code (unless intentional)
 
 ---
 
