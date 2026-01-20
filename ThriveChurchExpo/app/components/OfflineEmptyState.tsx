@@ -41,11 +41,11 @@ export default function OfflineEmptyState({
   const styles = createStyles(theme);
 
   const handleViewDownloads = () => {
-    navigation.navigate('ListenTab', { screen: 'Downloads' });
+    navigation.navigate('Listen', { screen: 'Downloads' });
   };
 
   const handleReadBible = () => {
-    navigation.navigate('BibleTab');
+    navigation.navigate('Bible');
   };
 
   return (

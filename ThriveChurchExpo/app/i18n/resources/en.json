@@ -399,7 +399,10 @@
     "contactUs": "Contact Us",
     "contactUsTitle": "Contact us",
     "contactUsMessage": "Please select an option",
-    "announcements": "Announcements",
+    "announcements": {
+      "title": "Announcements",
+      "announcement": "Announcement"
+    },
     "loading": "Loading announcements...",
     "error": "Failed to load announcements",
     "empty": "No announcements available",

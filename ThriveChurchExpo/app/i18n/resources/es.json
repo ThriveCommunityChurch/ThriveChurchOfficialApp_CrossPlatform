@@ -359,7 +359,10 @@
     "contactUs": "Contáctanos",
     "contactUsTitle": "Contáctanos",
     "contactUsMessage": "Por favor, selecciona una opción",
-    "announcements": "Anuncios",
+    "announcements": {
+      "title": "Anuncios",
+      "announcement": "Anuncio"
+    },
     "loading": "Cargando anuncios...",
     "error": "Error al cargar anuncios",
     "empty": "No hay anuncios disponibles",
