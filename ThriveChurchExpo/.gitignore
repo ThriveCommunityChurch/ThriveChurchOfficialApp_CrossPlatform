@@ -37,7 +37,8 @@ yarn-error.*
 *.tsbuildinfo
 
 # Credentials - DO NOT COMMIT
-*credentials.json
+credentials.json
+credentials.*.json
 *GoogleService-Info.plist
 *google-services.json
 *Config.plist

@@ -10,44 +10,87 @@
 const fs = require('fs');
 const path = require('path');
 
-const CREDENTIALS_FILE = path.join(__dirname, 'credentials.json');
 const TEMPLATE_FILE = path.join(__dirname, 'credentials.template.json');
 
 /**
- * Load credentials from credentials.json
- * If the file doesn't exist, provide helpful error message
+ * Determine which credentials file to load based on APP_ENV environment variable.
+ *
+ * Priority:
+ * 1. APP_ENV=production → credentials.production.json
+ * 2. APP_ENV=development → credentials.development.json
+ * 3. No APP_ENV set → credentials.development.json (default)
+ * 4. Fallback → credentials.json (backwards compatibility)
+ *
+ * Usage:
+ *   APP_ENV=production npx expo run:ios
+ *   APP_ENV=development npx expo run:android
+ */
+function getCredentialsFile() {
+  const appEnv = process.env.APP_ENV?.toLowerCase() || 'development';
+
+  // Environment-specific files
+  const envFile = path.join(__dirname, `credentials.${appEnv}.json`);
+  // Legacy fallback
+  const legacyFile = path.join(__dirname, 'credentials.json');
+
+  if (fs.existsSync(envFile)) {
+    console.log(`📋 Using credentials for environment: ${appEnv}`);
+    return { file: envFile, env: appEnv };
+  }
+
+  if (fs.existsSync(legacyFile)) {
+    console.log(` Using legacy credentials.json (APP_ENV=${appEnv} file not found)`);
+    return { file: legacyFile, env: appEnv };
+  }
+
+  return { file: null, env: appEnv };
+}
+
+/**
+ * Load credentials from the appropriate credentials file based on APP_ENV.
+ * If the file doesn't exist, provide helpful error message.
  */
 function loadCredentials() {
-  // Check if credentials.json exists
-  if (!fs.existsSync(CREDENTIALS_FILE)) {
-    console.error('\nERROR: credentials.json not found!\n');
-    console.error('Please create credentials.json from the template:\n');
-    console.error('   1. Copy credentials.template.json to credentials.json');
+  const { file: credentialsFile, env: appEnv } = getCredentialsFile();
+
+  // Check if credentials file exists
+  if (!credentialsFile) {
+    console.error('\nERROR: No credentials file found!\n');
+    console.error(`Looked for: credentials.${appEnv}.json or credentials.json\n`);
+    console.error('Please create a credentials file from the template:\n');
+    console.error('   1. Copy credentials.template.json to credentials.development.json');
     console.error('   2. Fill in your actual credential values');
-    console.error('   3. Make sure credentials.json is in .gitignore\n');
-    
+    console.error('   3. For production, also create credentials.production.json');
+    console.error('   4. Make sure credentials.*.json files are in .gitignore\n');
+    console.error('To select environment: APP_ENV=production npx expo run:ios\n');
+
     // Check if template exists
     if (fs.existsSync(TEMPLATE_FILE)) {
       console.error('Template file found at: credentials.template.json\n');
     }
-    
+
     process.exit(1);
   }
 
   try {
     // Read and parse credentials
-    const credentialsContent = fs.readFileSync(CREDENTIALS_FILE, 'utf8');
+    const credentialsContent = fs.readFileSync(credentialsFile, 'utf8');
     const credentials = JSON.parse(credentialsContent);
-    
+
     // Validate required fields
     validateCredentials(credentials);
-    
-    console.log('✅ Credentials loaded successfully');
+
+    // Warn if environment in file doesn't match APP_ENV
+    if (credentials.environment && credentials.environment !== appEnv) {
+      console.warn(`  Warning: APP_ENV=${appEnv} but credentials.environment="${credentials.environment}"`);
+    }
+
+    console.log(` Credentials loaded successfully (${appEnv})`);
     return credentials;
   } catch (error) {
-    console.error('\nERROR: Failed to load credentials.json\n');
+    console.error(`\nERROR: Failed to load ${path.basename(credentialsFile)}\n`);
     console.error('Error details:', error.message);
-    console.error('\nMake sure credentials.json is valid JSON\n');
+    console.error('\nMake sure the file is valid JSON\n');
     process.exit(1);
   }
 }
