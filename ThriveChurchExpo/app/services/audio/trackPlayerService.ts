@@ -1,4 +1,5 @@
 import TrackPlayer, {
+  AndroidAudioContentType,
   AppKilledPlaybackBehavior,
   Capability,
   Event,
@@ -33,7 +34,7 @@ export const setupPlayer = async (): Promise<void> => {
     await TrackPlayer.setupPlayer({
       autoHandleInterruptions: true,
       // Ensure audio plays through media stream at proper volume
-      androidAudioContentType: 2, // CONTENT_TYPE_MUSIC
+      androidAudioContentType: AndroidAudioContentType.Music,
     });
 
     await TrackPlayer.updateOptions({

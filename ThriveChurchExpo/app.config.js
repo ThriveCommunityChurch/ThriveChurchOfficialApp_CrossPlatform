@@ -130,7 +130,9 @@ module.exports = {
       // Custom plugin to apply Xcode recommended settings (avoids manual updates each time you open Xcode)
       "./plugins/withXcodeSettings.js",
       // Custom plugin to enable tablet support and rotation on Android/iOS tablets
-      "./plugins/withTabletSupport.js"
+      "./plugins/withTabletSupport.js",
+      // Custom plugin to configure Android gradle.properties (CI/CD settings + release signing)
+      ["./plugins/withAndroidGradleConfig.js", { credentials }]
       // Note: @react-native-firebase/analytics and @react-native-firebase/messaging
       // do not have Expo config plugins. They are configured via native files
       // (GoogleService-Info.plist and google-services.json) and work at runtime.
