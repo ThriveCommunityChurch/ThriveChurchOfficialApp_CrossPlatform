@@ -8,6 +8,7 @@ import {
   FlatList,
   ViewToken,
   Animated,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -119,11 +120,18 @@ const AnimatedIconWithGradient: React.FC<AnimatedIconWithGradientProps> = ({ ico
           borderRadius: containerSize / 2,
           alignItems: 'center',
           justifyContent: 'center',
-          shadowColor: theme.colors.shadowDark,
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.3,
-          shadowRadius: 8,
-          elevation: 8,
+          // iOS shadow only - Android elevation causes hex outline artifact on LinearGradient
+          ...Platform.select({
+            ios: {
+              shadowColor: theme.colors.shadowDark,
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+            },
+            android: {
+              // No elevation - it doesn't render correctly with borderRadius on LinearGradient
+            },
+          }),
         }}
       >
         <Ionicons
@@ -155,6 +163,9 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
   const isXLTablet = screenDimensions.width >= XL_TABLET_BREAKPOINT;
   const styles = createStyles(theme, screenDimensions.width, screenDimensions.height, isXLTablet);
 
+  // Track pending scroll after rotation
+  const pendingScrollRef = useRef<{ index: number; width: number } | null>(null);
+
   // Listen for dimension changes (e.g., rotation)
   useEffect(() => {
     // Log initial dimensions for debugging
@@ -165,20 +176,31 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
 
     const subscription = Dimensions.addEventListener('change', ({ window }) => {
       console.log('[Onboarding] Dimensions changed:', window);
+      // Store the pending scroll info before state update
+      // Use ref to avoid stale closure issues with currentIndex
+      pendingScrollRef.current = { index: currentIndex, width: window.width };
       setScreenDimensions({ width: window.width, height: window.height });
-
-      // Scroll to current page after dimension change (rotation)
-      // Use setTimeout to ensure the FlatList has re-rendered with new dimensions
-      setTimeout(() => {
-        flatListRef.current?.scrollToIndex({
-          index: currentIndex,
-          animated: false
-        });
-      }, 50);
     });
 
     return () => subscription?.remove();
-  }, [screenDimensions, isSmallScreen, currentIndex]);
+  }, [currentIndex, isSmallScreen, isXLTablet]);
+
+  // Handle scroll after layout completes following a rotation
+  const handleFlatListLayout = useCallback(() => {
+    if (pendingScrollRef.current) {
+      const { index, width } = pendingScrollRef.current;
+      console.log('[Onboarding] FlatList layout complete, scrolling to index:', index, 'with width:', width);
+
+      // Use scrollToOffset for more reliable positioning across platforms
+      // This avoids scrollToIndex issues where the item layout might not be ready
+      flatListRef.current?.scrollToOffset({
+        offset: index * width,
+        animated: false,
+      });
+
+      pendingScrollRef.current = null;
+    }
+  }, []);
 
   // Log tutorial begin on mount
   useEffect(() => {
@@ -298,6 +320,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
         bounces={false}
+        onLayout={handleFlatListLayout}
       />
 
       {renderDots()}
