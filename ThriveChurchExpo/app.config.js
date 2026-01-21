@@ -79,7 +79,7 @@ module.exports = {
     },
     android: {
       adaptiveIcon: {
-        foregroundImage: "./assets/adaptive-icon.png",
+        foregroundImage: "./assets/adaptive-icon-android.png",
         backgroundColor: "#FFFFFF"
       },
       package: credentials.app.bundleIdAndroid,
@@ -127,6 +127,7 @@ module.exports = {
       "./plugins/withPushNotifications.js",
       // Custom plugin to add copyright text to splash screen (runs after expo-splash-screen)
       "./plugins/withSplashScreenCopyright.js",
+      // NOTE: Android splash images are copied via scripts/copy-android-splash.js (runs post-prebuild)
       // Custom plugin to configure dynamic theme support (iOS + Android)
       "./plugins/withThemeConfiguration.js",
       // Custom plugin to add native UI tests (XCUITest for iOS, Espresso for Android)
