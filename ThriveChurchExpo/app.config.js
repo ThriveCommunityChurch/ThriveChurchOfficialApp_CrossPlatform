@@ -70,7 +70,11 @@ module.exports = {
           "remote-notification"
         ],
         // Firebase configuration (matches old iOS project)
-        FirebaseAppDelegateProxyEnabled: false
+        FirebaseAppDelegateProxyEnabled: false,
+        // Privacy usage descriptions (required by App Store)
+        // Note: Some React Native dependencies reference the Photos framework even if we don't use it directly.
+        // Apple requires this key if any linked framework references photo library APIs.
+        NSPhotoLibraryUsageDescription: "This app may access your photo library to allow you to share photos."
       }
     },
     android: {
