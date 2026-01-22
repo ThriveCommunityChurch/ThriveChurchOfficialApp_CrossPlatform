@@ -39,7 +39,10 @@ export const setupPlayer = async (): Promise<void> => {
 
     await TrackPlayer.updateOptions({
       android: {
-        appKilledPlaybackBehavior: AppKilledPlaybackBehavior.ContinuePlayback,
+        // Use StopPlaybackAndRemoveNotification to avoid "Session ID must be unique" crash
+        // This is a known bug in react-native-track-player v5.0.0-alpha0 (GitHub issue #2485)
+        // ContinuePlayback causes MediaSession to not be properly cleaned up when app is killed
+        appKilledPlaybackBehavior: AppKilledPlaybackBehavior.StopPlaybackAndRemoveNotification,
       },
       capabilities: [
         Capability.Play,

@@ -1,10 +1,12 @@
 /**
- * Android Splash Screen Image Copier
- * 
- * This script copies pre-generated full-screen splash images to the Android
+ * Android Splash Screen Icon Copier
+ *
+ * This script copies pre-generated splash screen icons to the Android
  * drawable folders AFTER expo prebuild completes. This is necessary because
  * expo-splash-screen generates its images at a late stage in the prebuild process.
- * 
+ *
+ * Copies both light mode (drawable-*) and dark mode (drawable-night-*) icons.
+ *
  * Usage: Automatically called after "npm run prebuild:android"
  * Manual: node scripts/copy-android-splash.js
  */
@@ -18,44 +20,40 @@ const SOURCE_DIR = path.join(__dirname, '..', 'assets', 'android-splash');
 // Target directory (Android res)
 const ANDROID_RES = path.join(__dirname, '..', 'android', 'app', 'src', 'main', 'res');
 
-// Mapping from generated filename to Android drawable folder
-const DENSITY_MAP = {
-  'splashscreen_logo_ldpi.png': 'drawable-ldpi',
-  'splashscreen_logo_mdpi.png': 'drawable-mdpi',
-  'splashscreen_logo_hdpi.png': 'drawable-hdpi',
-  'splashscreen_logo_xhdpi.png': 'drawable-xhdpi',
-  'splashscreen_logo_xxhdpi.png': 'drawable-xxhdpi',
-  'splashscreen_logo_xxxhdpi.png': 'drawable-xxxhdpi',
-};
+// Android splash screen icon densities (matching adaptive icon sizes)
+const DENSITIES = ['mdpi', 'hdpi', 'xhdpi', 'xxhdpi', 'xxxhdpi'];
 
-function copySplashImages() {
-  console.log('\n Copying Android Splash Images (Post-Prebuild)');
-  console.log('=================================================');
+function copySplashIcons() {
+  console.log('\n📱 Copying Android Splash Icons (Post-Prebuild)');
+  console.log('================================================');
 
   // Check if source directory exists
   if (!fs.existsSync(SOURCE_DIR)) {
-    console.error(` Source directory not found: ${SOURCE_DIR}`);
-    console.error('   Run "npm run generate:splash" first to generate images');
+    console.error(`❌ Source directory not found: ${SOURCE_DIR}`);
+    console.error('   Run "npm run generate:splash" first to generate icons');
     process.exit(1);
   }
 
   // Check if Android res directory exists
   if (!fs.existsSync(ANDROID_RES)) {
-    console.error(` Android res directory not found: ${ANDROID_RES}`);
+    console.error(`❌ Android res directory not found: ${ANDROID_RES}`);
     console.error('   Make sure prebuild completed successfully');
     process.exit(1);
   }
 
-  let copiedCount = 0;
+  let lightCount = 0;
+  let darkCount = 0;
 
-  // Copy each generated image to its corresponding drawable folder
-  for (const [sourceFile, targetFolder] of Object.entries(DENSITY_MAP)) {
+  // Copy light mode icons
+  console.log('\n☀️  Light mode icons:');
+  for (const density of DENSITIES) {
+    const sourceFile = `splashscreen_logo_${density}.png`;
     const sourcePath = path.join(SOURCE_DIR, sourceFile);
-    const targetDir = path.join(ANDROID_RES, targetFolder);
+    const targetDir = path.join(ANDROID_RES, `drawable-${density}`);
     const targetPath = path.join(targetDir, 'splashscreen_logo.png');
 
     if (!fs.existsSync(sourcePath)) {
-      console.warn(`  Missing source: ${sourceFile}`);
+      console.warn(`   ⚠️  Missing source: ${sourceFile}`);
       continue;
     }
 
@@ -64,22 +62,47 @@ function copySplashImages() {
       fs.mkdirSync(targetDir, { recursive: true });
     }
 
-    // Copy the file, overwriting the expo-splash-screen generated one
     fs.copyFileSync(sourcePath, targetPath);
-    
+
     const stats = fs.statSync(targetPath);
     const sizeKB = (stats.size / 1024).toFixed(1);
-    console.log(` ${targetFolder}/splashscreen_logo.png (${sizeKB} KB)`);
-    copiedCount++;
+    console.log(`   ✅ drawable-${density}/splashscreen_logo.png (${sizeKB} KB)`);
+    lightCount++;
   }
 
-  if (copiedCount > 0) {
-    console.log(`\n Replaced ${copiedCount} splash images with full-screen versions\n`);
+  // Copy dark mode icons
+  console.log('\n🌙 Dark mode icons:');
+  for (const density of DENSITIES) {
+    const sourceFile = `splashscreen_logo_${density}_dark.png`;
+    const sourcePath = path.join(SOURCE_DIR, sourceFile);
+    const targetDir = path.join(ANDROID_RES, `drawable-night-${density}`);
+    const targetPath = path.join(targetDir, 'splashscreen_logo.png');
+
+    if (!fs.existsSync(sourcePath)) {
+      console.warn(`   ⚠️  Missing source: ${sourceFile}`);
+      continue;
+    }
+
+    // Ensure target directory exists
+    if (!fs.existsSync(targetDir)) {
+      fs.mkdirSync(targetDir, { recursive: true });
+    }
+
+    fs.copyFileSync(sourcePath, targetPath);
+
+    const stats = fs.statSync(targetPath);
+    const sizeKB = (stats.size / 1024).toFixed(1);
+    console.log(`   ✅ drawable-night-${density}/splashscreen_logo.png (${sizeKB} KB)`);
+    darkCount++;
+  }
+
+  if (lightCount > 0 || darkCount > 0) {
+    console.log(`\n✨ Copied ${lightCount} light + ${darkCount} dark splash icons\n`);
   } else {
-    console.error('\n No splash images were copied');
+    console.error('\n❌ No splash icons were copied');
     process.exit(1);
   }
 }
 
-copySplashImages();
+copySplashIcons();
 
