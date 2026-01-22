@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,17 +7,24 @@ import {
   Dimensions,
   Platform,
   Image,
+  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import TrackPlayer from 'react-native-track-player';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 import { usePlayer } from '../../hooks/usePlayer';
+import { usePlaybackSettings } from '../../hooks/usePlaybackSettings';
 import { AudioWaveform } from '../../components/AudioWaveform';
 import { ProgressSlider } from '../../components/ProgressSlider';
 import { waveformService } from '../../services/audio/waveformService';
 import { setCurrentScreen } from '../../services/analytics/analyticsService';
 import { fetchWaveformData } from '../../services/api/waveformService';
 import { adaptWaveformToScreen } from '../../utils/waveformUtils';
+import { PlaybackSpeed, PLAYBACK_SPEED_OPTIONS, formatPlaybackSpeed } from '../../services/playback/playbackSettings';
 
 const { width, height } = Dimensions.get('window');
 const isTablet = (Platform.OS === 'ios' && Platform.isPad) || Math.min(width, height) >= 768;
@@ -62,16 +69,74 @@ const SCALE = {
 export default function NowPlayingScreen() {
   const player = usePlayer();
   const { theme } = useTheme();
+  const { t } = useTranslation();
+  const navigation = useNavigation<StackNavigationProp<any>>();
+  const { skipForward, skipBackward, defaultSpeed } = usePlaybackSettings();
   const styles = createStyles(theme);
   const [isSeeking, setIsSeeking] = useState(false);
   const [seekPosition, setSeekPosition] = useState(0);
   const [waveformData, setWaveformData] = useState<number[]>([]);
   const [isLoadingWaveform, setIsLoadingWaveform] = useState(false);
+  // Playback speed state (session override)
+  const [currentSpeed, setCurrentSpeed] = useState<PlaybackSpeed>(1);
+  const [showSpeedModal, setShowSpeedModal] = useState(false);
 
   // Track screen view
   useEffect(() => {
     setCurrentScreen('NowPlayingScreen', 'NowPlaying');
   }, []);
+
+  // Initialize speed from settings when track changes
+  useEffect(() => {
+    if (player.currentTrack) {
+      setCurrentSpeed(defaultSpeed);
+      // Apply default speed to player
+      TrackPlayer.setRate(defaultSpeed).catch(err => {
+        console.warn('Error setting playback rate:', err);
+      });
+    }
+  }, [player.currentTrack?.id, defaultSpeed]);
+
+  // Handle take notes navigation
+  const handleTakeNotes = useCallback(() => {
+    if (!player.currentTrack) return;
+
+    const track = player.currentTrack as any;
+    // Navigate to Notes tab, then to NoteDetail screen with sermon context
+    (navigation as any).navigate('Notes', {
+      screen: 'NoteDetail',
+      params: {
+        messageId: track.id,
+        messageTitle: track.title || 'Untitled',
+        seriesTitle: track.seriesTitle || track.description || undefined,
+        seriesArt: track.artwork || undefined,
+        speaker: track.artist || 'Unknown',
+        messageDate: track.messageDate || new Date().toISOString(),
+        seriesId: track.seriesId || undefined,
+      },
+    });
+  }, [navigation, player.currentTrack]);
+
+  // Set up header with notes button when track is playing
+  useEffect(() => {
+    if (player.currentTrack) {
+      navigation.setOptions({
+        headerRight: () => (
+          <TouchableOpacity
+            onPress={handleTakeNotes}
+            style={{ marginRight: 16 }}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="create-outline" size={24} color={theme.colors.text} />
+          </TouchableOpacity>
+        ),
+      });
+    } else {
+      navigation.setOptions({
+        headerRight: undefined,
+      });
+    }
+  }, [navigation, player.currentTrack, handleTakeNotes, theme.colors.text]);
 
   useEffect(() => {
     if (!isSeeking) {
@@ -175,11 +240,21 @@ export default function NowPlayingScreen() {
   };
 
   const handleForward = async () => {
-    await player.forward(15);
+    await player.forward(skipForward);
   };
 
   const handleBackward = async () => {
-    await player.backward(15);
+    await player.backward(skipBackward);
+  };
+
+  const handleSpeedChange = async (speed: PlaybackSpeed) => {
+    try {
+      await TrackPlayer.setRate(speed);
+      setCurrentSpeed(speed);
+      setShowSpeedModal(false);
+    } catch (error) {
+      console.error('Error setting playback rate:', error);
+    }
   };
 
   if (!player.currentTrack) {
@@ -187,10 +262,10 @@ export default function NowPlayingScreen() {
       <View style={styles.container}>
         <View style={styles.emptyState}>
           <Text style={[theme.typography.h2 as any, { textAlign: 'center', marginBottom: 16 }]}>
-            No Audio Playing
+            {t('nowPlaying.noAudioPlaying')}
           </Text>
           <Text style={[theme.typography.body as any, { textAlign: 'center', color: theme.colors.textTertiary }]}>
-            Select a sermon to start listening
+            {t('nowPlaying.selectSermon')}
           </Text>
         </View>
       </View>
@@ -216,7 +291,6 @@ export default function NowPlayingScreen() {
 
   // Extract custom metadata from track
   const track = player.currentTrack as any;
-  const seriesTitle = track.seriesTitle || track.description;
   const weekNum = track.weekNum;
 
   return (
@@ -276,15 +350,14 @@ export default function NowPlayingScreen() {
           >
             {player.currentTrack.artist}
           </Text>
-          {seriesTitle && (
+          {weekNum && (
             <Text
               style={[
                 isTablet ? theme.typography.body as any : theme.typography.caption as any,
                 { textAlign: 'center', color: theme.colors.textSecondary }
               ]}
             >
-              {seriesTitle}
-              {weekNum ? ` - Week ${weekNum}` : ''}
+              {t('nowPlaying.week')} {weekNum}
             </Text>
           )}
         </View>
@@ -332,7 +405,7 @@ export default function NowPlayingScreen() {
 
         {/* Controls */}
         <View style={[styles.controls, { gap: controlGap }]}>
-          {/* Backward 15s */}
+          {/* Backward */}
           <TouchableOpacity
             style={[styles.controlButton, { width: controlButtonSize, height: controlButtonSize }]}
             onPress={handleBackward}
@@ -352,7 +425,7 @@ export default function NowPlayingScreen() {
                 fontSize: isTablet ? 14 : 11
               }
             ]}>
-              15s
+              {skipBackward}s
             </Text>
           </TouchableOpacity>
 
@@ -381,7 +454,7 @@ export default function NowPlayingScreen() {
             )}
           </TouchableOpacity>
 
-          {/* Forward 15s */}
+          {/* Forward */}
           <TouchableOpacity
             style={[styles.controlButton, { width: controlButtonSize, height: controlButtonSize }]}
             onPress={handleForward}
@@ -396,10 +469,60 @@ export default function NowPlayingScreen() {
                 fontSize: isTablet ? 14 : 11
               }
             ]}>
-              15s
+              {skipForward}s
             </Text>
           </TouchableOpacity>
         </View>
+
+        {/* Speed Control */}
+        <TouchableOpacity
+          style={styles.speedButton}
+          onPress={() => setShowSpeedModal(true)}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="speedometer-outline" size={isTablet ? 20 : 18} color={theme.colors.primary} />
+          <Text style={styles.speedButtonText}>{formatPlaybackSpeed(currentSpeed)}</Text>
+        </TouchableOpacity>
+
+        {/* Speed Selection Modal */}
+        <Modal
+          visible={showSpeedModal}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setShowSpeedModal(false)}
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowSpeedModal(false)}
+          >
+            <View style={styles.speedModalContent}>
+              <Text style={styles.speedModalTitle}>{t('nowPlaying.playbackSpeed')}</Text>
+              {PLAYBACK_SPEED_OPTIONS.map((option) => (
+                <TouchableOpacity
+                  key={option.value}
+                  style={[
+                    styles.speedOption,
+                    currentSpeed === option.value && styles.speedOptionSelected,
+                  ]}
+                  onPress={() => handleSpeedChange(option.value)}
+                >
+                  <Text
+                    style={[
+                      styles.speedOptionText,
+                      currentSpeed === option.value && styles.speedOptionTextSelected,
+                    ]}
+                  >
+                    {option.label}
+                  </Text>
+                  {currentSpeed === option.value && (
+                    <Ionicons name="checkmark" size={20} color={theme.colors.primary} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
+        </Modal>
       </View>
     </View>
   );
@@ -469,6 +592,65 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     // width and height are now dynamic
+  },
+  // Speed control button
+  speedButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: isTablet ? 12 : 10,
+    paddingHorizontal: isTablet ? 20 : 16,
+    backgroundColor: theme.colors.card,
+    borderRadius: isTablet ? 24 : 20,
+    marginTop: isTablet ? 24 : 16,
+    gap: 6,
+  },
+  speedButtonText: {
+    ...theme.typography.body,
+    color: theme.colors.primary,
+    fontWeight: '600',
+    fontSize: isTablet ? 16 : 14,
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  speedModalContent: {
+    backgroundColor: theme.colors.card,
+    borderRadius: 16,
+    padding: 20,
+    width: '80%',
+    maxWidth: 320,
+  },
+  speedModalTitle: {
+    ...theme.typography.h3,
+    color: theme.colors.text,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  speedOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    marginBottom: 4,
+  },
+  speedOptionSelected: {
+    backgroundColor: theme.colors.background,
+  },
+  speedOptionText: {
+    ...theme.typography.body,
+    color: theme.colors.text,
+    fontSize: 16,
+  },
+  speedOptionTextSelected: {
+    color: theme.colors.primary,
+    fontWeight: '600',
   },
 });
 

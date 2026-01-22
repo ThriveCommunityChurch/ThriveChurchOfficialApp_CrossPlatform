@@ -7,112 +7,81 @@ import {
   TouchableOpacity,
   FlatList,
   ViewToken,
-  Image,
   Animated,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 import { setOnboardingCompleted } from '../../services/storage/storage';
 import { logTutorialBegin, logTutorialComplete } from '../../services/analytics/analyticsService';
 
-// Responsive breakpoint: use logical width for device-independent pixels
+// Responsive breakpoints: use logical width for device-independent pixels
 const SMALL_SCREEN_BREAKPOINT = 414; // iPhone Plus/XR/11 and below use icon design
+const XL_TABLET_BREAKPOINT = 768; // Large tablets (13" iPad) use icon design with larger sizing
 
 interface OnboardingPage {
   id: string;
-  imageName: string;
   iconName: keyof typeof Ionicons.glyphMap;
   headerText: string;
   bodyText: string;
+  bodyTextExtended?: string; // Additional text for XL tablets
 }
 
-const pages: OnboardingPage[] = [
+// Function to get pages with translations
+const getPages = (t: (key: string) => string): OnboardingPage[] => [
   {
     id: '1',
-    imageName: 'listen_img',
     iconName: 'headset',
-    headerText: 'Stream & Download Sermons',
-    bodyText: "Never miss a message! Stream sermons in Full HD or download them for offline listening. Whether you're commuting, at the gym, or traveling, take our weekly messages with you wherever you go.",
+    headerText: t('onboarding.page1Header'),
+    bodyText: t('onboarding.page1Body'),
+    bodyTextExtended: t('onboarding.page1BodyExtended'),
   },
   {
     id: '2',
-    imageName: 'bible_img',
     iconName: 'book',
-    headerText: 'Read the Bible Anywhere',
-    bodyText: "Access the complete English Standard Version (ESV) Bible powered by YouVersion. Read, search, and explore scripture with an intuitive interface designed for daily devotion and study.",
+    headerText: t('onboarding.page2Header'),
+    bodyText: t('onboarding.page2Body'),
+    bodyTextExtended: t('onboarding.page2BodyExtended'),
   },
   {
     id: '3',
-    imageName: 'connect_img',
     iconName: 'people',
-    headerText: 'Stay Connected with Thrive',
-    bodyText: "Get the latest church announcements, upcoming events, and community updates. Connect with our team, submit prayer requests, and stay engaged with everything happening at Thrive Community Church.",
+    headerText: t('onboarding.page3Header'),
+    bodyText: t('onboarding.page3Body'),
+    bodyTextExtended: t('onboarding.page3BodyExtended'),
   },
   {
     id: '4',
-    imageName: 'search_img',
     iconName: 'search',
-    headerText: 'Search & Discover Content',
-    bodyText: "Easily find sermons by topic, speaker, or series. Use powerful search and filtering tools to discover messages that speak to your current season and spiritual journey.",
+    headerText: t('onboarding.page4Header'),
+    bodyText: t('onboarding.page4Body'),
+    bodyTextExtended: t('onboarding.page4BodyExtended'),
   },
   {
     id: '5',
-    imageName: 'final_img',
     iconName: 'heart',
-    headerText: 'Welcome to Thrive Community Church',
-    bodyText: "You're all set! Dive in and experience everything Thrive has to offer. We're excited to have you join our community and grow in faith together.",
+    headerText: t('onboarding.page5Header'),
+    bodyText: t('onboarding.page5Body'),
+    bodyTextExtended: t('onboarding.page5BodyExtended'),
   },
 ];
-
-// Image assets mapping - will gracefully fallback to icon design if images don't exist
-// Note: Images should be placed in ThriveChurchExpo/assets/images/onboarding/
-// Expected filenames: listen_img.png, bible_img.png, connect_img.png, search_img.png, final_img_light.png, final_img_dark.png
-
-// Pre-load all available images to avoid dynamic require issues
-const imageAssets = {
-  listen_img: require('../../../assets/images/onboarding/listen_img.png'),
-  bible_img: require('../../../assets/images/onboarding/bible_img.png'),
-  final_img_dark: require('../../../assets/images/onboarding/final_img_dark.png'),
-  // Images below don't exist yet - will be added later
-  // connect_img: require('../../../assets/images/onboarding/connect_img.png'),
-  // search_img: require('../../../assets/images/onboarding/search_img.png'),
-  // final_img_light: require('../../../assets/images/onboarding/final_img_light.png'),
-};
-
-const getImageAsset = (imageName: string, isDarkMode: boolean): any | null => {
-  try {
-    // Handle theme-aware final image
-    if (imageName === 'final_img') {
-      if (isDarkMode) {
-        return imageAssets.final_img_dark || null;
-      } else {
-        // Light mode version doesn't exist yet, return null to trigger fallback
-        return null; // Will use: imageAssets.final_img_light when available
-      }
-    }
-
-    // Handle other images
-    return (imageAssets as any)[imageName] || null;
-  } catch (error) {
-    // Image doesn't exist, return null to trigger fallback
-    return null;
-  }
-};
 
 interface OnboardingScreenProps {
   onComplete: () => void;
 }
 
-// Component: Animated Icon with Gradient Background (for small screens)
+// Component: Animated Icon with Gradient Background (for small screens and XL tablets)
 interface AnimatedIconWithGradientProps {
   iconName: keyof typeof Ionicons.glyphMap;
   theme: Theme;
   screenWidth: number;
+  isXLTablet?: boolean;
 }
 
-const AnimatedIconWithGradient: React.FC<AnimatedIconWithGradientProps> = ({ iconName, theme, screenWidth }) => {
+const AnimatedIconWithGradient: React.FC<AnimatedIconWithGradientProps> = ({ iconName, theme, screenWidth, isXLTablet = false }) => {
   const scaleAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -131,8 +100,9 @@ const AnimatedIconWithGradient: React.FC<AnimatedIconWithGradientProps> = ({ ico
     theme.colors.primaryLight,
   ];
 
-  const iconSize = screenWidth * 0.25; // 25% of screen width
-  const containerSize = screenWidth * 0.5; // 50% of screen width
+  // XL tablets get smaller icons - focus is on text content, not visuals
+  const iconSize = isXLTablet ? Math.min(screenWidth * 0.08, 80) : screenWidth * 0.25;
+  const containerSize = isXLTablet ? Math.min(screenWidth * 0.18, 180) : screenWidth * 0.5;
 
   return (
     <Animated.View
@@ -150,11 +120,18 @@ const AnimatedIconWithGradient: React.FC<AnimatedIconWithGradientProps> = ({ ico
           borderRadius: containerSize / 2,
           alignItems: 'center',
           justifyContent: 'center',
-          shadowColor: theme.colors.shadowDark,
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.3,
-          shadowRadius: 8,
-          elevation: 8,
+          // iOS shadow only - Android elevation causes hex outline artifact on LinearGradient
+          ...Platform.select({
+            ios: {
+              shadowColor: theme.colors.shadowDark,
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+            },
+            android: {
+              // No elevation - it doesn't render correctly with borderRadius on LinearGradient
+            },
+          }),
         }}
       >
         <Ionicons
@@ -167,44 +144,14 @@ const AnimatedIconWithGradient: React.FC<AnimatedIconWithGradientProps> = ({ ico
   );
 };
 
-// Component: Image with Fallback (for large screens)
-interface ImageWithFallbackProps {
-  imageName: string;
-  iconName: keyof typeof Ionicons.glyphMap;
-  theme: Theme;
-  screenWidth: number;
-}
-
-const ImageWithFallback: React.FC<ImageWithFallbackProps> = ({ imageName, iconName, theme, screenWidth }) => {
-  const [imageError, setImageError] = useState(false);
-  const imageSource = getImageAsset(imageName, theme.isDark);
-
-  // If image doesn't exist or fails to load, show the icon design
-  if (!imageSource || imageError) {
-    console.log(`[ImageWithFallback] Falling back to icon for "${imageName}" (isDark: ${theme.isDark}) - imageSource:`, !!imageSource, 'imageError:', imageError);
-    return <AnimatedIconWithGradient iconName={iconName} theme={theme} screenWidth={screenWidth} />;
-  }
-
-  console.log(`[ImageWithFallback] Rendering image for "${imageName}" (isDark: ${theme.isDark})`);
-
-  return (
-    <Image
-      source={imageSource}
-      style={{
-        width: screenWidth * 0.6,
-        height: screenWidth * 0.6,
-        borderRadius: 20,
-      }}
-      resizeMode="contain"
-      onError={() => setImageError(true)}
-    />
-  );
-};
-
 export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
+
+  // Get pages with translations
+  const pages = getPages(t);
 
   // Track screen dimensions dynamically
   const [screenDimensions, setScreenDimensions] = useState(() => {
@@ -212,23 +159,48 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
     return { width, height };
   });
 
-  const styles = createStyles(theme, screenDimensions.width, screenDimensions.height);
   const isSmallScreen = screenDimensions.width < SMALL_SCREEN_BREAKPOINT;
+  const isXLTablet = screenDimensions.width >= XL_TABLET_BREAKPOINT;
+  const styles = createStyles(theme, screenDimensions.width, screenDimensions.height, isXLTablet);
+
+  // Track pending scroll after rotation
+  const pendingScrollRef = useRef<{ index: number; width: number } | null>(null);
 
   // Listen for dimension changes (e.g., rotation)
   useEffect(() => {
     // Log initial dimensions for debugging
     console.log('[Onboarding] Screen dimensions:', screenDimensions);
     console.log('[Onboarding] Is small screen?', isSmallScreen);
-    console.log('[Onboarding] Breakpoint:', SMALL_SCREEN_BREAKPOINT);
+    console.log('[Onboarding] Is XL tablet?', isXLTablet);
+    console.log('[Onboarding] Breakpoints:', { small: SMALL_SCREEN_BREAKPOINT, xl: XL_TABLET_BREAKPOINT });
 
     const subscription = Dimensions.addEventListener('change', ({ window }) => {
       console.log('[Onboarding] Dimensions changed:', window);
+      // Store the pending scroll info before state update
+      // Use ref to avoid stale closure issues with currentIndex
+      pendingScrollRef.current = { index: currentIndex, width: window.width };
       setScreenDimensions({ width: window.width, height: window.height });
     });
 
     return () => subscription?.remove();
-  }, [screenDimensions, isSmallScreen]);
+  }, [currentIndex, isSmallScreen, isXLTablet]);
+
+  // Handle scroll after layout completes following a rotation
+  const handleFlatListLayout = useCallback(() => {
+    if (pendingScrollRef.current) {
+      const { index, width } = pendingScrollRef.current;
+      console.log('[Onboarding] FlatList layout complete, scrolling to index:', index, 'with width:', width);
+
+      // Use scrollToOffset for more reliable positioning across platforms
+      // This avoids scrollToIndex issues where the item layout might not be ready
+      flatListRef.current?.scrollToOffset({
+        offset: index * width,
+        animated: false,
+      });
+
+      pendingScrollRef.current = null;
+    }
+  }, []);
 
   // Log tutorial begin on mount
   useEffect(() => {
@@ -275,22 +247,25 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
     itemVisiblePercentThreshold: 50,
   }).current;
 
+  // Determine if we should use icons (small screens OR XL tablets)
+  const useIconDesign = isSmallScreen || isXLTablet;
+
   const renderPage = useCallback(({ item }: { item: OnboardingPage }) => {
-    console.log(`[renderPage] Rendering "${item.headerText}" - isSmallScreen:`, isSmallScreen);
+    console.log(`[renderPage] Rendering "${item.headerText}" - isSmallScreen:`, isSmallScreen, 'isXLTablet:', isXLTablet, 'useIconDesign:', useIconDesign);
     return (
       <View style={styles.page}>
         <View style={styles.imageContainer}>
-          {isSmallScreen ? (
-            // Small screens: Animated Icon with Gradient Background
+          {useIconDesign ? (
+            // Small screens & XL tablets: Animated Icon with Gradient Background
             <AnimatedIconWithGradient
               iconName={item.iconName}
               theme={theme}
               screenWidth={screenDimensions.width}
+              isXLTablet={isXLTablet}
             />
           ) : (
-            // Large screens: Display images (with fallback to icon design)
-            <ImageWithFallback
-              imageName={item.imageName}
+            // Medium/large screens (tablets but not XL): Use icon design
+            <AnimatedIconWithGradient
               iconName={item.iconName}
               theme={theme}
               screenWidth={screenDimensions.width}
@@ -305,10 +280,16 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
           <Text style={[theme.typography.body as any, styles.bodyText]}>
             {item.bodyText}
           </Text>
+          {/* Show extended text only on XL tablets */}
+          {isXLTablet && item.bodyTextExtended && (
+            <Text style={[theme.typography.body as any, styles.bodyTextExtended]}>
+              {item.bodyTextExtended}
+            </Text>
+          )}
         </View>
       </View>
     );
-  }, [theme, isSmallScreen, screenDimensions.width]);
+  }, [theme, isSmallScreen, isXLTablet, useIconDesign, screenDimensions.width, styles]);
 
   const renderDots = useCallback(() => {
     return (
@@ -339,6 +320,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
         bounces={false}
+        onLayout={handleFlatListLayout}
       />
 
       {renderDots()}
@@ -356,7 +338,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
               currentIndex === 0 && styles.disabledButtonText,
             ]}
           >
-            {currentIndex > 0 ? 'PREV' : ''}
+            {currentIndex > 0 ? t('common.prev') : ''}
           </Text>
         </TouchableOpacity>
 
@@ -365,7 +347,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
           onPress={handleSkip}
         >
           <Text style={[theme.typography.caption as any, styles.skipButtonText]}>
-            Skip
+            {t('onboarding.skip')}
           </Text>
         </TouchableOpacity>
 
@@ -374,7 +356,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
           onPress={handleNext}
         >
           <Text style={[theme.typography.body as any, styles.nextButtonText]}>
-            {currentIndex === pages.length - 1 ? 'DONE' : 'NEXT'}
+            {currentIndex === pages.length - 1 ? t('onboarding.done') : t('onboarding.next')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -382,78 +364,98 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
   );
 }
 
-const createStyles = (theme: Theme, width: number, height: number) => StyleSheet.create({
+const createStyles = (theme: Theme, width: number, height: number, isXLTablet: boolean = false) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background, // ← ONLY COLOR CHANGED
+    backgroundColor: theme.colors.background,
   },
   page: {
     width,
     height,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 32,
+    justifyContent: 'center', // Center content vertically
+    paddingHorizontal: isXLTablet ? 64 : 32,
   },
   imageContainer: {
-    flex: 0.7,
+    // XL tablets: no flex, just natural size centered
+    // Small/medium: use flex for layout
+    flex: isXLTablet ? undefined : 0.7,
     alignItems: 'center',
-    justifyContent: 'flex-end',
-    marginTop: 40,
+    justifyContent: isXLTablet ? 'flex-end' : 'center',
+    marginTop: isXLTablet ? 0 : 40,
+    marginBottom: isXLTablet ? 24 : 0, // Bring icon closer to text on XL
   },
   imagePlaceholder: {
     width: width * 0.6,
     height: width * 0.6,
     borderRadius: 20,
-    backgroundColor: theme.colors.backgroundSecondary, // ← ONLY COLOR CHANGED
+    backgroundColor: theme.colors.backgroundSecondary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   textContainer: {
-    flex: 1.3,
+    // XL tablets: no flex, just natural size centered
+    // Small/medium: use flex for layout
+    flex: isXLTablet ? undefined : 1.3,
     alignItems: 'center',
     justifyContent: 'flex-start',
-    paddingTop: 40,
+    paddingTop: isXLTablet ? 0 : 40,
+    maxWidth: isXLTablet ? 650 : undefined,
+    overflow: 'visible',
   },
   headerText: {
     textAlign: 'center',
-    marginBottom: 16,
-    color: theme.colors.text, // ← ONLY COLOR CHANGED
+    marginBottom: isXLTablet ? 24 : 16,
+    color: theme.colors.text,
+    fontSize: isXLTablet ? 28 : undefined, // Larger header on XL tablets
+    lineHeight: isXLTablet ? 40 : undefined, // Ensure enough line height to prevent clipping
   },
   bodyText: {
     textAlign: 'center',
-    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
-    lineHeight: 24,
+    color: theme.colors.textSecondary,
+    lineHeight: isXLTablet ? 28 : 24,
+    fontSize: isXLTablet ? 17 : undefined,
+    paddingHorizontal: isXLTablet ? 20 : 0,
+  },
+  bodyTextExtended: {
+    textAlign: 'center',
+    color: theme.colors.textTertiary,
+    lineHeight: 26,
+    fontSize: 16,
+    paddingHorizontal: 20,
+    marginTop: 20,
   },
   dotsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 20,
+    paddingVertical: isXLTablet ? 30 : 20,
   },
   dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginHorizontal: 5,
+    width: isXLTablet ? 12 : 10,
+    height: isXLTablet ? 12 : 10,
+    borderRadius: isXLTablet ? 6 : 5,
+    marginHorizontal: isXLTablet ? 8 : 5,
   },
   activeDot: {
-    backgroundColor: theme.colors.primary, // ← ONLY COLOR CHANGED
+    backgroundColor: theme.colors.primary,
   },
   inactiveDot: {
-    backgroundColor: theme.colors.textTertiary, // ← ONLY COLOR CHANGED
+    backgroundColor: theme.colors.textTertiary,
   },
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 32,
-    paddingBottom: 40,
+    paddingHorizontal: isXLTablet ? 64 : 32,
+    paddingBottom: isXLTablet ? 60 : 40,
   },
   previousButton: {
-    minWidth: 60,
+    minWidth: isXLTablet ? 80 : 60,
   },
   previousButtonText: {
-    color: theme.colors.textSecondary, // ← ONLY COLOR CHANGED
+    color: theme.colors.textSecondary,
+    fontSize: isXLTablet ? 18 : undefined,
   },
   disabledButtonText: {
     opacity: 0,
@@ -463,15 +465,17 @@ const createStyles = (theme: Theme, width: number, height: number) => StyleSheet
     paddingHorizontal: 16,
   },
   skipButtonText: {
-    color: theme.colors.textTertiary, // ← ONLY COLOR CHANGED
+    color: theme.colors.textTertiary,
+    fontSize: isXLTablet ? 16 : undefined,
   },
   nextButton: {
-    minWidth: 60,
+    minWidth: isXLTablet ? 80 : 60,
     alignItems: 'flex-end',
   },
   nextButtonText: {
-    color: theme.colors.primary, // ← ONLY COLOR CHANGED
+    color: theme.colors.primary,
     fontWeight: 'bold',
+    fontSize: isXLTablet ? 18 : undefined,
   },
 });
 

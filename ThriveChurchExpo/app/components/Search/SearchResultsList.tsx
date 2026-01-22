@@ -14,25 +14,34 @@ import {
 import { FlashList } from '@shopify/flash-list';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 import { SearchTarget, SermonSeries, SermonMessage } from '../../types/api';
 import { RelatedSeriesCard } from '../RelatedSeriesCard';
 import { SearchMessageCard } from './SearchMessageCard';
+import OfflineEmptyState from '../OfflineEmptyState';
 
 interface SearchResultsListProps {
   results: SermonSeries[] | SermonMessage[];
   searchTarget: SearchTarget;
   isLoading: boolean;
+  isError?: boolean;
+  isOffline?: boolean;
   onResultPress: (result: SermonSeries | SermonMessage) => void;
+  onRetry?: () => void;
 }
 
 export const SearchResultsList: React.FC<SearchResultsListProps> = ({
   results,
   searchTarget,
   isLoading,
+  isError = false,
+  isOffline = false,
   onResultPress,
+  onRetry,
 }) => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme);
 
   // Track if FlashList has completed its first render cycle
@@ -167,9 +176,9 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
           size={64}
           color={theme.colors.textTertiary}
         />
-        <Text style={styles.emptyText}>No results found</Text>
+        <Text style={styles.emptyText}>{t('components.searchResultsList.noResults')}</Text>
         <Text style={styles.emptySubtext}>
-          Try selecting different tags
+          {t('components.searchResultsList.tryDifferentTags')}
         </Text>
       </View>
     );
@@ -179,11 +188,11 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
   const renderHeader = () => {
     if (isLoading || results.length === 0) return null;
 
-    const targetLabel = isSeries ? 'Series' : 'Messages';
+    const targetLabel = isSeries ? t('components.searchResultsList.series') : t('components.searchResultsList.messages');
     return (
       <View style={styles.headerContainer}>
         <Text style={styles.headerText}>
-          {results.length} {targetLabel} Found
+          {results.length} {targetLabel} {t('components.searchResultsList.found')}
         </Text>
       </View>
     );
@@ -228,6 +237,19 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
   // Show loading skeletons during API fetch
   if (isLoading) {
     return renderLoadingSkeletons();
+  }
+
+  // Show offline empty state if offline with error
+  if (isError && isOffline) {
+    return (
+      <OfflineEmptyState
+        message={t('offline.noSearchResultsMessage')}
+        showDownloadsCta={true}
+        showBibleCta={true}
+        showRetry={!!onRetry}
+        onRetry={onRetry}
+      />
+    );
   }
 
   // Show empty state if no results

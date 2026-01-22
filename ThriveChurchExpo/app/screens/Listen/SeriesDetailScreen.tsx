@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,20 +8,29 @@ import {
   ImageBackground,
   useWindowDimensions,
   StyleSheet,
+  TouchableOpacity,
+  Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import FastImage from 'react-native-fast-image';
 import { useQuery } from '@tanstack/react-query';
+import { useNetInfo } from '@react-native-community/netinfo';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../../services/api/client';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 import OfflineBanner from '../../components/OfflineBanner';
+import OfflineEmptyState from '../../components/OfflineEmptyState';
 import { SermonSeries, SermonMessage } from '../../types/api';
 import { isMessageDownloaded } from '../../services/storage/storage';
 import { SermonMessageCard } from '../../components/SermonMessageCard';
 import { setCurrentScreen, logCustomEvent } from '../../services/analytics/analyticsService';
 import { getTagDisplayLabel } from '../../types/messageTag';
+import { queueSeriesDownload } from '../../services/downloads/queueProcessor';
+import { useDownloadQueueStore } from '../../stores/downloadQueueStore';
+import { useSeriesProgress } from '../../hooks/useSeriesProgress';
+import { SeriesProgressBadge } from '../../components/SeriesProgressBadge';
 
 interface SeriesDetailScreenProps {
   seriesId: string;
@@ -31,6 +40,7 @@ interface SeriesDetailScreenProps {
 export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDetailScreenProps) {
   const navigation = useNavigation();
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme);
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
@@ -40,13 +50,20 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
 
   const [downloadedMessages, setDownloadedMessages] = useState<Set<string>>(new Set());
 
-  const { data: series, isLoading, isError } = useQuery({
+  // Network status for offline detection
+  const netInfo = useNetInfo();
+  const isOffline = netInfo.isConnected === false;
+
+  const { data: series, isLoading, isError, refetch } = useQuery({
     queryKey: ['series', seriesId],
     queryFn: async (): Promise<SermonSeries> => {
       const res = await api.get(`api/sermons/series/${seriesId}`);
       return res.data;
     },
   });
+
+  // Series progress tracking
+  const seriesProgress = useSeriesProgress({ series });
 
   // Track screen view with series info
   useEffect(() => {
@@ -89,6 +106,116 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
 
   const isCurrentSeries = series?.EndDate == null;
 
+  // Get messages in queue - use stable selector to avoid infinite re-renders
+  const queueItems = useDownloadQueueStore((state) => state.items);
+  const queuedMessageIds = useMemo(
+    () => new Set(queueItems.map((item) => item.messageId)),
+    [queueItems]
+  );
+
+  // Calculate downloadable messages (not downloaded and not in queue)
+  const downloadableMessages = useMemo(() => {
+    if (!series?.Messages) return [];
+    return series.Messages.filter(
+      (msg) =>
+        msg.AudioUrl &&
+        !downloadedMessages.has(msg.MessageId) &&
+        !queuedMessageIds.has(msg.MessageId)
+    );
+  }, [series?.Messages, downloadedMessages, queuedMessageIds]);
+
+  // Handle download series action
+  const handleDownloadSeries = useCallback((count?: number) => {
+    if (!series || downloadableMessages.length === 0) return;
+
+    const messagesToDownload = count
+      ? downloadableMessages.slice(0, count)
+      : downloadableMessages;
+
+    if (messagesToDownload.length === 0) {
+      Alert.alert(
+        t('listen.series.downloadSeries'),
+        t('listen.series.noMessagesToDownload')
+      );
+      return;
+    }
+
+    // Show confirmation
+    Alert.alert(
+      t('listen.series.confirmDownloadTitle'),
+      t('listen.series.confirmDownloadMessage', { count: messagesToDownload.length }),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('listen.sermon.download'),
+          onPress: () => {
+            queueSeriesDownload(messagesToDownload, series.Name, seriesArtUrl);
+
+            // Track analytics
+            logCustomEvent('download_series', {
+              series_id: seriesId,
+              series_name: series.Name,
+              message_count: messagesToDownload.length,
+              download_type: count ? 'partial' : 'full',
+            });
+
+            // Show success feedback
+            Alert.alert(
+              t('listen.series.downloadSeries'),
+              count
+                ? t('listen.series.queuedSome', { count: messagesToDownload.length })
+                : t('listen.series.queuedAll', { count: messagesToDownload.length })
+            );
+          },
+        },
+      ]
+    );
+  }, [series, downloadableMessages, seriesArtUrl, seriesId, t]);
+
+  // Show download options
+  const showDownloadOptions = useCallback(() => {
+    if (!series) return;
+
+    const totalMessages = series.Messages.filter((m) => m.AudioUrl).length;
+    const downloadedCount = downloadedMessages.size + queuedMessageIds.size;
+    const availableCount = downloadableMessages.length;
+
+    if (availableCount === 0) {
+      Alert.alert(
+        t('listen.series.downloadSeries'),
+        t('listen.series.noMessagesToDownload')
+      );
+      return;
+    }
+
+    // Build options based on availability
+    const options: { text: string; onPress?: () => void; style?: 'cancel' | 'destructive' | 'default' }[] = [];
+
+    // Always show "Download All" if there are messages to download
+    options.push({
+      text: t('listen.series.downloadAll'),
+      onPress: () => handleDownloadSeries(),
+    });
+
+    // Show "Download Next 3" if there are more than 3 available
+    if (availableCount > 3) {
+      options.push({
+        text: t('listen.series.downloadNext', { count: 3 }),
+        onPress: () => handleDownloadSeries(3),
+      });
+    }
+
+    options.push({ text: t('common.cancel'), style: 'cancel' });
+
+    Alert.alert(
+      t('listen.series.downloadSeries'),
+      downloadedCount > 0
+        ? t('listen.series.someDownloaded', { downloaded: downloadedCount, total: totalMessages })
+        : undefined,
+      options
+    );
+  }, [series, downloadedMessages, queuedMessageIds, downloadableMessages, handleDownloadSeries, t]);
+
   // Format date helper
   const formatDate = (dateString: string): string => {
     try {
@@ -126,14 +253,29 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
   }
 
   if (isError || !series) {
+    // Show offline-specific empty state when offline, generic error otherwise
+    if (isOffline) {
+      return (
+        <View style={{ flex: 1, backgroundColor: theme.colors.backgroundSecondary }}>
+          <OfflineEmptyState
+            message={t('offline.noSeriesMessage')}
+            showDownloadsCta={true}
+            showBibleCta={true}
+            showRetry={true}
+            onRetry={() => refetch()}
+          />
+        </View>
+      );
+    }
+
     return (
       <View style={{ flex: 1, backgroundColor: theme.colors.backgroundSecondary, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}>
         <OfflineBanner />
         <Text style={[theme.typography.h2 as any, { textAlign: 'center', marginBottom: 16 }]}>
-          Error loading series
+          {t('listen.error')}
         </Text>
         <Text style={[theme.typography.body as any, { textAlign: 'center', color: theme.colors.textTertiary }]}>
-          Please try again later
+          {t('common.tryAgain')}
         </Text>
       </View>
     );
@@ -181,8 +323,20 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
                     {isCurrentSeries && (
                       <View style={styles.tabletCurrentBadge}>
                         <Ionicons name="radio-button-on" size={12} color={theme.colors.success} />
-                        <Text style={styles.tabletCurrentBadgeText}>Current Series</Text>
+                        <Text style={styles.tabletCurrentBadgeText}>{t('listen.currentSeries')}</Text>
                       </View>
+                    )}
+
+                    {/* Series Progress Badge - Only for eligible past series */}
+                    {seriesProgress.showProgress && (
+                      <SeriesProgressBadge
+                        completedCount={seriesProgress.completedCount}
+                        totalCount={seriesProgress.totalCount}
+                        percentage={seriesProgress.percentage}
+                        isCompleted={seriesProgress.isCompleted}
+                        variant="header"
+                        darkBackground={true}
+                      />
                     )}
 
                     {/* Series Summary */}
@@ -207,7 +361,7 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
           <View style={styles.tabletSidebar}>
             {/* Speakers Section */}
             <View style={styles.tabletSidebarSection}>
-              <Text style={styles.tabletSidebarTitle}>Speakers</Text>
+              <Text style={styles.tabletSidebarTitle}>{t('listen.speakers')}</Text>
 
               {/* Get unique speakers from messages */}
               {Array.from(new Set(series.Messages.map(m => m.Speaker).filter(Boolean))).map((speaker, index) => (
@@ -217,7 +371,7 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
                   </View>
                   <View style={styles.tabletSpeakerInfo}>
                     <Text style={styles.tabletSpeakerName}>{speaker}</Text>
-                    <Text style={styles.tabletSpeakerRole}>Speaker</Text>
+                    <Text style={styles.tabletSpeakerRole}>{t('listen.speaker')}</Text>
                   </View>
                 </View>
               ))}
@@ -226,14 +380,14 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
               {Array.from(new Set(series.Messages.map(m => m.Speaker).filter(Boolean))).length === 0 && (
                 <View style={styles.tabletEmptyState}>
                   <Ionicons name="person-outline" size={32} color={theme.colors.border} />
-                  <Text style={styles.tabletEmptyStateText}>No speakers listed</Text>
+                  <Text style={styles.tabletEmptyStateText}>{t('listen.noSpeakers')}</Text>
                 </View>
               )}
             </View>
 
             {/* Topics Section */}
             <View style={styles.tabletSidebarSection}>
-              <Text style={styles.tabletSidebarTitle}>Topics</Text>
+              <Text style={styles.tabletSidebarTitle}>{t('listen.topics')}</Text>
 
               {/* Display actual tags from API */}
               {series.Tags && series.Tags.length > 0 ? (
@@ -248,15 +402,46 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
               ) : (
                 <View style={styles.tabletEmptyState}>
                   <Ionicons name="pricetags-outline" size={32} color={theme.colors.border} />
-                  <Text style={styles.tabletEmptyStateText}>No topics tagged</Text>
+                  <Text style={styles.tabletEmptyStateText}>{t('listen.noTopics')}</Text>
                 </View>
               )}
+            </View>
+
+            {/* Download Series Section */}
+            <View style={styles.tabletSidebarSection}>
+              <Text style={styles.tabletSidebarTitle}>{t('listen.series.downloadSeries')}</Text>
+              <TouchableOpacity
+                style={styles.tabletDownloadSeriesButton}
+                onPress={showDownloadOptions}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name={downloadableMessages.length === 0 ? 'checkmark-circle' : 'cloud-download-outline'}
+                  size={24}
+                  color={downloadableMessages.length === 0 ? theme.colors.success : theme.colors.textInverse}
+                />
+                <View style={styles.tabletDownloadSeriesContent}>
+                  <Text style={[
+                    styles.tabletDownloadSeriesText,
+                    downloadableMessages.length === 0 && styles.tabletDownloadSeriesTextComplete
+                  ]}>
+                    {downloadableMessages.length === 0
+                      ? t('listen.series.allDownloaded')
+                      : t('listen.series.downloadAll')}
+                  </Text>
+                  {downloadableMessages.length > 0 && (
+                    <Text style={styles.tabletDownloadSeriesSubtext}>
+                      {downloadableMessages.length} {downloadableMessages.length === 1 ? 'message' : 'messages'} available
+                    </Text>
+                  )}
+                </View>
+              </TouchableOpacity>
             </View>
           </View>
 
           {/* Right Main Content - Messages */}
           <View style={styles.tabletMainContent}>
-            <Text style={styles.tabletSectionTitle}>Messages</Text>
+            <Text style={styles.tabletSectionTitle}>{t('listen.messages')}</Text>
 
             <View style={styles.tabletMessagesGrid}>
               {series.Messages.map((message, index) => {
@@ -311,8 +496,21 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
         {/* Current Series Label */}
         {isCurrentSeries && (
           <Text style={styles.phoneCurrentLabel}>
-            Current Series
+            {t('listen.currentSeries')}
           </Text>
+        )}
+
+        {/* Series Progress Badge - Only for eligible past series */}
+        {seriesProgress.showProgress && (
+          <View style={styles.phoneProgressSection}>
+            <SeriesProgressBadge
+              completedCount={seriesProgress.completedCount}
+              totalCount={seriesProgress.totalCount}
+              percentage={seriesProgress.percentage}
+              isCompleted={seriesProgress.isCompleted}
+              variant="header"
+            />
+          </View>
         )}
 
         {/* Summary Section */}
@@ -326,7 +524,7 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
         {/* Tags Section - Limited to 4 tags on mobile */}
         {series.Tags && series.Tags.length > 0 && (
           <View style={styles.phoneTagsSection}>
-            <Text style={styles.phoneTagsLabel}>Topics</Text>
+            <Text style={styles.phoneTagsLabel}>{t('listen.topics')}</Text>
             <View style={styles.phoneTagsContainer}>
               {series.Tags.slice(0, 4).map((tag, index) => (
                 <View key={index} style={styles.phoneTag}>
@@ -342,6 +540,32 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
             </View>
           </View>
         )}
+
+        {/* Download Series Button */}
+        <TouchableOpacity
+          style={styles.phoneDownloadSeriesButton}
+          onPress={showDownloadOptions}
+          activeOpacity={0.7}
+        >
+          <Ionicons
+            name={downloadableMessages.length === 0 ? 'checkmark-circle' : 'cloud-download-outline'}
+            size={20}
+            color={downloadableMessages.length === 0 ? theme.colors.success : theme.colors.primary}
+          />
+          <Text style={[
+            styles.phoneDownloadSeriesText,
+            downloadableMessages.length === 0 && styles.phoneDownloadSeriesTextComplete
+          ]}>
+            {downloadableMessages.length === 0
+              ? t('listen.series.allDownloaded')
+              : t('listen.series.downloadSeries')}
+          </Text>
+          {downloadableMessages.length > 0 && (
+            <View style={styles.phoneDownloadSeriesBadge}>
+              <Text style={styles.phoneDownloadSeriesBadgeText}>{downloadableMessages.length}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
 
         {/* Messages List */}
         <View style={[styles.phoneMessagesList, { marginTop: (series.Summary || (series.Tags && series.Tags.length > 0)) ? 8 : (isCurrentSeries ? 0 : 16) }]}>
@@ -640,6 +864,15 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     marginTop: 16,
     marginBottom: 0,
   },
+  phoneProgressSection: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    backgroundColor: theme.colors.card,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
   phoneSummarySection: {
     marginHorizontal: 16,
     marginTop: 16,
@@ -711,5 +944,74 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   },
   phoneMessagesList: {
     // marginTop is set dynamically based on isCurrentSeries
+  },
+
+  // Phone Download Series Button
+  phoneDownloadSeriesButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.card,
+    marginHorizontal: 16,
+    marginTop: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    gap: 12,
+  },
+  phoneDownloadSeriesText: {
+    ...theme.typography.body,
+    fontSize: 15,
+    fontWeight: '600',
+    color: theme.colors.primary,
+    flex: 1,
+  },
+  phoneDownloadSeriesTextComplete: {
+    color: theme.colors.success,
+  },
+  phoneDownloadSeriesBadge: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    minWidth: 28,
+    alignItems: 'center',
+  },
+  phoneDownloadSeriesBadgeText: {
+    ...theme.typography.caption,
+    fontSize: 13,
+    fontWeight: '700',
+    color: theme.colors.textInverse,
+  },
+
+  // Tablet Download Series Button
+  tabletDownloadSeriesButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.primary,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    gap: 12,
+  },
+  tabletDownloadSeriesContent: {
+    flex: 1,
+  },
+  tabletDownloadSeriesText: {
+    ...theme.typography.body,
+    fontSize: 16,
+    fontWeight: '600',
+    color: theme.colors.textInverse,
+  },
+  tabletDownloadSeriesTextComplete: {
+    color: theme.colors.success,
+  },
+  tabletDownloadSeriesSubtext: {
+    ...theme.typography.caption,
+    fontSize: 13,
+    color: theme.colors.textInverse,
+    opacity: 0.8,
+    marginTop: 2,
   },
 });

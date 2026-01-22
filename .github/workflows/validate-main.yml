@@ -554,10 +554,13 @@ jobs:
             echo "✅ Debug keystore already exists (from prebuild artifacts)"
           fi
 
-      # Configure Gradle for CI (build only arm64-v8a to speed up CI)
+      # Configure Gradle for CI (build only arm64-v8a to speed up CI, increase heap for OOM prevention)
       - name: Configure Gradle for CI
         run: |
           echo "reactNativeArchitectures=arm64-v8a" >> android/gradle.properties
+          echo "org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m -XX:+HeapDumpOnOutOfMemoryError" >> android/gradle.properties
+          echo "org.gradle.parallel=true" >> android/gradle.properties
+          echo "org.gradle.caching=true" >> android/gradle.properties
 
       # Make gradlew executable
       - name: Make gradlew executable

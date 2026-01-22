@@ -16,8 +16,10 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useQuery } from '@tanstack/react-query';
+import { useNetInfo } from '@react-native-community/netinfo';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 import { SearchTarget, SortDirection, SermonSeries, SermonMessage } from '../../types/api';
 import { searchContent } from '../../services/api/sermonSearchService';
@@ -31,9 +33,14 @@ type NavigationProp = NativeStackNavigationProp<any>;
 
 export const SearchScreen: React.FC = () => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme);
   const navigation = useNavigation<NavigationProp>();
   const { width } = useWindowDimensions();
+
+  // Network status for offline detection
+  const netInfo = useNetInfo();
+  const isOffline = netInfo.isConnected === false;
 
   // State
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -101,7 +108,7 @@ export const SearchScreen: React.FC = () => {
   }, [selectedTags]);
 
   // React Query for search results
-  const { data: results, isLoading } = useQuery({
+  const { data: results, isLoading, isError, refetch } = useQuery({
     queryKey: [
       'search',
       searchTarget,
@@ -230,13 +237,13 @@ export const SearchScreen: React.FC = () => {
         />
         <Text style={styles.emptyStateText}>
           {isSpeakerTab
-            ? 'Select a speaker to see their messages'
-            : 'Select tags to search for content'}
+            ? t('listen.search.emptySpeaker')
+            : t('listen.search.emptyTags')}
         </Text>
         <Text style={styles.emptyStateSubtext}>
           {isSpeakerTab
-            ? 'Choose a speaker to view all their sermon messages'
-            : 'Choose one or more topics to find related messages and series'}
+            ? t('listen.search.emptySpeakerSubtext')
+            : t('listen.search.emptyTagsSubtext')}
         </Text>
       </View>
     );
@@ -283,7 +290,10 @@ export const SearchScreen: React.FC = () => {
                 results={results || []}
                 searchTarget={searchTarget}
                 isLoading={isLoading}
+                isError={isError}
+                isOffline={isOffline}
                 onResultPress={handleResultPress}
+                onRetry={() => refetch()}
               />
             )}
           </View>
@@ -304,7 +314,7 @@ export const SearchScreen: React.FC = () => {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>
-          {searchTarget === SearchTarget.Speaker ? 'Select Speaker' : 'Select Topics'}
+          {searchTarget === SearchTarget.Speaker ? t('listen.search.selectSpeaker') : t('listen.search.selectTopics')}
         </Text>
         {searchTarget === SearchTarget.Speaker ? (
           <SpeakerSelector
@@ -324,13 +334,16 @@ export const SearchScreen: React.FC = () => {
       {((searchTarget === SearchTarget.Speaker && selectedSpeaker) ||
         (searchTarget !== SearchTarget.Speaker && debouncedTags.length > 0)) && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Results</Text>
+          <Text style={styles.sectionTitle}>{t('listen.search.results')}</Text>
           <View style={styles.resultsContainer}>
             <SearchResultsList
               results={results || []}
               searchTarget={searchTarget}
               isLoading={isLoading}
+              isError={isError}
+              isOffline={isOffline}
               onResultPress={handleResultPress}
+              onRetry={() => refetch()}
             />
           </View>
         </View>

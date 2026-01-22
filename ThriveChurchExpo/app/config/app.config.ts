@@ -21,6 +21,16 @@ export const apiConfig = {
 };
 
 /**
+ * YouTube Configuration
+ * Used for live streaming feature
+ */
+export const youtubeConfig = {
+  apiKey: extra.YOUTUBE_API_KEY || '',
+  channelId: extra.YOUTUBE_CHANNEL_ID || 'UC47Nme86YGrVy1lY15rF3ig',
+  channelUrl: 'https://youtube.com/@thrivefl/videos'
+};
+
+/**
  * App Information
  */
 export const appInfo = {
@@ -82,6 +92,7 @@ export default {
   deepLink: deepLinkConfig,
   environment,
   features,
+  youtube: youtubeConfig,
   logAppConfig,
 };
 

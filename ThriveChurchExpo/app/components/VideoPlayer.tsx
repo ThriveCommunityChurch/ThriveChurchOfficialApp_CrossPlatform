@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import YoutubePlayer, { YoutubeIframeRef } from 'react-native-youtube-iframe';
 import { useTheme } from '../hooks/useTheme';
+import { useTranslation } from '../hooks/useTranslation';
 import type { Theme } from '../theme/types';
 
 interface VideoPlayerProps {
@@ -61,6 +62,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   style,
 }) => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -82,25 +84,25 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     console.error('YouTube Player Error:', error);
     setIsLoading(false);
     setHasError(true);
-    
-    let errorMessage = 'Failed to load video';
+
+    let errorMessage = t('components.videoPlayer.loadFailed');
     switch (error) {
       case 'video_not_found':
-        errorMessage = 'Video not found or has been removed';
+        errorMessage = t('components.videoPlayer.videoNotFound');
         break;
       case 'embed_not_allowed':
-        errorMessage = 'Video cannot be played in embedded players';
+        errorMessage = t('components.videoPlayer.embedNotAllowed');
         break;
       case 'invalid_parameter':
-        errorMessage = 'Invalid video URL';
+        errorMessage = t('components.videoPlayer.invalidUrl');
         break;
       case 'HTML5_error':
-        errorMessage = 'Video playback error occurred';
+        errorMessage = t('components.videoPlayer.playbackError');
         break;
     }
-    
+
     onError?.(errorMessage);
-  }, [onError]);
+  }, [onError, t]);
 
   const handleStateChange = useCallback((state: string) => {
     setIsPlaying(state === 'playing');
@@ -115,14 +117,14 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   const openInYouTube = useCallback(() => {
     if (!videoId) return;
-    
+
     Alert.alert(
-      'Open in YouTube',
-      'Would you like to open this video in the YouTube app?',
+      t('components.videoPlayer.openInYouTube'),
+      t('components.videoPlayer.openInYouTubeMessage'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Open',
+          text: t('components.videoPlayer.open'),
           onPress: () => {
             // This will be handled by the parent component
             // as it needs access to Linking API
@@ -130,13 +132,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         },
       ]
     );
-  }, [videoId]);
+  }, [videoId, t]);
 
   if (!videoId) {
     return (
       <View style={[styles.container, styles.errorContainer, style]}>
-        <Text style={styles.errorText}>Invalid video URL</Text>
-        <Text style={styles.errorSubtext}>Unable to extract video ID from: {videoUrl}</Text>
+        <Text style={styles.errorText}>{t('components.videoPlayer.invalidVideoUrl')}</Text>
+        <Text style={styles.errorSubtext}>{t('components.videoPlayer.unableToExtract', { url: videoUrl })}</Text>
       </View>
     );
   }
@@ -144,12 +146,12 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   if (hasError) {
     return (
       <View style={[styles.container, styles.errorContainer, style]}>
-        <Text style={styles.errorText}>Video Unavailable</Text>
+        <Text style={styles.errorText}>{t('components.videoPlayer.unavailable')}</Text>
         <Text style={styles.errorSubtext}>
-          This video cannot be played at the moment
+          {t('components.videoPlayer.unavailableMessage')}
         </Text>
         <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
-          <Text style={styles.retryButtonText}>Retry</Text>
+          <Text style={styles.retryButtonText}>{t('components.videoPlayer.retry')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -169,7 +171,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         {isLoading && (
           <View style={styles.loadingOverlay}>
             <ActivityIndicator size="large" color={theme.colors.primary} />
-            <Text style={styles.loadingText}>Loading video...</Text>
+            <Text style={styles.loadingText}>{t('components.videoPlayer.loading')}</Text>
           </View>
         )}
         

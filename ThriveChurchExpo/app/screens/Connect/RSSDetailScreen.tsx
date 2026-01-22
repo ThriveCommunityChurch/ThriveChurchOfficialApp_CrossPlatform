@@ -8,6 +8,7 @@ import { View, StyleSheet, ActivityIndicator, Linking, Alert } from 'react-nativ
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { WebView } from 'react-native-webview';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 import { setCurrentScreen, logCustomEvent } from '../../services/analytics/analyticsService';
 
@@ -20,6 +21,7 @@ type RSSDetailRouteProp = RouteProp<ConnectStackParamList, 'RSSDetail'>;
 
 export const RSSDetailScreen: React.FC = () => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme);
   const route = useRoute<RSSDetailRouteProp>();
   const { content, title } = route.params;
@@ -53,12 +55,12 @@ export const RSSDetailScreen: React.FC = () => {
             if (supported) {
               Linking.openURL(url);
             } else {
-              Alert.alert('Error', 'Unable to open link');
+              Alert.alert(t('rssDetail.error'), t('rssDetail.unableToOpenLink'));
             }
           })
           .catch((err) => {
             console.error('Error opening URL:', err);
-            Alert.alert('Error', 'Unable to open link');
+            Alert.alert(t('rssDetail.error'), t('rssDetail.unableToOpenLink'));
           });
       }
 

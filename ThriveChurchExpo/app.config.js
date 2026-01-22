@@ -1,22 +1,34 @@
 /**
  * Expo App Configuration
- * 
+ *
  * This file dynamically loads credentials from credentials.json
  * and configures the Expo app accordingly.
+ *
+ * Version is managed in version.json - use scripts/increment-build.js
+ * to increment the build number before each release.
  */
 
+const fs = require('fs');
+const path = require('path');
 const { loadCredentials, credentialsToExpoExtra } = require('./load-credentials');
 
 // Load credentials
 const credentials = loadCredentials();
 const extra = credentialsToExpoExtra(credentials);
 
+// Load version info
+const versionPath = path.join(__dirname, 'version.json');
+const versionData = JSON.parse(fs.readFileSync(versionPath, 'utf8'));
+
 module.exports = {
   expo: {
     name: credentials.app.name,
     slug: "ThriveChurchExpo",
-    version: "1.0.0",
-    orientation: "portrait",
+    version: versionData.version,
+    jsEngine: "hermes",
+    // Allow rotation on tablets while keeping portrait default on phones
+    // This enables proper tablet layouts in landscape mode
+    orientation: "default",
     icon: "./assets/icon.png",
     userInterfaceStyle: "automatic",
     assetBundlePatterns: [
@@ -25,6 +37,7 @@ module.exports = {
     ios: {
       supportsTablet: true,
       bundleIdentifier: credentials.app.bundleIdIos,
+      buildNumber: String(versionData.buildNumber),
       googleServicesFile: "./GoogleService-Info.plist",
       infoPlist: {
         // Firebase URL Schemes
@@ -57,15 +70,20 @@ module.exports = {
           "remote-notification"
         ],
         // Firebase configuration (matches old iOS project)
-        FirebaseAppDelegateProxyEnabled: false
+        FirebaseAppDelegateProxyEnabled: false,
+        // Privacy usage descriptions (required by App Store)
+        // Note: Some React Native dependencies reference the Photos framework even if we don't use it directly.
+        // Apple requires this key if any linked framework references photo library APIs.
+        NSPhotoLibraryUsageDescription: "This app may access your photo library to allow you to share photos."
       }
     },
     android: {
       adaptiveIcon: {
-        foregroundImage: "./assets/adaptive-icon.png",
+        foregroundImage: "./assets/adaptive-icon-android.png",
         backgroundColor: "#FFFFFF"
       },
       package: credentials.app.bundleIdAndroid,
+      versionCode: versionData.buildNumber,
       googleServicesFile: "./google-services.json",
       permissions: [
         "INTERNET",
@@ -109,8 +127,17 @@ module.exports = {
       "./plugins/withPushNotifications.js",
       // Custom plugin to add copyright text to splash screen (runs after expo-splash-screen)
       "./plugins/withSplashScreenCopyright.js",
+      // NOTE: Android splash images are copied via scripts/copy-android-splash.js (runs post-prebuild)
       // Custom plugin to configure dynamic theme support (iOS + Android)
-      "./plugins/withThemeConfiguration.js"
+      "./plugins/withThemeConfiguration.js",
+      // Custom plugin to add native UI tests (XCUITest for iOS, Espresso for Android)
+      "./plugins/withNativeUITests.js",
+      // Custom plugin to apply Xcode recommended settings (avoids manual updates each time you open Xcode)
+      "./plugins/withXcodeSettings.js",
+      // Custom plugin to enable tablet support and rotation on Android/iOS tablets
+      "./plugins/withTabletSupport.js",
+      // Custom plugin to configure Android gradle.properties (CI/CD settings + release signing)
+      ["./plugins/withAndroidGradleConfig.js", { credentials }]
       // Note: @react-native-firebase/analytics and @react-native-firebase/messaging
       // do not have Expo config plugins. They are configured via native files
       // (GoogleService-Info.plist and google-services.json) and work at runtime.

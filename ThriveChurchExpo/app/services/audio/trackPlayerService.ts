@@ -1,4 +1,5 @@
 import TrackPlayer, {
+  AndroidAudioContentType,
   AppKilledPlaybackBehavior,
   Capability,
   Event,
@@ -6,10 +7,18 @@ import TrackPlayer, {
   State,
 } from 'react-native-track-player';
 import { SermonMessage } from '../../types/api';
-import { addToRecentlyPlayed } from '../storage/storage';
+import { addToRecentlyPlayed, savePlaybackProgress, getPlaybackProgressForMessage, clearPlaybackProgress } from '../storage/storage';
 import { markMessageAsPlayed } from '../api/messagePlayedService';
+import { MIN_POSITION_TO_SAVE, END_THRESHOLD, PROGRESS_SAVE_INTERVAL_MS } from '../../types/playback';
+import { getPlaybackSettings, type SkipInterval } from '../playback/playbackSettings';
+import { setCompletionContext, clearCompletionContext, checkAndMarkCompletion } from '../progress/seriesCompletionService';
 
 let isServiceInitialized = false;
+let currentMessageId: string | null = null;
+let progressSaveInterval: ReturnType<typeof setInterval> | null = null;
+// Track current skip intervals for lock screen
+let currentSkipForward: SkipInterval = 15;
+let currentSkipBackward: SkipInterval = 15;
 
 export const setupPlayer = async (): Promise<void> => {
   if (isServiceInitialized) {
@@ -17,13 +26,23 @@ export const setupPlayer = async (): Promise<void> => {
   }
 
   try {
+    // Load saved skip intervals from settings
+    const settings = await getPlaybackSettings();
+    currentSkipForward = settings.skipForwardInterval;
+    currentSkipBackward = settings.skipBackwardInterval;
+
     await TrackPlayer.setupPlayer({
       autoHandleInterruptions: true,
+      // Ensure audio plays through media stream at proper volume
+      androidAudioContentType: AndroidAudioContentType.Music,
     });
 
     await TrackPlayer.updateOptions({
       android: {
-        appKilledPlaybackBehavior: AppKilledPlaybackBehavior.ContinuePlayback,
+        // Use StopPlaybackAndRemoveNotification to avoid "Session ID must be unique" crash
+        // This is a known bug in react-native-track-player v5.0.0-alpha0 (GitHub issue #2485)
+        // ContinuePlayback causes MediaSession to not be properly cleaned up when app is killed
+        appKilledPlaybackBehavior: AppKilledPlaybackBehavior.StopPlaybackAndRemoveNotification,
       },
       capabilities: [
         Capability.Play,
@@ -40,29 +59,112 @@ export const setupPlayer = async (): Promise<void> => {
         Capability.JumpBackward,
       ],
       progressUpdateEventInterval: 1,
-      // Set jump intervals to 15 seconds
-      forwardJumpInterval: 15,
-      backwardJumpInterval: 15,
+      // Set jump intervals from user settings (affects lock screen controls)
+      forwardJumpInterval: currentSkipForward,
+      backwardJumpInterval: currentSkipBackward,
     });
 
     isServiceInitialized = true;
-    console.log('Track Player initialized successfully');
+    console.log(`Track Player initialized with skip intervals: forward=${currentSkipForward}s, backward=${currentSkipBackward}s`);
   } catch (error) {
+    // Handle case where player was already initialized (e.g., after hot reload)
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (errorMessage.includes('already been initialized')) {
+      isServiceInitialized = true;
+      console.log('Track Player was already initialized');
+      return;
+    }
     console.error('Error setting up Track Player:', error);
     throw error;
+  }
+};
+
+/**
+ * Update skip intervals for lock screen controls
+ * Call this when user changes settings
+ */
+export const updatePlayerSkipIntervals = async (
+  forward: SkipInterval,
+  backward: SkipInterval
+): Promise<void> => {
+  try {
+    currentSkipForward = forward;
+    currentSkipBackward = backward;
+
+    await TrackPlayer.updateOptions({
+      forwardJumpInterval: forward,
+      backwardJumpInterval: backward,
+    });
+
+    console.log(`Updated skip intervals: forward=${forward}s, backward=${backward}s`);
+  } catch (error) {
+    console.error('Error updating skip intervals:', error);
+  }
+};
+
+/**
+ * Get current skip intervals
+ */
+export const getCurrentSkipIntervals = (): { forward: SkipInterval; backward: SkipInterval } => {
+  return {
+    forward: currentSkipForward,
+    backward: currentSkipBackward,
+  };
+};
+
+/**
+ * Save current playback progress if a track is playing
+ * Also checks for series completion threshold
+ */
+const saveCurrentProgress = async (): Promise<void> => {
+  if (!currentMessageId) return;
+
+  try {
+    const progress = await TrackPlayer.getProgress();
+    if (progress.position > 0 && progress.duration > 0) {
+      await savePlaybackProgress(currentMessageId, progress.position, progress.duration);
+
+	      // Check for series completion based on the configured completion threshold
+      checkAndMarkCompletion(currentMessageId, progress.position, progress.duration);
+    }
+  } catch (error) {
+    console.warn('Error saving playback progress:', error);
+  }
+};
+
+/**
+ * Start periodic progress saving while playing
+ */
+const startProgressSaving = (): void => {
+  stopProgressSaving();
+  progressSaveInterval = setInterval(saveCurrentProgress, PROGRESS_SAVE_INTERVAL_MS);
+};
+
+/**
+ * Stop periodic progress saving
+ */
+const stopProgressSaving = (): void => {
+  if (progressSaveInterval) {
+    clearInterval(progressSaveInterval);
+    progressSaveInterval = null;
   }
 };
 
 export const playbackService = async (): Promise<void> => {
   TrackPlayer.addEventListener(Event.RemotePlay, () => {
     TrackPlayer.play();
+    startProgressSaving();
   });
 
-  TrackPlayer.addEventListener(Event.RemotePause, () => {
+  TrackPlayer.addEventListener(Event.RemotePause, async () => {
+    await saveCurrentProgress();
+    stopProgressSaving();
     TrackPlayer.pause();
   });
 
-  TrackPlayer.addEventListener(Event.RemoteStop, () => {
+  TrackPlayer.addEventListener(Event.RemoteStop, async () => {
+    await saveCurrentProgress();
+    stopProgressSaving();
     TrackPlayer.stop();
   });
 
@@ -79,33 +181,61 @@ export const playbackService = async (): Promise<void> => {
     const progress = await TrackPlayer.getProgress();
     await TrackPlayer.seekTo(Math.max(0, progress.position - (interval || 15)));
   });
+
+  // Handle playback state changes
+  TrackPlayer.addEventListener(Event.PlaybackState, async (event) => {
+    if (event.state === State.Playing) {
+      startProgressSaving();
+    } else if (event.state === State.Paused || event.state === State.Stopped) {
+      await saveCurrentProgress();
+      stopProgressSaving();
+
+      // Clear series completion context only when playback is fully stopped
+      if (event.state === State.Stopped) {
+        clearCompletionContext();
+      }
+    }
+  });
 };
 
 export interface PlayAudioOptions {
   message: SermonMessage;
+  seriesId?: string;
   seriesTitle?: string;
   seriesArt?: string;
   isLocal?: boolean;
 }
 
 export const playAudio = async (options: PlayAudioOptions): Promise<void> => {
-  const { message, seriesTitle, seriesArt, isLocal = false } = options;
+  const { message, seriesId, seriesTitle, seriesArt, isLocal = false } = options;
 
   try {
     // Ensure player is set up
     await setupPlayer();
 
     // Determine the audio URL
-    const audioUrl = isLocal && message.LocalAudioURI 
-      ? message.LocalAudioURI 
+    const audioUrl = isLocal && message.LocalAudioURI
+      ? message.LocalAudioURI
       : message.AudioUrl;
 
     if (!audioUrl) {
       throw new Error('No audio URL available');
     }
 
+    // Stop progress saving for previous track if any
+    stopProgressSaving();
+
     // Reset the player
     await TrackPlayer.reset();
+
+    // Set current message ID for progress tracking
+    currentMessageId = message.MessageId;
+
+    // Set completion context for series progress tracking
+    setCompletionContext(seriesId, message.MessageId);
+
+    // Check for saved progress
+    const savedProgress = await getPlaybackProgressForMessage(message.MessageId);
 
     // Add track to player with extended metadata
     await TrackPlayer.add({
@@ -127,6 +257,24 @@ export const playAudio = async (options: PlayAudioOptions): Promise<void> => {
     // Start playback
     await TrackPlayer.play();
 
+    // Resume from saved position if available
+    // Only resume if position is meaningful (> MIN_POSITION_TO_SAVE and not too close to end)
+    if (savedProgress) {
+      const { positionSeconds, durationSeconds } = savedProgress;
+      const timeRemaining = durationSeconds - positionSeconds;
+
+      if (positionSeconds >= MIN_POSITION_TO_SAVE && timeRemaining > END_THRESHOLD) {
+        console.log(`Resuming playback at ${positionSeconds}s (saved progress)`);
+        await TrackPlayer.seekTo(positionSeconds);
+      } else {
+        // Clear progress if it's too close to the start or end
+        await clearPlaybackProgress(message.MessageId);
+      }
+    }
+
+    // Start periodic progress saving
+    startProgressSaving();
+
     // Add to recently played
     await addToRecentlyPlayed(message, seriesArt || message.seriesArt);
 
@@ -145,6 +293,8 @@ export const playAudio = async (options: PlayAudioOptions): Promise<void> => {
 
 export const pauseAudio = async (): Promise<void> => {
   try {
+    await saveCurrentProgress();
+    stopProgressSaving();
     await TrackPlayer.pause();
   } catch (error) {
     console.error('Error pausing audio:', error);
@@ -154,6 +304,7 @@ export const pauseAudio = async (): Promise<void> => {
 export const resumeAudio = async (): Promise<void> => {
   try {
     await TrackPlayer.play();
+    startProgressSaving();
   } catch (error) {
     console.error('Error resuming audio:', error);
   }
@@ -161,8 +312,11 @@ export const resumeAudio = async (): Promise<void> => {
 
 export const stopAudio = async (): Promise<void> => {
   try {
+    await saveCurrentProgress();
+    stopProgressSaving();
     await TrackPlayer.stop();
     await TrackPlayer.reset();
+    currentMessageId = null;
   } catch (error) {
     console.error('Error stopping audio:', error);
   }

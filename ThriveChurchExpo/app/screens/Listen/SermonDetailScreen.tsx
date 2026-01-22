@@ -17,15 +17,25 @@ import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useQuery } from '@tanstack/react-query';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 import { SermonMessage, SermonSeries } from '../../types/api';
 import { api } from '../../services/api/client';
 import { usePlayer } from '../../hooks/usePlayer';
-import { downloadSermon, deleteDownload, getDownloadSize } from '../../services/downloads/downloadManager';
+import { deleteDownload, getDownloadSize } from '../../services/downloads/downloadManager';
 import { isMessageDownloaded } from '../../services/storage/storage';
 import { setCurrentScreen, logCustomEvent, logPlaySermon, logDownloadSermon } from '../../services/analytics/analyticsService';
 import { getTagDisplayLabel } from '../../types/messageTag';
 import { RelatedSeriesSection } from '../../components/RelatedSeriesSection';
+import { useDownloadQueueStore } from '../../stores/downloadQueueStore';
+import { useShallow } from 'zustand/react/shallow';
+import { queueSermonDownload } from '../../services/downloads/queueProcessor';
+import { canDownloadNow } from '../../services/downloads/networkMonitor';
+import {
+  hasBeenPromptedForWifiOnly,
+  markWifiOnlyPrompted,
+  updateDownloadSetting,
+} from '../../services/downloads/downloadSettings';
 
 type SermonDetailScreenRouteProp = RouteProp<{
   SermonDetailScreen: {
@@ -42,13 +52,25 @@ export const SermonDetailScreen: React.FC = () => {
   const { message, seriesTitle, seriesArtUrl, seriesId } = route.params;
   const player = usePlayer();
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme);
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
   const [downloaded, setDownloaded] = useState(false);
-  const [downloading, setDownloading] = useState(false);
-  const [downloadProgress, setDownloadProgress] = useState(0);
   const [fileSize, setFileSize] = useState<number>(0);
+
+  // Get queue state for this message - only extract the fields we need to avoid re-renders
+  const { queueStatus, downloadProgress } = useDownloadQueueStore(
+    useShallow((state) => {
+      const item = state.items.find((i) => i.messageId === message.MessageId);
+      return {
+        queueStatus: item?.status,
+        downloadProgress: item?.progress || 0,
+      };
+    })
+  );
+  const isDownloading = queueStatus === 'downloading';
+  const isQueued = queueStatus === 'queued' || queueStatus === 'paused';
 
   // Calculate orientation and responsive dimensions
   const isLandscape = windowWidth > windowHeight;
@@ -121,6 +143,18 @@ export const SermonDetailScreen: React.FC = () => {
     checkDownloadStatus();
   }, [message.MessageId, message.AudioFileSize]);
 
+  // Watch for download completion and update downloaded state
+  useEffect(() => {
+    if (queueStatus === 'completed') {
+      // Download just finished - update state
+      setDownloaded(true);
+      // Also update file size
+      getDownloadSize(message.MessageId).then((size) => {
+        if (size > 0) setFileSize(size);
+      });
+    }
+  }, [queueStatus, message.MessageId]);
+
   const formatDate = (dateString: string): string => {
     try {
       const date = new Date(dateString);
@@ -160,19 +194,20 @@ export const SermonDetailScreen: React.FC = () => {
 
       await player.play({
         message,
+        seriesId,
         seriesTitle: displaySeriesTitle,
         seriesArt: displaySeriesArtUrl,
         isLocal: downloaded,
       });
     } catch (error) {
       console.error('Error playing audio:', error);
-      Alert.alert('Error', 'Failed to play audio. Please check your connection and try again.');
+      Alert.alert(t('common.error'), t('listen.sermon.errorPlayAudio'));
     }
-  }, [player, message, displaySeriesTitle, displaySeriesArtUrl, downloaded]);
+  }, [player, message, seriesId, displaySeriesTitle, displaySeriesArtUrl, downloaded, t]);
 
   const handlePlayVideo = useCallback(() => {
     if (!message.VideoUrl) {
-      Alert.alert('No Video', 'This sermon does not have a video available.');
+      Alert.alert(t('listen.sermon.noVideo'), t('listen.sermon.noVideoMessage'));
       return;
     }
 
@@ -180,11 +215,11 @@ export const SermonDetailScreen: React.FC = () => {
       message,
       seriesTitle: displaySeriesTitle,
     });
-  }, [navigation, message, displaySeriesTitle]);
+  }, [navigation, message, displaySeriesTitle, t]);
 
   const handleReadPassage = useCallback(() => {
     if (!message.PassageRef) {
-      Alert.alert('No Passage', 'This sermon does not have a Bible passage reference.');
+      Alert.alert(t('listen.sermon.noPassage'), t('listen.sermon.noPassageMessage'));
       return;
     }
 
@@ -192,73 +227,155 @@ export const SermonDetailScreen: React.FC = () => {
       message,
       seriesTitle: displaySeriesTitle,
     });
-  }, [navigation, message, displaySeriesTitle]);
+  }, [navigation, message, displaySeriesTitle, t]);
+
+  // Helper to actually queue the download and show feedback
+  const proceedWithDownload = useCallback(async () => {
+    // Check network status and queue state to provide appropriate feedback
+    const networkStatus = await canDownloadNow();
+    const queueStore = useDownloadQueueStore.getState();
+    const queuedItems = queueStore.items.filter(
+      (item) => item.status === 'queued' || item.status === 'downloading'
+    );
+    const hasActiveDownloads = queuedItems.length > 0;
+
+    // Add to download queue
+    queueSermonDownload(message, displaySeriesTitle, displaySeriesArtUrl);
+
+    // Track sermon download event
+    logDownloadSermon(message.MessageId, message.Title);
+
+    // Show context-aware feedback
+    let feedbackMessage: string;
+    if (!networkStatus.allowed) {
+      // Distinguish between WiFi-only restriction and no internet
+      const isWifiOnlyRestriction = networkStatus.reason?.includes('WiFi-only');
+      if (isWifiOnlyRestriction) {
+        feedbackMessage = t('listen.downloads.addedWillDownloadOnWifi');
+      } else {
+        // No internet connection
+        feedbackMessage = t('listen.downloads.addedWillDownloadWhenOnline');
+      }
+    } else if (hasActiveDownloads) {
+      // Connected and can download, but there are items ahead in queue
+      feedbackMessage = t('listen.downloads.addedToQueueWaiting');
+    } else {
+      // Connected, can download, queue is empty - download starting now
+      feedbackMessage = t('listen.downloads.downloadStarting');
+    }
+
+    Alert.alert(t('common.success'), feedbackMessage);
+  }, [message, displaySeriesTitle, displaySeriesArtUrl, t]);
 
   const handleDownload = useCallback(async () => {
     if (!message.AudioUrl) {
-      Alert.alert('Error', 'No audio available for download');
+      Alert.alert(t('common.error'), t('listen.sermon.noAudioDownload'));
       return;
     }
 
-    try {
-      setDownloading(true);
-      setDownloadProgress(0);
+    // Check if this is the user's first download - show WiFi preference prompt
+    const hasBeenPrompted = await hasBeenPromptedForWifiOnly();
+    if (!hasBeenPrompted) {
+      // Mark as prompted regardless of their choice
+      await markWifiOnlyPrompted();
 
-      await downloadSermon(
-        message,
-        displaySeriesTitle,
-        displaySeriesArtUrl,
-        (progress) => {
-          setDownloadProgress(progress);
-        }
+      // Show the first-time WiFi preference prompt
+      Alert.alert(
+        t('listen.downloads.wifiOnlyPromptTitle'),
+        t('listen.downloads.wifiOnlyPromptMessage'),
+        [
+          {
+            text: t('listen.downloads.keepWifiOnly'),
+            style: 'cancel',
+            onPress: () => {
+              // Default is already WiFi-only, just proceed
+              proceedWithDownload();
+            },
+          },
+          {
+            text: t('listen.downloads.allowCellular'),
+            onPress: async () => {
+              // Update setting to allow cellular downloads
+              await updateDownloadSetting('wifiOnly', false);
+              proceedWithDownload();
+            },
+          },
+        ]
       );
-
-      setDownloaded(true);
-
-      // Get and update the file size
-      const size = await getDownloadSize(message.MessageId);
-      setFileSize(size);
-
-      // Track sermon download event
-      await logDownloadSermon(message.MessageId, message.Title);
-
-      Alert.alert('Success', 'Sermon downloaded successfully');
-    } catch (error) {
-      console.error('Download error:', error);
-      Alert.alert('Download Failed', 'Failed to download sermon. Please try again.');
-    } finally {
-      setDownloading(false);
-      setDownloadProgress(0);
+      return;
     }
-  }, [message, displaySeriesTitle, displaySeriesArtUrl]);
+
+    // Already prompted before, just proceed with download
+    proceedWithDownload();
+  }, [message, t, proceedWithDownload]);
 
   const handleDeleteDownload = useCallback(async () => {
     Alert.alert(
-      'Remove Download',
-      'Are you sure you want to remove this downloaded sermon?',
+      t('listen.sermon.removeDownloadTitle'),
+      t('listen.sermon.removeDownloadMessage'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Remove',
+          text: t('listen.sermon.remove'),
           style: 'destructive',
           onPress: async () => {
             try {
               await deleteDownload(message.MessageId);
               setDownloaded(false);
-              Alert.alert('Success', 'Download removed successfully');
+              Alert.alert(t('common.success'), t('listen.sermon.removeSuccess'));
             } catch (error) {
               console.error('Delete error:', error);
-              Alert.alert('Error', 'Failed to remove download');
+              Alert.alert(t('common.error'), t('listen.sermon.removeFailed'));
             }
           },
         },
       ]
     );
-  }, [message.MessageId]);
+  }, [message.MessageId, t]);
+
+  const handleTakeNotes = useCallback(() => {
+    // Navigate to Notes tab, then to NoteDetail screen with sermon context
+    (navigation as any).navigate('Notes', {
+      screen: 'NoteDetail',
+      params: {
+        messageId: message.MessageId,
+        messageTitle: message.Title,
+        seriesTitle: displaySeriesTitle,
+        seriesArt: displaySeriesArtUrl,
+        speaker: message.Speaker || 'Unknown',
+        messageDate: message.Date || new Date().toISOString(),
+        seriesId: seriesId,
+      },
+    });
+  }, [navigation, message, displaySeriesTitle, displaySeriesArtUrl, seriesId]);
+
+  // Navigate to AI-generated sermon notes
+  const handleViewSermonNotes = useCallback(() => {
+    navigation.navigate('SermonNotesScreen', {
+      message,
+      seriesTitle: displaySeriesTitle,
+      seriesArtUrl: displaySeriesArtUrl,
+      seriesId,
+    });
+  }, [navigation, message, displaySeriesTitle, displaySeriesArtUrl, seriesId]);
+
+  // Navigate to study guide
+  const handleViewStudyGuide = useCallback(() => {
+    navigation.navigate('StudyGuideScreen', {
+      message,
+      seriesTitle: displaySeriesTitle,
+      seriesArtUrl: displaySeriesArtUrl,
+      seriesId,
+    });
+  }, [navigation, message, displaySeriesTitle, displaySeriesArtUrl, seriesId]);
 
   const hasAudio = !!message.AudioUrl;
   const hasVideo = !!message.VideoUrl;
   const hasPassage = !!message.PassageRef;
+
+  // Check for available transcript features
+  const hasNotes = message.AvailableTranscriptFeatures?.includes('Notes') ?? false;
+  const hasStudyGuide = message.AvailableTranscriptFeatures?.includes('StudyGuide') ?? false;
 
   // Render tablet layout with hero section and improved content layout
   const renderTabletLayout = () => {
@@ -311,7 +428,7 @@ export const SermonDetailScreen: React.FC = () => {
                             activeOpacity={0.8}
                           >
                             <Ionicons name="play" size={20} color={theme.colors.textInverse} />
-                            <Text style={styles.tabletHeroPrimaryButtonText}>Play Audio</Text>
+                            <Text style={styles.tabletHeroPrimaryButtonText}>{t('listen.sermon.playAudio')}</Text>
                           </TouchableOpacity>
                         )}
 
@@ -322,7 +439,7 @@ export const SermonDetailScreen: React.FC = () => {
                             activeOpacity={0.8}
                           >
                             <Ionicons name="videocam" size={20} color={theme.colors.textInverse} />
-                            <Text style={styles.tabletHeroSecondaryButtonText}>Watch Video</Text>
+                            <Text style={styles.tabletHeroSecondaryButtonText}>{t('listen.sermon.playVideo')}</Text>
                           </TouchableOpacity>
                         )}
                       </View>
@@ -340,7 +457,7 @@ export const SermonDetailScreen: React.FC = () => {
                         activeOpacity={0.8}
                       >
                         <Ionicons name="play" size={20} color={theme.colors.textInverse} />
-                        <Text style={styles.tabletHeroPrimaryButtonText}>Play Audio</Text>
+                        <Text style={styles.tabletHeroPrimaryButtonText}>{t('listen.sermon.playAudio')}</Text>
                       </TouchableOpacity>
                     )}
 
@@ -351,7 +468,7 @@ export const SermonDetailScreen: React.FC = () => {
                         activeOpacity={0.8}
                       >
                         <Ionicons name="videocam" size={20} color={theme.colors.textInverse} />
-                        <Text style={styles.tabletHeroSecondaryButtonText}>Watch Video</Text>
+                        <Text style={styles.tabletHeroSecondaryButtonText}>{t('listen.sermon.playVideo')}</Text>
                       </TouchableOpacity>
                     )}
                   </View>
@@ -366,13 +483,13 @@ export const SermonDetailScreen: React.FC = () => {
           <View style={styles.tabletSidebar}>
             {/* Metadata Cards */}
             <View style={styles.tabletMetadataSection}>
-              <Text style={styles.tabletSectionTitle}>Details</Text>
+              <Text style={styles.tabletSectionTitle}>{t('listen.sermon.details')}</Text>
 
               {/* Week Card */}
               <View style={styles.tabletMetadataCard}>
                 <Ionicons name="calendar-outline" size={20} color={theme.colors.primary} />
                 <View style={styles.tabletMetadataCardContent}>
-                  <Text style={styles.tabletMetadataLabel}>Week</Text>
+                  <Text style={styles.tabletMetadataLabel}>{t('listen.sermon.week')}</Text>
                   <Text style={styles.tabletMetadataValue}>{messageWithWeek.WeekNum ?? '—'}</Text>
                 </View>
               </View>
@@ -382,7 +499,7 @@ export const SermonDetailScreen: React.FC = () => {
                 <View style={styles.tabletMetadataCard}>
                   <Ionicons name="person" size={20} color={theme.colors.primary} />
                   <View style={styles.tabletMetadataCardContent}>
-                    <Text style={styles.tabletMetadataLabel}>Speaker</Text>
+                    <Text style={styles.tabletMetadataLabel}>{t('listen.speaker')}</Text>
                     <Text style={styles.tabletMetadataValue}>{message.Speaker}</Text>
                   </View>
                 </View>
@@ -393,7 +510,7 @@ export const SermonDetailScreen: React.FC = () => {
                 <View style={styles.tabletMetadataCard}>
                   <Ionicons name="calendar" size={20} color={theme.colors.primary} />
                   <View style={styles.tabletMetadataCardContent}>
-                    <Text style={styles.tabletMetadataLabel}>Date</Text>
+                    <Text style={styles.tabletMetadataLabel}>{t('listen.sermon.date')}</Text>
                     <Text style={styles.tabletMetadataValue}>{formatDate(message.Date)}</Text>
                   </View>
                 </View>
@@ -404,7 +521,7 @@ export const SermonDetailScreen: React.FC = () => {
                 <View style={styles.tabletMetadataCard}>
                   <Ionicons name="time" size={20} color={theme.colors.primary} />
                   <View style={styles.tabletMetadataCardContent}>
-                    <Text style={styles.tabletMetadataLabel}>Duration</Text>
+                    <Text style={styles.tabletMetadataLabel}>{t('listen.sermon.duration')}</Text>
                     <Text style={styles.tabletMetadataValue}>{formatDuration(message.AudioDuration)}</Text>
                   </View>
                 </View>
@@ -431,7 +548,7 @@ export const SermonDetailScreen: React.FC = () => {
               >
                 <Ionicons name="book" size={24} color={theme.colors.primary} />
                 <View style={styles.tabletSidebarPassageContent}>
-                  <Text style={styles.tabletSidebarPassageLabel}>Scripture</Text>
+                  <Text style={styles.tabletSidebarPassageLabel}>{t('listen.scripture')}</Text>
                   <Text style={styles.tabletSidebarPassageText}>{message.PassageRef}</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
@@ -443,7 +560,7 @@ export const SermonDetailScreen: React.FC = () => {
               {downloaded && (
                 <View style={styles.tabletDownloadedBadge}>
                   <Ionicons name="checkmark-circle" size={20} color={theme.colors.success} />
-                  <Text style={styles.tabletDownloadedText}>Downloaded</Text>
+                  <Text style={styles.tabletDownloadedText}>{t('listen.sermon.downloaded')}</Text>
                 </View>
               )}
 
@@ -451,44 +568,89 @@ export const SermonDetailScreen: React.FC = () => {
                 <TouchableOpacity
                   style={[
                     styles.tabletDownloadButton,
-                    downloading && styles.tabletDownloadButtonDisabled,
+                    (isDownloading || isQueued || downloaded) && styles.tabletDownloadButtonDisabled,
                   ]}
-                  onPress={downloaded ? handleDeleteDownload : handleDownload}
+                  onPress={handleDownload}
                   activeOpacity={0.8}
-                  disabled={downloading}
+                  disabled={isDownloading || isQueued || downloaded}
                 >
-                  {downloading ? (
+                  {isDownloading ? (
                     <>
                       <ActivityIndicator size="small" color={theme.colors.text} />
                       <Text style={styles.tabletDownloadButtonText}>
-                        {Math.round(downloadProgress * 100)}%
+                        {Math.round(downloadProgress)}%
                       </Text>
+                    </>
+                  ) : isQueued ? (
+                    <>
+                      <Ionicons name="time-outline" size={20} color={theme.colors.primary} />
+                      <Text style={styles.tabletDownloadButtonText}>{t('listen.downloads.queued')}</Text>
+                    </>
+                  ) : downloaded ? (
+                    <>
+                      <Ionicons name="checkmark-circle" size={20} color={theme.colors.success} />
+                      <Text style={styles.tabletDownloadButtonText}>{t('listen.sermon.saved')}</Text>
                     </>
                   ) : (
                     <>
-                      <Ionicons
-                        name={downloaded ? 'trash' : 'download'}
-                        size={20}
-                        color={theme.colors.text}
-                      />
+                      <Ionicons name="download" size={20} color={theme.colors.text} />
                       <Text style={styles.tabletDownloadButtonText}>
-                        {downloaded ? 'Remove Download' : 'Download'}
+                        {t('listen.sermon.download')}
                       </Text>
                     </>
                   )}
                 </TouchableOpacity>
               )}
+
+              {/* Take Notes Button */}
+              <TouchableOpacity
+                style={styles.tabletDownloadButton}
+                onPress={handleTakeNotes}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="create-outline" size={20} color={theme.colors.text} />
+                <Text style={styles.tabletDownloadButtonText}>{t('listen.sermon.takeNotes')}</Text>
+              </TouchableOpacity>
             </View>
           </View>
 
-          {/* Right Main Content - Summary and Topics */}
+          {/* Right Main Content - Summary, Resources, and Topics */}
           <View style={styles.tabletMainContent}>
             {/* Summary Section */}
             {message.Summary && (
               <View style={styles.tabletSection}>
-                <Text style={styles.tabletSectionTitle}>About This Message</Text>
+                <Text style={styles.tabletSectionTitle}>{t('listen.aboutThisMessage')}</Text>
                 <View style={styles.tabletSummaryCard}>
                   <Text style={styles.tabletSummaryText}>{message.Summary}</Text>
+                </View>
+              </View>
+            )}
+
+            {/* Resources Section - Notes & Study Guide (Above Topics) */}
+            {(hasNotes || hasStudyGuide) && (
+              <View style={styles.tabletSection}>
+                <Text style={styles.tabletSectionTitle}>{t('listen.sermon.resources')}</Text>
+                <View style={styles.tabletResourcesButtonsRow}>
+                  {hasNotes && (
+                    <TouchableOpacity
+                      style={styles.tabletResourceButton}
+                      onPress={handleViewSermonNotes}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="document-text" size={18} color={theme.colors.primary} />
+                      <Text style={styles.tabletResourceButtonText}>{t('listen.sermon.viewNotes')}</Text>
+                    </TouchableOpacity>
+                  )}
+                  {hasStudyGuide && (
+                    <TouchableOpacity
+                      style={styles.tabletResourceButton}
+                      onPress={handleViewStudyGuide}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="library" size={18} color={theme.colors.primary} />
+                      <Text style={styles.tabletResourceButtonText}>{t('listen.sermon.studyGuide')}</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
               </View>
             )}
@@ -543,7 +705,7 @@ export const SermonDetailScreen: React.FC = () => {
           {/* Week Badge */}
           <View style={styles.weekBadge}>
             <Text style={styles.weekNumber}>{messageWithWeek.WeekNum ?? '—'}</Text>
-            <Text style={styles.weekLabel}>Week</Text>
+            <Text style={styles.weekLabel}>{t('listen.sermon.week')}</Text>
           </View>
 
           {/* Sermon Title */}
@@ -598,7 +760,7 @@ export const SermonDetailScreen: React.FC = () => {
             >
               <Ionicons name="book" size={24} color={theme.colors.primary} />
               <View style={styles.passageContent}>
-                <Text style={styles.passageLabel}>Scripture Reference</Text>
+                <Text style={styles.passageLabel}>{t('listen.scriptureReference')}</Text>
                 <Text style={styles.passageText}>{message.PassageRef}</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
@@ -608,8 +770,37 @@ export const SermonDetailScreen: React.FC = () => {
           {/* Summary Section */}
           {message.Summary && (
             <View style={styles.summaryCard}>
-              <Text style={styles.summaryLabel}>About This Message</Text>
+              <Text style={styles.summaryLabel}>{t('listen.aboutThisMessage')}</Text>
               <Text style={styles.summaryText}>{message.Summary}</Text>
+            </View>
+          )}
+
+          {/* Resources Section - Notes & Study Guide (Above Topics) */}
+          {(hasNotes || hasStudyGuide) && (
+            <View style={styles.resourcesSection}>
+              <Text style={styles.resourcesSectionTitle}>{t('listen.sermon.resources')}</Text>
+              <View style={styles.resourcesButtonsRow}>
+                {hasNotes && (
+                  <TouchableOpacity
+                    style={styles.resourceButton}
+                    onPress={handleViewSermonNotes}
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons name="document-text" size={20} color={theme.colors.primary} />
+                    <Text style={styles.resourceButtonText}>{t('listen.sermon.viewNotes')}</Text>
+                  </TouchableOpacity>
+                )}
+                {hasStudyGuide && (
+                  <TouchableOpacity
+                    style={styles.resourceButton}
+                    onPress={handleViewStudyGuide}
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons name="library" size={20} color={theme.colors.primary} />
+                    <Text style={styles.resourceButtonText}>{t('listen.sermon.studyGuide')}</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
           )}
 
@@ -637,7 +828,7 @@ export const SermonDetailScreen: React.FC = () => {
           {downloaded && (
             <View style={styles.downloadedBadge}>
               <Ionicons name="checkmark-circle" size={18} color={theme.colors.success} />
-              <Text style={styles.downloadedText}>Downloaded</Text>
+              <Text style={styles.downloadedText}>{t('listen.sermon.downloaded')}</Text>
             </View>
           )}
 
@@ -651,7 +842,7 @@ export const SermonDetailScreen: React.FC = () => {
                 activeOpacity={0.8}
               >
                 <Ionicons name="play" size={24} color={theme.colors.textInverse} />
-                <Text style={styles.primaryButtonText}>Play Audio</Text>
+                <Text style={styles.primaryButtonText}>{t('listen.sermon.playAudio')}</Text>
               </TouchableOpacity>
             )}
 
@@ -669,39 +860,55 @@ export const SermonDetailScreen: React.FC = () => {
                 </TouchableOpacity>
               )}
 
-              {/* Download/Remove Button */}
+              {/* Download/Saved Button */}
               {hasAudio && (
                 <TouchableOpacity
                   style={[
                     styles.secondaryButton,
-                    downloading && styles.secondaryButtonDisabled,
+                    (isDownloading || isQueued || downloaded) && styles.secondaryButtonDisabled,
                   ]}
-                  onPress={downloaded ? handleDeleteDownload : handleDownload}
+                  onPress={handleDownload}
                   activeOpacity={0.8}
-                  disabled={downloading}
+                  disabled={isDownloading || isQueued || downloaded}
                 >
-                  {downloading ? (
+                  {isDownloading ? (
                     <>
                       <ActivityIndicator size="small" color={theme.colors.text} />
                       <Text style={styles.secondaryButtonText}>
-                        {Math.round(downloadProgress * 100)}%
+                        {Math.round(downloadProgress)}%
                       </Text>
+                    </>
+                  ) : isQueued ? (
+                    <>
+                      <Ionicons name="time-outline" size={20} color={theme.colors.primary} />
+                      <Text style={styles.secondaryButtonText}>{t('listen.downloads.queued')}</Text>
+                    </>
+                  ) : downloaded ? (
+                    <>
+                      <Ionicons name="checkmark-circle" size={20} color={theme.colors.success} />
+                      <Text style={styles.secondaryButtonText}>{t('listen.sermon.saved')}</Text>
                     </>
                   ) : (
                     <>
-                      <Ionicons
-                        name={downloaded ? 'trash' : 'download'}
-                        size={20}
-                        color={theme.colors.text}
-                      />
+                      <Ionicons name="download" size={20} color={theme.colors.text} />
                       <Text style={styles.secondaryButtonText}>
-                        {downloaded ? 'Remove' : 'Download'}
+                        {t('listen.sermon.download')}
                       </Text>
                     </>
                   )}
                 </TouchableOpacity>
               )}
             </View>
+
+            {/* Take Notes Button - Full Width */}
+            <TouchableOpacity
+              style={styles.notesButton}
+              onPress={handleTakeNotes}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="create-outline" size={20} color={theme.colors.text} />
+              <Text style={styles.secondaryButtonText}>{t('listen.sermon.takeNotes')}</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
@@ -714,7 +921,7 @@ export const SermonDetailScreen: React.FC = () => {
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
         <Text style={[styles.summaryText, { marginTop: 16 }]}>
-          Loading sermon details...
+          {t('listen.sermon.loadingDetails')}
         </Text>
       </View>
     );
@@ -953,6 +1160,53 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     color: theme.colors.text, // ← ONLY COLOR CHANGED
     marginLeft: 6,
   },
+  notesButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.backgroundSecondary,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    marginTop: 12,
+  },
+  // Resources Section (Notes & Study Guide) - Above Topics
+  resourcesSection: {
+    marginTop: 16,
+    marginBottom: 24,
+  },
+  resourcesSectionTitle: {
+    ...theme.typography.h3,
+    fontSize: 14,
+    color: theme.colors.textSecondary,
+    marginBottom: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  resourcesButtonsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  resourceButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.primaryLight,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+  },
+  resourceButtonText: {
+    ...theme.typography.button,
+    fontSize: 12,
+    color: theme.colors.primary,
+    marginLeft: 8,
+  },
   // Tablet-specific styles - New iPad Design
   // Hero Section
   tabletHeroSection: {
@@ -1190,6 +1444,30 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     color: theme.colors.text, // ← ONLY COLOR CHANGED
     marginLeft: 8,
     fontWeight: '600',
+  },
+
+  // Tablet Resources Section - In main content area above Topics
+  tabletResourcesButtonsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  tabletResourceButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.primaryLight,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+  },
+  tabletResourceButtonText: {
+    ...theme.typography.button,
+    fontSize: 14,
+    color: theme.colors.primary,
+    marginLeft: 8,
   },
 
   // Right Main Content

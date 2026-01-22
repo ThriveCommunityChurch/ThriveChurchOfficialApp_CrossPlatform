@@ -13,6 +13,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import VideoPlayer from '../../components/VideoPlayer';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 import { SermonMessage } from '../../types/api';
 import { setCurrentScreen, logCustomEvent } from '../../services/analytics/analyticsService';
@@ -31,6 +32,7 @@ const VideoPlayerScreen: React.FC = () => {
   const navigation = useNavigation<VideoPlayerScreenNavigationProp>();
   const route = useRoute<VideoPlayerScreenRouteProp>();
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme);
 
   const { message, seriesTitle } = route.params;
@@ -60,14 +62,14 @@ const VideoPlayerScreen: React.FC = () => {
 
   const handleError = useCallback((error: string) => {
     Alert.alert(
-      'Video Error',
+      t('videoPlayer.videoError'),
       error,
       [
-        { text: 'Close', onPress: handleClose },
-        { text: 'Open in YouTube', onPress: handleOpenInYouTube },
+        { text: t('videoPlayer.close'), onPress: handleClose },
+        { text: t('videoPlayer.openInYouTube'), onPress: handleOpenInYouTube },
       ]
     );
-  }, [handleClose]);
+  }, [handleClose, t]);
 
   const handleOpenInYouTube = useCallback(async () => {
     if (!message.VideoUrl) return;
@@ -92,9 +94,9 @@ const VideoPlayerScreen: React.FC = () => {
       handleClose();
     } catch (error) {
       console.error('Error opening YouTube:', error);
-      Alert.alert('Error', 'Unable to open YouTube');
+      Alert.alert(t('videoPlayer.error'), t('videoPlayer.unableToOpenYouTube'));
     }
-  }, [message.VideoUrl, handleClose]);
+  }, [message.VideoUrl, handleClose, t]);
 
   const handleReady = useCallback(() => {
     console.log('Video player ready');
@@ -116,8 +118,8 @@ const VideoPlayerScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>No video available</Text>
-          <Text style={styles.errorSubtext}>This sermon doesn't have a video</Text>
+          <Text style={styles.errorText}>{t('videoPlayer.noVideoAvailable')}</Text>
+          <Text style={styles.errorSubtext}>{t('videoPlayer.noVideoMessage')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -132,7 +134,7 @@ const VideoPlayerScreen: React.FC = () => {
           <Text style={styles.closeButtonText}>✕</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.youtubeButton} onPress={handleOpenInYouTube}>
-          <Text style={styles.youtubeButtonText}>Open in YouTube</Text>
+          <Text style={styles.youtubeButtonText}>{t('videoPlayer.openInYouTube')}</Text>
         </TouchableOpacity>
       </View>
       

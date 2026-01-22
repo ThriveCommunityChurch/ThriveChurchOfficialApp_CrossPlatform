@@ -9,8 +9,10 @@ import {
   Alert,
 } from 'react-native';
 import { useTheme } from '../hooks/useTheme';
+import { useTranslation } from '../hooks/useTranslation';
 import type { Theme } from '../theme/types';
 import { esvApiService, BiblePassage } from '../services/bible/esvApiService';
+import { logBibleChapterRead } from '../services/analytics/analyticsService';
 
 interface BiblePassageReaderProps {
   reference: string;
@@ -116,6 +118,7 @@ export const BiblePassageReader: React.FC<BiblePassageReaderProps> = ({
   style,
 }) => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme);
   const [passage, setPassage] = useState<BiblePassage | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -127,7 +130,7 @@ export const BiblePassageReader: React.FC<BiblePassageReaderProps> = ({
 
   const loadPassage = async () => {
     if (!reference) {
-      setError('No passage reference provided');
+      setError(t('components.bibleReader.noReference'));
       setIsLoading(false);
       return;
     }
@@ -137,15 +140,22 @@ export const BiblePassageReader: React.FC<BiblePassageReaderProps> = ({
 
     try {
       const result = await esvApiService.getPassage(reference);
-      
+
       if (result.error) {
         setError(result.error);
       } else {
         setPassage(result);
+
+        // Track Bible chapter read - parse reference for book/chapter info
+        // Reference format is typically "Book Chapter:Verse" e.g., "John 3:16"
+        const refMatch = reference.match(/^([A-Za-z0-9\s]+?)(?:\s+(\d+))?(?::[\d-]+)?$/);
+        const book = refMatch ? refMatch[1].trim() : reference;
+        const chapter = refMatch && refMatch[2] ? parseInt(refMatch[2], 10) : undefined;
+        logBibleChapterRead(book, chapter, reference);
       }
     } catch (err) {
       console.error('Error loading Bible passage:', err);
-      setError('Failed to load Bible passage');
+      setError(t('components.bibleReader.loadFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -157,9 +167,9 @@ export const BiblePassageReader: React.FC<BiblePassageReaderProps> = ({
 
   const handleApiKeyInfo = () => {
     Alert.alert(
-      'ESV API Configuration',
-      'To use Bible passage reading, you need to:\n\n1. Get a free API key from api.esv.org\n2. Add it to your app configuration\n\nThe ESV API is free for non-commercial use.',
-      [{ text: 'OK' }]
+      t('components.bibleReader.apiConfigTitle'),
+      t('components.bibleReader.apiConfigMessage'),
+      [{ text: t('common.ok') }]
     );
   };
 
@@ -167,7 +177,7 @@ export const BiblePassageReader: React.FC<BiblePassageReaderProps> = ({
     return (
       <View style={[styles.container, styles.centerContent, style]}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={styles.loadingText}>Loading passage...</Text>
+        <Text style={styles.loadingText}>{t('components.bibleReader.loading')}</Text>
       </View>
     );
   }
@@ -175,24 +185,24 @@ export const BiblePassageReader: React.FC<BiblePassageReaderProps> = ({
   if (error) {
     return (
       <View style={[styles.container, styles.centerContent, style]}>
-        <Text style={styles.errorTitle}>Unable to Load Passage</Text>
+        <Text style={styles.errorTitle}>{t('components.bibleReader.unableToLoad')}</Text>
         <Text style={styles.errorText}>{error}</Text>
-        
+
         <View style={styles.errorActions}>
           <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
-            <Text style={styles.retryButtonText}>Retry</Text>
+            <Text style={styles.retryButtonText}>{t('components.bibleReader.retry')}</Text>
           </TouchableOpacity>
-          
+
           {error.includes('API key') && (
             <TouchableOpacity style={styles.infoButton} onPress={handleApiKeyInfo}>
-              <Text style={styles.infoButtonText}>Setup Info</Text>
+              <Text style={styles.infoButtonText}>{t('components.bibleReader.setupInfo')}</Text>
             </TouchableOpacity>
           )}
         </View>
-        
+
         {onClose && (
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeButtonText}>Close</Text>
+            <Text style={styles.closeButtonText}>{t('components.bibleReader.close')}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -202,13 +212,13 @@ export const BiblePassageReader: React.FC<BiblePassageReaderProps> = ({
   if (!passage || !passage.text) {
     return (
       <View style={[styles.container, styles.centerContent, style]}>
-        <Text style={styles.errorTitle}>No Passage Found</Text>
+        <Text style={styles.errorTitle}>{t('components.bibleReader.noPassageFound')}</Text>
         <Text style={styles.errorText}>
-          Could not find text for "{reference}"
+          {t('components.bibleReader.couldNotFind', { reference })}
         </Text>
         {onClose && (
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeButtonText}>Close</Text>
+            <Text style={styles.closeButtonText}>{t('components.bibleReader.close')}</Text>
           </TouchableOpacity>
         )}
       </View>

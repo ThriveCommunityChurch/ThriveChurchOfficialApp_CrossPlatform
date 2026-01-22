@@ -91,6 +91,10 @@ dist
 # vuepress build output
 .vuepress/dist
 
+# Jetbrains
+*.idea/
+*local.properties
+
 # Serverless directories
 .serverless/
 
@@ -132,6 +136,7 @@ ThriveChurchExpo/android/app/google-services.json
 ThriveChurchExpo/android/build/
 ThriveChurchExpo/android/.gradle/
 ThriveChurchExpo/android/app/build/
+**/gradle.properties
 
 # Build artifacts
 ThriveChurchExpo/.expo/

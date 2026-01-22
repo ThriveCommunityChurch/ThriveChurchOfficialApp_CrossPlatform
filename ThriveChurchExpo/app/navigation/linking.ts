@@ -31,6 +31,7 @@ export const linking: LinkingOptions<any> = {
           NowPlaying: 'listen/now-playing',
           RecentlyPlayed: 'listen/recently-played',
           Downloads: 'listen/downloads',
+          Live: 'listen/live',
         },
       },
       // Bible Tab
@@ -72,6 +73,13 @@ export const linking: LinkingOptions<any> = {
             path: 'connect/form/:title',
             parse: {
               title: (title: string) => decodeURIComponent(title),
+            },
+          },
+          Events: 'connect/events',
+          EventDetail: {
+            path: 'connect/events/:eventId',
+            parse: {
+              eventId: (eventId: string) => eventId,
             },
           },
         },
@@ -121,6 +129,8 @@ export const handleDeepLink = (
       navigation.navigate('Listen', { screen: 'RecentlyPlayed' });
     } else if (path.includes('/listen/downloads')) {
       navigation.navigate('Listen', { screen: 'Downloads' });
+    } else if (path.includes('/listen/live')) {
+      navigation.navigate('Listen', { screen: 'Live' });
     } else if (path.includes('/listen')) {
       navigation.navigate('Listen', { screen: 'ListenHome' });
     }
@@ -145,7 +155,15 @@ export const handleDeepLink = (
       navigation.navigate('Notes', { screen: 'NotesList' });
     }
     // Connect tab deep links
-    else if (path.includes('/connect/announcements/')) {
+    else if (path.includes('/connect/events/')) {
+      const eventId = path.split('/connect/events/')[1];
+      navigation.navigate('Connect', {
+        screen: 'EventDetail',
+        params: { eventId },
+      });
+    } else if (path.includes('/connect/events')) {
+      navigation.navigate('Connect', { screen: 'Events' });
+    } else if (path.includes('/connect/announcements/')) {
       const date = path.split('/connect/announcements/')[1];
       navigation.navigate('Connect', {
         screen: 'RSSDetail',

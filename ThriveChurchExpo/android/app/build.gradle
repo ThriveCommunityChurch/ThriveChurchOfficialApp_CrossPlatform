@@ -92,10 +92,11 @@ android {
         applicationId 'com.thrivefl.ThriveCommunityChurch'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0.0"
+        versionCode 201
+        versionName "2.0.0"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     signingConfigs {
         debug {
@@ -104,15 +105,25 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        release {
+            // Release keystore configuration - values loaded from gradle.properties or environment
+            // To set up: create a keystore and add these properties to ~/.gradle/gradle.properties
+            // or ThriveChurchExpo/android/gradle.properties (but don't commit secrets!)
+            if (project.hasProperty('THRIVE_RELEASE_STORE_FILE')) {
+                storeFile file(THRIVE_RELEASE_STORE_FILE)
+                storePassword THRIVE_RELEASE_STORE_PASSWORD
+                keyAlias THRIVE_RELEASE_KEY_ALIAS
+                keyPassword THRIVE_RELEASE_KEY_PASSWORD
+            }
+        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            // Use release signing config if configured, otherwise fall back to debug for local dev
+            signingConfig project.hasProperty('THRIVE_RELEASE_STORE_FILE') ? signingConfigs.release : signingConfigs.debug
             def enableShrinkResources = findProperty('android.enableShrinkResourcesInReleaseBuilds') ?: 'false'
             shrinkResources enableShrinkResources.toBoolean()
             minifyEnabled enableMinifyInReleaseBuilds
@@ -155,6 +166,12 @@ android {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
+
+    // AndroidX Test - UI Testing with Espresso
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test:runner:1.5.2")
+    androidTestImplementation("androidx.test:rules:1.5.0")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 
     def isGifEnabled = (findProperty('expo.gif.enabled') ?: "") == "true";
     def isWebpEnabled = (findProperty('expo.webp.enabled') ?: "") == "true";

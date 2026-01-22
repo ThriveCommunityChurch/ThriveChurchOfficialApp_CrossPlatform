@@ -8,6 +8,7 @@ import { View, StyleSheet, ActivityIndicator, Linking, Alert } from 'react-nativ
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { WebView } from 'react-native-webview';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 import { setCurrentScreen, logCustomEvent } from '../../services/analytics/analyticsService';
 
@@ -20,6 +21,7 @@ type WebViewRouteProp = RouteProp<ConnectStackParamList, 'WebViewForm'>;
 
 export const WebViewScreen: React.FC = () => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme);
   const route = useRoute<WebViewRouteProp>();
   const { url, title } = route.params;
@@ -65,12 +67,12 @@ export const WebViewScreen: React.FC = () => {
             if (supported) {
               Linking.openURL(requestUrl);
             } else {
-              Alert.alert('Error', 'Unable to open link');
+              Alert.alert(t('webView.error'), t('webView.unableToOpenLink'));
             }
           })
           .catch((err) => {
             console.error('Error opening URL:', err);
-            Alert.alert('Error', 'Unable to open link');
+            Alert.alert(t('webView.error'), t('webView.unableToOpenLink'));
           });
       }
 
@@ -84,9 +86,9 @@ export const WebViewScreen: React.FC = () => {
     setError(true);
     setLoading(false);
     Alert.alert(
-      'Error Loading Page',
-      'Unable to load the page. Please check your internet connection and try again.',
-      [{ text: 'OK' }]
+      t('webView.errorLoadingPage'),
+      t('webView.errorLoadingMessage'),
+      [{ text: t('webView.ok') }]
     );
   };
 

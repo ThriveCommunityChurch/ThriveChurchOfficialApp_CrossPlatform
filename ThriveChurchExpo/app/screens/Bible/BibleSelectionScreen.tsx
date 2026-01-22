@@ -17,6 +17,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BibleOrderType } from '../../types/bible';
 import { setCurrentScreen } from '../../services/analytics/analyticsService';
 import { useTheme } from '../../hooks/useTheme';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 
 type BibleStackParamList = {
@@ -83,6 +84,7 @@ const SelectionCard: React.FC<SelectionCardProps> = ({ title, description, onPre
 export const BibleSelectionScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme);
 
   // Track screen view
@@ -93,14 +95,14 @@ export const BibleSelectionScreen: React.FC = () => {
   const handleTraditionalPress = () => {
     navigation.navigate('BookList', {
       orderType: 'traditional',
-      title: 'Bible - Traditional',
+      title: t('bible.selection.traditionalNavTitle'),
     });
   };
 
   const handleAlphabeticalPress = () => {
     navigation.navigate('BookList', {
       orderType: 'alphabetical',
-      title: 'Bible - Alphabetical',
+      title: t('bible.selection.alphabeticalNavTitle'),
     });
   };
 
@@ -111,18 +113,18 @@ export const BibleSelectionScreen: React.FC = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.subtitle}>Choose a book order</Text>
+        <Text style={styles.subtitle}>{t('bible.selection.subtitle')}</Text>
 
         <SelectionCard
-          title="Traditional Order"
-          description={'Browse books in biblical order\nGenesis → Malachi → Matthew → Revelation'}
+          title={t('bible.selection.traditionalTitle')}
+          description={t('bible.selection.traditionalDescription')}
           onPress={handleTraditionalPress}
           theme={theme}
         />
 
         <SelectionCard
-          title="Alphabetical Order"
-          description={'Browse books from A to Z\nActs → Amos → Colossians → Daniel'}
+          title={t('bible.selection.alphabeticalTitle')}
+          description={t('bible.selection.alphabeticalDescription')}
           onPress={handleAlphabeticalPress}
           theme={theme}
         />
