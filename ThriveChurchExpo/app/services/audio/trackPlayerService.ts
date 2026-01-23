@@ -58,6 +58,14 @@ export const setupPlayer = async (): Promise<void> => {
         Capability.JumpForward,
         Capability.JumpBackward,
       ],
+      // compactCapabilities controls what shows in Android's compact notification view
+      // Without this, jump buttons may not appear in the collapsed notification
+      compactCapabilities: [
+        Capability.Play,
+        Capability.Pause,
+        Capability.JumpForward,
+        Capability.JumpBackward,
+      ],
       progressUpdateEventInterval: 1,
       // Set jump intervals from user settings (affects lock screen controls)
       forwardJumpInterval: currentSkipForward,
@@ -172,14 +180,13 @@ export const playbackService = async (): Promise<void> => {
     TrackPlayer.seekTo(position);
   });
 
+  // Use seekBy() for jump controls - this is the recommended approach per react-native-track-player docs
   TrackPlayer.addEventListener(Event.RemoteJumpForward, async ({ interval }) => {
-    const progress = await TrackPlayer.getProgress();
-    await TrackPlayer.seekTo(progress.position + (interval || 15));
+    await TrackPlayer.seekBy(interval || 15);
   });
 
   TrackPlayer.addEventListener(Event.RemoteJumpBackward, async ({ interval }) => {
-    const progress = await TrackPlayer.getProgress();
-    await TrackPlayer.seekTo(Math.max(0, progress.position - (interval || 15)));
+    await TrackPlayer.seekBy(-(interval || 15));
   });
 
   // Handle playback state changes
