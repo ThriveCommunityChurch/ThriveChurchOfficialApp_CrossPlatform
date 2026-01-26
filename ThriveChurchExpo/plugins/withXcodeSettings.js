@@ -141,8 +141,9 @@ const withAppTargetSettings = (config) => {
 };
 
 /**
- * Update LastUpgradeVersion in all scheme files
+ * Update LastUpgradeVersion and buildConfiguration in all scheme files
  * This keeps scheme files in sync with the project's LastUpgradeCheck
+ * and ensures Test/Launch/Analyze actions use Release configuration
  */
 const withSchemeVersionUpdate = (config) => {
   return withDangerousMod(config, [
@@ -178,8 +179,25 @@ const withSchemeVersionUpdate = (config) => {
           `LastUpgradeVersion = "${LAST_UPGRADE_CHECK}"`
         );
 
+        // Update buildConfiguration from Debug to Release for TestAction, LaunchAction, AnalyzeAction
+        // This ensures tests run against Release builds for accurate performance testing
+        // The scheme file has a specific structure where each action element has buildConfiguration
+        // on the next line after the opening tag, so we match each action block and update its config
+        const actionsToUpdate = ['TestAction', 'LaunchAction', 'AnalyzeAction'];
+        actionsToUpdate.forEach(action => {
+          // Match the entire action block from <ActionName to </ActionName> and capture it
+          // Then replace buildConfiguration = "Debug" with "Release" within that block
+          const blockRegex = new RegExp(
+            `(<${action}[\\s\\S]*?<\\/${action}>)`,
+            'g'
+          );
+          schemeContent = schemeContent.replace(blockRegex, (match) => {
+            return match.replace(/buildConfiguration\s*=\s*"Debug"/g, 'buildConfiguration = "Release"');
+          });
+        });
+
         fs.writeFileSync(schemePath, schemeContent, 'utf8');
-        console.log(`✅ Updated ${schemeFile}: LastUpgradeVersion ${oldVersion} → ${LAST_UPGRADE_CHECK}`);
+        console.log(`✅ Updated ${schemeFile}: LastUpgradeVersion ${oldVersion} → ${LAST_UPGRADE_CHECK}, buildConfiguration → Release`);
       });
 
       return config;
