@@ -6,7 +6,7 @@
  *
  * Settings applied:
  * - BuildIndependentTargetsInParallel = YES
- * - LastUpgradeCheck = 1640 (Xcode 16.4)
+ * - LastUpgradeCheck = 2620 (Xcode 26.2)
  * - CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES
  * - SWIFT_COMPILATION_MODE = wholemodule (Release only)
  * - INFOPLIST_KEY_CFBundleDisplayName
@@ -23,7 +23,7 @@ const { withXcodeProject } = require('@expo/config-plugins');
 const DEVELOPMENT_TEAM = '87ME42WJYA';
 const APP_DISPLAY_NAME = 'Thrive Church Official App';
 const APP_CATEGORY = 'public.app-category.productivity';
-const LAST_UPGRADE_CHECK = '1640'; // Xcode 16.4
+const LAST_UPGRADE_CHECK = '2620'; // Xcode 26.2
 
 /**
  * Apply Xcode recommended project-level settings
