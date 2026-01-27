@@ -7,22 +7,22 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		012BE1029126C5D2E7D97AC6 /* ThriveChurchOfficialAppUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F905AF9E98DF0EB1C2C85B56 /* ThriveChurchOfficialAppUITests.swift */; };
+		10EBE87DDC6FDDB6A9A84668 /* ThriveUITestBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0268AC3022F9ED65BB5D88D1 /* ThriveUITestBase.swift */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		1C63B2E05110B0E0CCE307A2 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37BC97858F85E7B3420D7039 /* ExpoModulesProvider.swift */; };
+		2EAE19216A3E4BB6D07EE295 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = D7A3ADD4DBE30EA716F8A3D5 /* PrivacyInfo.xcprivacy */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		4464859085713AEFFF81F607 /* ThriveChurchOfficialAppUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1E1FAA19A60557E4F3A2585 /* ThriveChurchOfficialAppUITestsLaunchTests.swift */; };
-		4BDDC18371F11A8096650CB5 /* Pods_ThriveChurchOfficialApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F259E14FF511EFB8A2894F4A /* Pods_ThriveChurchOfficialApp.framework */; };
-		6E4946511D3ACD9B276522E1 /* ThriveChurchOfficialAppUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D38E4B93687DF4FA77619C9 /* ThriveChurchOfficialAppUITests.swift */; };
-		85A9111594C1E71822DC6BDF /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 519A6D224FB24423179DF225 /* ExpoModulesProvider.swift */; };
-		8B16E8D16236FD3507BE5F9A /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A02A5790D6EB71FA333FF8D4 /* Foundation.framework */; };
-		8C0ACE7D417BD2FF8AE097B4 /* ThriveUITestBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85C67942564D0AD94004AB12 /* ThriveUITestBase.swift */; };
+		5B38426DBC314EDD9608AB42 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = DF5F42892CAB416CB579683D /* GoogleService-Info.plist */; };
+		8DB65D94AEBBA93AC536511A /* ThriveChurchOfficialAppUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4C4C21A3F24DCE1C1FE068E /* ThriveChurchOfficialAppUITestsLaunchTests.swift */; };
+		A6129136FDA8B89AF4A383BC /* Pods_ThriveChurchOfficialApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A7AC0FEA2C5A8E4E369B206 /* Pods_ThriveChurchOfficialApp.framework */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
-		D5CF110FC59B4C62BF64FCC3 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 74AFB3EA937042E89E4E5282 /* GoogleService-Info.plist */; };
-		DCEC4E253BCEA7E2F2356D20 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 37C13D748A2CFD6AA477DC82 /* PrivacyInfo.xcprivacy */; };
+		DD60C4B36466F313F545C63F /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6677B91BB4E33E81D963BE2B /* Foundation.framework */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		9F0EBE6C41A67976EA642B7E /* PBXContainerItemProxy */ = {
+		BE235574B22C83FD1EE669B2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
 			proxyType = 1;
@@ -32,26 +32,25 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		0A2DD48C54F0279332568F2D /* Pods-ThriveChurchOfficialApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ThriveChurchOfficialApp.debug.xcconfig"; path = "Target Support Files/Pods-ThriveChurchOfficialApp/Pods-ThriveChurchOfficialApp.debug.xcconfig"; sourceTree = "<group>"; };
+		0268AC3022F9ED65BB5D88D1 /* ThriveUITestBase.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThriveUITestBase.swift; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* ThriveChurchOfficialApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ThriveChurchOfficialApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = ThriveChurchOfficialApp/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = ThriveChurchOfficialApp/Info.plist; sourceTree = "<group>"; };
-		24E8428C3477EC529C4A6F73 /* ThriveChurchOfficialAppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ThriveChurchOfficialAppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		37C13D748A2CFD6AA477DC82 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = ThriveChurchOfficialApp/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		519A6D224FB24423179DF225 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-ThriveChurchOfficialApp/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
-		5D38E4B93687DF4FA77619C9 /* ThriveChurchOfficialAppUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThriveChurchOfficialAppUITests.swift; sourceTree = "<group>"; };
-		74AFB3EA937042E89E4E5282 /* GoogleService-Info.plist */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "ThriveChurchOfficialApp/GoogleService-Info.plist"; sourceTree = "<group>"; };
-		85C67942564D0AD94004AB12 /* ThriveUITestBase.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThriveUITestBase.swift; sourceTree = "<group>"; };
-		A02A5790D6EB71FA333FF8D4 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
-		A16EC9D181DEE04839F2808C /* Pods-ThriveChurchOfficialApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ThriveChurchOfficialApp.release.xcconfig"; path = "Target Support Files/Pods-ThriveChurchOfficialApp/Pods-ThriveChurchOfficialApp.release.xcconfig"; sourceTree = "<group>"; };
+		37BC97858F85E7B3420D7039 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-ThriveChurchOfficialApp/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		4668EC71F1A199E7F233594A /* ThriveChurchOfficialAppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ThriveChurchOfficialAppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		6677B91BB4E33E81D963BE2B /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		9A7AC0FEA2C5A8E4E369B206 /* Pods_ThriveChurchOfficialApp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ThriveChurchOfficialApp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = ThriveChurchOfficialApp/SplashScreen.storyboard; sourceTree = "<group>"; };
+		B4C4C21A3F24DCE1C1FE068E /* ThriveChurchOfficialAppUITestsLaunchTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThriveChurchOfficialAppUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		B81460FCAF9D973EC859E5AB /* Pods-ThriveChurchOfficialApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ThriveChurchOfficialApp.release.xcconfig"; path = "Target Support Files/Pods-ThriveChurchOfficialApp/Pods-ThriveChurchOfficialApp.release.xcconfig"; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
-		CC44F89FEC5A93F6C2C29440 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		E1E1FAA19A60557E4F3A2585 /* ThriveChurchOfficialAppUITestsLaunchTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThriveChurchOfficialAppUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		D7A3ADD4DBE30EA716F8A3D5 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = ThriveChurchOfficialApp/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		DF5F42892CAB416CB579683D /* GoogleService-Info.plist */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "ThriveChurchOfficialApp/GoogleService-Info.plist"; sourceTree = "<group>"; };
+		EC7E9F126AD79AFB5F693590 /* Pods-ThriveChurchOfficialApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ThriveChurchOfficialApp.debug.xcconfig"; path = "Target Support Files/Pods-ThriveChurchOfficialApp/Pods-ThriveChurchOfficialApp.debug.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = ThriveChurchOfficialApp/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* ThriveChurchOfficialApp-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "ThriveChurchOfficialApp-Bridging-Header.h"; path = "ThriveChurchOfficialApp/ThriveChurchOfficialApp-Bridging-Header.h"; sourceTree = "<group>"; };
-		F259E14FF511EFB8A2894F4A /* Pods_ThriveChurchOfficialApp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ThriveChurchOfficialApp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		F905AF9E98DF0EB1C2C85B56 /* ThriveChurchOfficialAppUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThriveChurchOfficialAppUITests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -59,31 +58,21 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4BDDC18371F11A8096650CB5 /* Pods_ThriveChurchOfficialApp.framework in Frameworks */,
+				A6129136FDA8B89AF4A383BC /* Pods_ThriveChurchOfficialApp.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		E343299868F9504DA4ADFFF9 /* Frameworks */ = {
+		E3141C549E73B0514895B888 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8B16E8D16236FD3507BE5F9A /* Foundation.framework in Frameworks */,
+				DD60C4B36466F313F545C63F /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		08B281F00649A5195C9A9BE1 /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				0A2DD48C54F0279332568F2D /* Pods-ThriveChurchOfficialApp.debug.xcconfig */,
-				A16EC9D181DEE04839F2808C /* Pods-ThriveChurchOfficialApp.release.xcconfig */,
-			);
-			name = Pods;
-			path = Pods;
-			sourceTree = "<group>";
-		};
 		13B07FAE1A68108700A75B9A /* ThriveChurchOfficialApp */ = {
 			isa = PBXGroup;
 			children = (
@@ -93,8 +82,8 @@
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				74AFB3EA937042E89E4E5282 /* GoogleService-Info.plist */,
-				37C13D748A2CFD6AA477DC82 /* PrivacyInfo.xcprivacy */,
+				DF5F42892CAB416CB579683D /* GoogleService-Info.plist */,
+				D7A3ADD4DBE30EA716F8A3D5 /* PrivacyInfo.xcprivacy */,
 			);
 			name = ThriveChurchOfficialApp;
 			sourceTree = "<group>";
@@ -103,18 +92,47 @@
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				D5B1BF53D2F011BD7AF8E699 /* iOS */,
-				F259E14FF511EFB8A2894F4A /* Pods_ThriveChurchOfficialApp.framework */,
+				422871145557B6E31BA28ABB /* iOS */,
+				9A7AC0FEA2C5A8E4E369B206 /* Pods_ThriveChurchOfficialApp.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		4D1E20DD05AF79CDE780FC52 /* ExpoModulesProviders */ = {
+		422871145557B6E31BA28ABB /* iOS */ = {
 			isa = PBXGroup;
 			children = (
-				844DFDFCFDB4B983608B18D3 /* ThriveChurchOfficialApp */,
+				6677B91BB4E33E81D963BE2B /* Foundation.framework */,
 			);
-			name = ExpoModulesProviders;
+			name = iOS;
+			sourceTree = "<group>";
+		};
+		4375817418FC4D37198D14B5 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				EC7E9F126AD79AFB5F693590 /* Pods-ThriveChurchOfficialApp.debug.xcconfig */,
+				B81460FCAF9D973EC859E5AB /* Pods-ThriveChurchOfficialApp.release.xcconfig */,
+			);
+			name = Pods;
+			path = Pods;
+			sourceTree = "<group>";
+		};
+		4DC9A6BCB59A3110FCF78E10 /* ThriveChurchOfficialAppUITests */ = {
+			isa = PBXGroup;
+			children = (
+				B4C4C21A3F24DCE1C1FE068E /* ThriveChurchOfficialAppUITestsLaunchTests.swift */,
+				0268AC3022F9ED65BB5D88D1 /* ThriveUITestBase.swift */,
+				F905AF9E98DF0EB1C2C85B56 /* ThriveChurchOfficialAppUITests.swift */,
+			);
+			name = ThriveChurchOfficialAppUITests;
+			path = ThriveChurchOfficialAppUITests;
+			sourceTree = "<group>";
+		};
+		79B1611CFA634C92BF51AFE5 /* ThriveChurchOfficialApp */ = {
+			isa = PBXGroup;
+			children = (
+				37BC97858F85E7B3420D7039 /* ExpoModulesProvider.swift */,
+			);
+			name = ThriveChurchOfficialApp;
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -131,9 +149,9 @@
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				9CED2C9F653931B62A31CCFD /* ThriveChurchOfficialAppUITests */,
-				08B281F00649A5195C9A9BE1 /* Pods */,
-				4D1E20DD05AF79CDE780FC52 /* ExpoModulesProviders */,
+				4DC9A6BCB59A3110FCF78E10 /* ThriveChurchOfficialAppUITests */,
+				4375817418FC4D37198D14B5 /* Pods */,
+				A8B3537A4EE12F3604D487FF /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -144,29 +162,17 @@
 			isa = PBXGroup;
 			children = (
 				13B07F961A680F5B00A75B9A /* ThriveChurchOfficialApp.app */,
-				24E8428C3477EC529C4A6F73 /* ThriveChurchOfficialAppUITests.xctest */,
+				4668EC71F1A199E7F233594A /* ThriveChurchOfficialAppUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		844DFDFCFDB4B983608B18D3 /* ThriveChurchOfficialApp */ = {
+		A8B3537A4EE12F3604D487FF /* ExpoModulesProviders */ = {
 			isa = PBXGroup;
 			children = (
-				519A6D224FB24423179DF225 /* ExpoModulesProvider.swift */,
+				79B1611CFA634C92BF51AFE5 /* ThriveChurchOfficialApp */,
 			);
-			name = ThriveChurchOfficialApp;
-			sourceTree = "<group>";
-		};
-		9CED2C9F653931B62A31CCFD /* ThriveChurchOfficialAppUITests */ = {
-			isa = PBXGroup;
-			children = (
-				E1E1FAA19A60557E4F3A2585 /* ThriveChurchOfficialAppUITestsLaunchTests.swift */,
-				85C67942564D0AD94004AB12 /* ThriveUITestBase.swift */,
-				5D38E4B93687DF4FA77619C9 /* ThriveChurchOfficialAppUITests.swift */,
-				CC44F89FEC5A93F6C2C29440 /* Info.plist */,
-			);
-			name = ThriveChurchOfficialAppUITests;
-			path = ThriveChurchOfficialAppUITests;
+			name = ExpoModulesProviders;
 			sourceTree = "<group>";
 		};
 		BB2F792B24A3F905000567C9 /* Supporting */ = {
@@ -178,14 +184,6 @@
 			path = ThriveChurchOfficialApp/Supporting;
 			sourceTree = "<group>";
 		};
-		D5B1BF53D2F011BD7AF8E699 /* iOS */ = {
-			isa = PBXGroup;
-			children = (
-				A02A5790D6EB71FA333FF8D4 /* Foundation.framework */,
-			);
-			name = iOS;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -194,14 +192,14 @@
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "ThriveChurchOfficialApp" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				ECBC4B9AAAEBAE52F61A0B12 /* [Expo] Configure project */,
+				BD124600898F041E05F52A43 /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				E9F3E0C631595C008698D8A2 /* [CP] Embed Pods Frameworks */,
-				1DB15C075074BC352911FBD9 /* [CP-User] [RNFB] Core Configuration */,
+				346CCAA145CD8EE7A59D70F3 /* [CP] Embed Pods Frameworks */,
+				62A4678F9DBFCF598BE11D1C /* [CP-User] [RNFB] Core Configuration */,
 			);
 			buildRules = (
 			);
@@ -212,22 +210,22 @@
 			productReference = 13B07F961A680F5B00A75B9A /* ThriveChurchOfficialApp.app */;
 			productType = "com.apple.product-type.application";
 		};
-		B1B60A647C7BFAF6CD4CA524 /* ThriveChurchOfficialAppUITests */ = {
+		7ECFF344C6E7758C9E8AF4CA /* ThriveChurchOfficialAppUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 4DC0A89F5595A3A35A972743 /* Build configuration list for PBXNativeTarget "ThriveChurchOfficialAppUITests" */;
+			buildConfigurationList = 28F9FCED6011A5BF92A621C1 /* Build configuration list for PBXNativeTarget "ThriveChurchOfficialAppUITests" */;
 			buildPhases = (
-				49EC242F342FD919E1D4FC4B /* Sources */,
-				E343299868F9504DA4ADFFF9 /* Frameworks */,
-				578F8768FD6B773D0E48F616 /* Resources */,
+				61C23CF6037A59DB33C9D4FF /* Sources */,
+				E3141C549E73B0514895B888 /* Frameworks */,
+				0EAC8480F5647DFE1F2D8156 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				D73F9F2724816F2256159288 /* PBXTargetDependency */,
+				1C4723244B97722E5EF94EA8 /* PBXTargetDependency */,
 			);
 			name = ThriveChurchOfficialAppUITests;
 			productName = ThriveChurchOfficialAppUITests;
-			productReference = 24E8428C3477EC529C4A6F73 /* ThriveChurchOfficialAppUITests.xctest */;
+			productReference = 4668EC71F1A199E7F233594A /* ThriveChurchOfficialAppUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -237,7 +235,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1640;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
 						LastSwiftMigration = 1250;
@@ -265,12 +263,19 @@
 			projectRoot = "";
 			targets = (
 				13B07F861A680F5B00A75B9A /* ThriveChurchOfficialApp */,
-				B1B60A647C7BFAF6CD4CA524 /* ThriveChurchOfficialAppUITests */,
+				7ECFF344C6E7758C9E8AF4CA /* ThriveChurchOfficialAppUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		0EAC8480F5647DFE1F2D8156 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		13B07F8E1A680F5B00A75B9A /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -278,15 +283,8 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				D5CF110FC59B4C62BF64FCC3 /* GoogleService-Info.plist in Resources */,
-				DCEC4E253BCEA7E2F2356D20 /* PrivacyInfo.xcprivacy in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		578F8768FD6B773D0E48F616 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
+				5B38426DBC314EDD9608AB42 /* GoogleService-Info.plist in Resources */,
+				2EAE19216A3E4BB6D07EE295 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -332,7 +330,29 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		1DB15C075074BC352911FBD9 /* [CP-User] [RNFB] Core Configuration */ = {
+		346CCAA145CD8EE7A59D70F3 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-ThriveChurchOfficialApp/Pods-ThriveChurchOfficialApp-frameworks.sh",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/React-Core-prebuilt/React.framework/React",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ReactNativeDependencies/ReactNativeDependencies.framework/ReactNativeDependencies",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/React.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ReactNativeDependencies.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ThriveChurchOfficialApp/Pods-ThriveChurchOfficialApp-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		62A4678F9DBFCF598BE11D1C /* [CP-User] [RNFB] Core Configuration */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -441,29 +461,7 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ThriveChurchOfficialApp/Pods-ThriveChurchOfficialApp-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		E9F3E0C631595C008698D8A2 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-ThriveChurchOfficialApp/Pods-ThriveChurchOfficialApp-frameworks.sh",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/React-Core-prebuilt/React.framework/React",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ReactNativeDependencies/ReactNativeDependencies.framework/ReactNativeDependencies",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/React.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ReactNativeDependencies.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ThriveChurchOfficialApp/Pods-ThriveChurchOfficialApp-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		ECBC4B9AAAEBAE52F61A0B12 /* [Expo] Configure project */ = {
+		BD124600898F041E05F52A43 /* [Expo] Configure project */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -495,40 +493,67 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
-				85A9111594C1E71822DC6BDF /* ExpoModulesProvider.swift in Sources */,
+				1C63B2E05110B0E0CCE307A2 /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		49EC242F342FD919E1D4FC4B /* Sources */ = {
+		61C23CF6037A59DB33C9D4FF /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4464859085713AEFFF81F607 /* ThriveChurchOfficialAppUITestsLaunchTests.swift in Sources */,
-				8C0ACE7D417BD2FF8AE097B4 /* ThriveUITestBase.swift in Sources */,
-				6E4946511D3ACD9B276522E1 /* ThriveChurchOfficialAppUITests.swift in Sources */,
+				8DB65D94AEBBA93AC536511A /* ThriveChurchOfficialAppUITestsLaunchTests.swift in Sources */,
+				10EBE87DDC6FDDB6A9A84668 /* ThriveUITestBase.swift in Sources */,
+				012BE1029126C5D2E7D97AC6 /* ThriveChurchOfficialAppUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		D73F9F2724816F2256159288 /* PBXTargetDependency */ = {
+		1C4723244B97722E5EF94EA8 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = ThriveChurchOfficialApp;
 			target = 13B07F861A680F5B00A75B9A /* ThriveChurchOfficialApp */;
-			targetProxy = 9F0EBE6C41A67976EA642B7E /* PBXContainerItemProxy */;
+			targetProxy = BE235574B22C83FD1EE669B2 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		0611EAEA6499CB1169D166B0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 87ME42WJYA;
+				INFOPLIST_FILE = ThriveChurchOfficialAppUITests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = mh_bundle;
+				MARKETING_VERSION = 1.0;
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.thrive-fl.ThriveCommunityChurch.UITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = ThriveChurchOfficialApp;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 0A2DD48C54F0279332568F2D /* Pods-ThriveChurchOfficialApp.debug.xcconfig */;
+			baseConfigurationReference = EC7E9F126AD79AFB5F693590 /* Pods-ThriveChurchOfficialApp.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = ThriveChurchOfficialApp/ThriveChurchOfficialApp.entitlements;
-				CURRENT_PROJECT_VERSION = 2125;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 87ME42WJYA;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -543,7 +568,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0.0;
+				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -562,12 +587,12 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = A16EC9D181DEE04839F2808C /* Pods-ThriveChurchOfficialApp.release.xcconfig */;
+			baseConfigurationReference = B81460FCAF9D973EC859E5AB /* Pods-ThriveChurchOfficialApp.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = ThriveChurchOfficialApp/ThriveChurchOfficialApp.entitlements;
-				CURRENT_PROJECT_VERSION = 2125;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 87ME42WJYA;
 				INFOPLIST_FILE = ThriveChurchOfficialApp/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Thrive Church Official App";
@@ -577,7 +602,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0.0;
+				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -592,6 +617,32 @@
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
+		};
+		49AB55FA3C4C1D140D37ABD5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 87ME42WJYA;
+				INFOPLIST_FILE = ThriveChurchOfficialAppUITests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = mh_bundle;
+				MARKETING_VERSION = 1.0;
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.thrive-fl.ThriveCommunityChurch.UITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = ThriveChurchOfficialApp;
+			};
+			name = Debug;
 		};
 		83CBBA201A601CBA00E9B192 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -740,59 +791,6 @@
 			};
 			name = Release;
 		};
-		8891D3473E8DAFA937BF4722 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ENABLE_OBJC_WEAK = NO;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 87ME42WJYA;
-				INFOPLIST_FILE = ThriveChurchOfficialAppUITests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				MACH_O_TYPE = mh_bundle;
-				MARKETING_VERSION = 1.0;
-				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.thrive-fl.ThriveCommunityChurch.UITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = ThriveChurchOfficialApp;
-			};
-			name = Debug;
-		};
-		EB12B454C26C46E54083C0AF /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ENABLE_OBJC_WEAK = NO;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 87ME42WJYA;
-				INFOPLIST_FILE = ThriveChurchOfficialAppUITests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				MACH_O_TYPE = mh_bundle;
-				MARKETING_VERSION = 1.0;
-				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.thrive-fl.ThriveCommunityChurch.UITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = ThriveChurchOfficialApp;
-				VALIDATE_PRODUCT = YES;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -805,11 +803,11 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		4DC0A89F5595A3A35A972743 /* Build configuration list for PBXNativeTarget "ThriveChurchOfficialAppUITests" */ = {
+		28F9FCED6011A5BF92A621C1 /* Build configuration list for PBXNativeTarget "ThriveChurchOfficialAppUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				EB12B454C26C46E54083C0AF /* Release */,
-				8891D3473E8DAFA937BF4722 /* Debug */,
+				0611EAEA6499CB1169D166B0 /* Release */,
+				49AB55FA3C4C1D140D37ABD5 /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

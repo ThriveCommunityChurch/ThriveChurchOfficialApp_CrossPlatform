@@ -1,11 +1,12 @@
 /**
  * Expo Config Plugin for Splash Screen Copyright Text
- * 
+ *
  * This plugin adds dynamic copyright text to the splash screen:
- * - iOS: Modifies the SplashScreen.storyboard to add a copyright label
+ * - iOS: Uses post-prebuild script (scripts/add-ios-splash-copyright.js)
  * - Android: Creates a custom splash screen layout with copyright text
- * 
- * This runs AFTER expo-splash-screen plugin to preserve the copyright text.
+ *
+ * Note: iOS splash screen modification is done as a post-prebuild step because
+ * expo-splash-screen's base mod overwrites any changes made during the plugin chain.
  */
 
 const { withDangerousMod } = require('@expo/config-plugins');
@@ -16,129 +17,16 @@ const COPYRIGHT_TEXT = `©${new Date().getFullYear()} Thrive Community Church\nA
 
 /**
  * Add copyright label to iOS SplashScreen.storyboard
+ *
+ * Note: This is intentionally a no-op during prebuild.
+ * The iOS storyboard is modified by scripts/add-ios-splash-copyright.js
+ * which runs AFTER prebuild completes (after expo-splash-screen's base mod writes the file).
  */
 const withIosSplashCopyright = (config) => {
-  return withDangerousMod(config, [
-    'ios',
-    async (config) => {
-      const projectRoot = config.modRequest.projectRoot;
-      const iosRoot = path.join(projectRoot, 'ios');
-      
-      // Find the app directory (it might be named differently)
-      const iosDirs = fs.readdirSync(iosRoot).filter(file => {
-        const fullPath = path.join(iosRoot, file);
-        return fs.statSync(fullPath).isDirectory() && 
-               !file.startsWith('.') && 
-               file !== 'Pods';
-      });
-      
-      if (iosDirs.length === 0) {
-        console.warn('⚠️  Could not find iOS app directory');
-        return config;
-      }
-      
-      const appDir = iosDirs[0];
-      const storyboardPath = path.join(iosRoot, appDir, 'SplashScreen.storyboard');
-      
-      if (!fs.existsSync(storyboardPath)) {
-        console.warn('⚠️  SplashScreen.storyboard not found at:', storyboardPath);
-        return config;
-      }
-      
-      let storyboardContent = fs.readFileSync(storyboardPath, 'utf8');
-
-      // Check if copyright label already exists
-      const hasLabel = storyboardContent.includes('copyright-label-id');
-      const hasConstraints = storyboardContent.includes('copyright-leading-constraint') &&
-                             storyboardContent.includes('copyright-trailing-constraint') &&
-                             storyboardContent.includes('copyright-bottom-constraint');
-
-      if (hasLabel && hasConstraints) {
-        console.log('✅ Copyright label and constraints already exist in storyboard');
-        return config;
-      }
-
-      // If label exists but constraints are missing (Xcode sometimes removes them), re-add constraints
-      if (hasLabel && !hasConstraints) {
-        console.log('⚠️  Copyright label exists but constraints are missing, re-adding constraints...');
-
-        // Find the </constraints> tag in the container view and add copyright constraints
-        const constraintsPattern = /(<constraint[^>]*id="d6a0be88096b36fb132659aa90203d39139deda9"[^>]*\/>)/;
-        const match = storyboardContent.match(constraintsPattern);
-
-        if (match) {
-          const copyrightConstraints = `
-                            <constraint firstItem="copyright-label-id" firstAttribute="leading" secondItem="EXPO-ContainerView" secondAttribute="leading" id="copyright-leading-constraint"/>
-                            <constraint firstAttribute="trailing" secondItem="copyright-label-id" secondAttribute="trailing" id="copyright-trailing-constraint"/>
-                            <constraint firstAttribute="bottom" secondItem="copyright-label-id" secondAttribute="bottom" constant="20" id="copyright-bottom-constraint"/>`;
-
-          storyboardContent = storyboardContent.replace(match[0], match[0] + copyrightConstraints);
-          fs.writeFileSync(storyboardPath, storyboardContent, 'utf8');
-          console.log('✅ Re-added copyright constraints to iOS splash screen');
-        } else {
-          console.warn('⚠️  Could not find constraint anchor point in storyboard');
-        }
-
-        return config;
-      }
-      
-      // Find the closing </subviews> tag and add the copyright label before it
-      const subviewsClosingTag = '</subviews>';
-      const subviewsIndex = storyboardContent.indexOf(subviewsClosingTag);
-      
-      if (subviewsIndex === -1) {
-        console.warn('⚠️  Could not find </subviews> tag in storyboard');
-        return config;
-      }
-      
-      // Create the copyright label XML (matches exact structure from original storyboard)
-      const copyrightLabel = `                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="copyright-label-id">
-                                <rect key="frame" x="0.0" y="782" width="393" height="50"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="50" id="copyright-height-constraint"/>
-                                </constraints>
-                                <string key="text">${COPYRIGHT_TEXT}</string>
-                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-`;
-      
-      // Insert the copyright label before </subviews>
-      storyboardContent = 
-        storyboardContent.slice(0, subviewsIndex) + 
-        copyrightLabel + 
-        storyboardContent.slice(subviewsIndex);
-      
-      // Now add constraints for the copyright label
-      // Find the closing </constraints> tag in the view
-      const constraintsClosingTag = '</constraints>';
-      const lastConstraintsIndex = storyboardContent.lastIndexOf(constraintsClosingTag);
-      
-      if (lastConstraintsIndex === -1) {
-        console.warn('⚠️  Could not find </constraints> tag in storyboard');
-        return config;
-      }
-      
-      // Add constraints for the copyright label (matches exact constraints from original storyboard)
-      // Note: These constraints pin the label edge-to-edge with 20pt bottom padding from container view
-      const copyrightConstraints = `                            <constraint firstAttribute="trailing" secondItem="copyright-label-id" secondAttribute="trailing" id="copyright-trailing-constraint"/>
-                            <constraint firstItem="copyright-label-id" firstAttribute="leading" secondItem="EXPO-ContainerView" secondAttribute="leading" id="copyright-leading-constraint"/>
-                            <constraint firstAttribute="bottom" secondItem="copyright-label-id" secondAttribute="bottom" constant="20" symbolic="YES" id="copyright-bottom-constraint"/>
-`;
-      
-      storyboardContent = 
-        storyboardContent.slice(0, lastConstraintsIndex) + 
-        copyrightConstraints + 
-        storyboardContent.slice(lastConstraintsIndex);
-      
-      // Write the modified storyboard back
-      fs.writeFileSync(storyboardPath, storyboardContent, 'utf8');
-      console.log('✅ Added copyright label to iOS splash screen');
-      
-      return config;
-    },
-  ]);
+  // iOS splash screen copyright is handled by post-prebuild script
+  // because expo-splash-screen's base mod overwrites any changes made during the plugin chain
+  console.log('ℹ️  iOS splash copyright will be added by post-prebuild script');
+  return config;
 };
 
 /**

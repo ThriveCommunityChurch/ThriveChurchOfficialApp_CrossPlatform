@@ -8,7 +8,7 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "prebuild": "npx expo prebuild --clean",
-    "prebuild:ios": "npx expo prebuild --clean --platform ios && node scripts/patch-podfile-properties.js && cp GoogleService-Info.plist ios/ThriveChurchOfficialApp/ && cd ios && pod install",
+    "prebuild:ios": "npx expo prebuild --clean --platform ios && node scripts/add-ios-splash-copyright.js && node scripts/patch-podfile-properties.js && cp GoogleService-Info.plist ios/ThriveChurchOfficialApp/ && cd ios && pod install",
     "prebuild:android": "npx expo prebuild --clean --platform android && node scripts/copy-android-splash.js",
     "generate:splash": "node scripts/generate-android-splash.js",
     "patch-podfile": "node scripts/patch-podfile-properties.js",
