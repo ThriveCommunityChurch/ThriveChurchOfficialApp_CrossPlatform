@@ -47,9 +47,13 @@ Search for **"Thrive Church Official App"** in the Apple App Store or Google Pla
 - Contact info, directions, and social media links
 
 ### 📖 Bible
-- ESV Bible passage reading with audio playback
-- Bible passage note-taking with ESV Reference artwork
-- YouVersion integration with deep links
+- **Full ESV Bible Reader** - Native WebView-based chapter reading with beautiful typography
+- **Audio Playback** - Listen to any chapter with TrackPlayer integration
+- **Cross-References** - Tap superscript letters to view related passages in a modal
+- **Chapter Navigation** - Prev/Next buttons and book/chapter picker
+- **Note-Taking** - Take notes on any chapter with auto-linked references
+- **Dark/Light Theme** - Seamless theme support matching app settings
+- **YouVersion Integration** - Deep links to YouVersion app
 
 ### ⚙️ Settings & Experience
 - Dark/light mode with automatic or manual switching
@@ -302,7 +306,10 @@ npx expo run:android --device="emulator-5554"
 - [ ] Lock screen controls (iOS) and notification controls (Android)
 - [ ] Offline sermon downloads
 - [ ] Note taking and editing
-- [ ] Bible integration with YouVersion
+- [ ] Bible reader with chapter navigation
+- [ ] Bible audio playback
+- [ ] Bible cross-reference modal
+- [ ] Bible note-taking integration
 - [ ] Sharing functionality
 - [ ] Deep linking
 - [ ] Tablet layouts (iPad/Android tablets)
@@ -447,3 +454,5 @@ node generate-firebase-configs.js
 
 ### Acknowledgements
 Thank you to everyone who uses this application, we made it for you - to help make taking notes and hearing the gospel message that much easier for you. Made with ❤️
+
+Special thanks to the team at [Crossway](https://www.crossway.org/) for providing the excellent [ESV API](https://api.esv.org/) that powers our Bible reader. 📖

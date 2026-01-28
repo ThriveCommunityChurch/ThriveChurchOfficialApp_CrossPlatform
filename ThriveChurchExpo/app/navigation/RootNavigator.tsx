@@ -37,6 +37,8 @@ import { SermonNotesScreen } from '../screens/Listen/SermonNotesScreen';
 import { StudyGuideScreen } from '../screens/Listen/StudyGuideScreen';
 import { BibleSelectionScreen } from '../screens/Bible/BibleSelectionScreen';
 import { BookListScreen } from '../screens/Bible/BookListScreen';
+import { ChapterListScreen } from '../screens/Bible/ChapterListScreen';
+import { ChapterReaderScreen } from '../screens/Bible/ChapterReaderScreen';
 import { NotesListScreen, NoteDetailScreen } from '../screens/Notes';
 import { ConnectScreen, RSSScreen, RSSDetailScreen, WebViewScreen, SmallGroupScreen, ServeScreen, ContactScreen, SocialScreen, ImNewScreen, EventsScreen, EventDetailScreen } from '../screens/Connect';
 import { MoreScreen, AboutScreen, MeetTheTeamScreen } from '../screens/More';
@@ -304,6 +306,22 @@ function BibleStackNavigator({ theme }: { theme: Theme }) {
         options={({ route }: any) => ({
           title: route.params?.title || t('navigation.bible'),
           headerBackTitle: t('navigation.bible'),
+        })}
+      />
+      <BibleStack.Screen
+        name="ChapterList"
+        component={ChapterListScreen}
+        options={({ route }: any) => ({
+          title: route.params?.book?.name || t('navigation.bible'),
+          headerBackTitle: t('navigation.bible'),
+        })}
+      />
+      <BibleStack.Screen
+        name="ChapterReader"
+        component={ChapterReaderScreen}
+        options={({ route }: any) => ({
+          title: `${route.params?.book?.name || ''} ${route.params?.chapter || ''}`.trim(),
+          headerBackTitle: route.params?.book?.name || t('navigation.bible'),
         })}
       />
     </BibleStack.Navigator>

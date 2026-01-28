@@ -18,7 +18,7 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "ThriveChurchOfficialAppUITests"
+               BlueprintIdentifier = "7ECFF344C6E7758C9E8AF4CA"
                BuildableName = "ThriveChurchOfficialAppUITests.xctest"
                BlueprintName = "ThriveChurchOfficialAppUITests"
                ReferencedContainer = "container:ThriveChurchOfficialApp.xcodeproj">

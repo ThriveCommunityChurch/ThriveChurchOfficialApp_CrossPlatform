@@ -210,6 +210,192 @@ class ESVApiService {
       isConfigured: this.apiKey !== 'DEMO_KEY',
     };
   }
+
+  /**
+   * Fetch a Bible chapter as HTML from the ESV API
+   * Optimized for WebView display with cross-references, headings, and verse numbers
+   * @param book - Book name (e.g., "Genesis", "John")
+   * @param chapter - Chapter number
+   * @returns Promise with HTML content and metadata
+   */
+  async getChapterHtml(book: string, chapter: number): Promise<{
+    html: string;
+    canonical: string;
+    prevChapter: number[] | null;
+    nextChapter: number[] | null;
+    error?: string;
+  }> {
+    const reference = `${book} ${chapter}`;
+
+    if (this.apiKey === 'DEMO_KEY') {
+      return {
+        html: '',
+        canonical: reference,
+        prevChapter: null,
+        nextChapter: null,
+        error: i18next.t('esvApi.apiKeyNotConfigured'),
+      };
+    }
+
+    try {
+      const url = new URL(`${this.baseUrl}/passage/html/`);
+      url.searchParams.append('q', reference);
+
+      // Configure HTML formatting for WebView display
+      url.searchParams.append('include-passage-references', 'false'); // We show in nav header
+      url.searchParams.append('include-verse-numbers', 'true');
+      url.searchParams.append('include-first-verse-numbers', 'false'); // Don't show :1 after chapter
+      url.searchParams.append('include-footnotes', 'false'); // Keep it clean
+      url.searchParams.append('include-footnote-body', 'false');
+      url.searchParams.append('include-headings', 'true');
+      url.searchParams.append('include-short-copyright', 'false');
+      url.searchParams.append('include-chapter-numbers', 'true');
+      url.searchParams.append('include-crossrefs', 'true'); // Cross-references!
+      url.searchParams.append('include-subheadings', 'true');
+      url.searchParams.append('include-verse-anchors', 'true');
+      url.searchParams.append('include-audio-link', 'false'); // We handle audio ourselves
+      url.searchParams.append('include-css-link', 'false'); // We provide our own CSS
+      url.searchParams.append('inline-styles', 'false'); // We provide our own CSS
+      url.searchParams.append('wrapping-div', 'true');
+      url.searchParams.append('div-classes', 'esv-text');
+
+      const response = await fetch(url.toString(), {
+        method: 'GET',
+        headers: {
+          'Authorization': `Token ${this.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Invalid ESV API key');
+        } else if (response.status === 400) {
+          const errorData: ESVApiError = await response.json();
+          throw new Error(errorData.detail || 'Invalid passage reference');
+        } else {
+          throw new Error(`ESV API error: ${response.status}`);
+        }
+      }
+
+      const data: ESVPassageResponse = await response.json();
+
+      if (!data.passages || data.passages.length === 0) {
+        return {
+          html: '',
+          canonical: data.canonical || reference,
+          prevChapter: null,
+          nextChapter: null,
+          error: i18next.t('esvApi.noPassageFound'),
+        };
+      }
+
+      const meta = data.passage_meta[0];
+
+      return {
+        html: data.passages[0],
+        canonical: data.canonical,
+        prevChapter: meta?.prev_chapter || null,
+        nextChapter: meta?.next_chapter || null,
+      };
+
+    } catch (error) {
+      console.error('ESV API HTML Error:', error);
+
+      let errorMessage = i18next.t('esvApi.fetchFailed');
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
+      return {
+        html: '',
+        canonical: reference,
+        prevChapter: null,
+        nextChapter: null,
+        error: errorMessage,
+      };
+    }
+  }
+
+  /**
+   * Fetch any Bible passage as HTML (for cross-reference navigation)
+   * @param reference - Bible reference (e.g., "John 3:16", "Genesis 1:1-3")
+   * @returns Promise with HTML content and metadata
+   */
+  async getPassageHtml(reference: string): Promise<{
+    html: string;
+    canonical: string;
+    error?: string;
+  }> {
+    if (!reference || reference.trim() === '') {
+      return {
+        html: '',
+        canonical: '',
+        error: i18next.t('esvApi.noReferenceProvided'),
+      };
+    }
+
+    if (this.apiKey === 'DEMO_KEY') {
+      return {
+        html: '',
+        canonical: reference,
+        error: i18next.t('esvApi.apiKeyNotConfigured'),
+      };
+    }
+
+    try {
+      const url = new URL(`${this.baseUrl}/passage/html/`);
+      url.searchParams.append('q', reference);
+
+      // Configure for cross-ref display (simpler than full chapter)
+      url.searchParams.append('include-passage-references', 'true');
+      url.searchParams.append('include-verse-numbers', 'true');
+      url.searchParams.append('include-footnotes', 'false');
+      url.searchParams.append('include-headings', 'true');
+      url.searchParams.append('include-short-copyright', 'true');
+      url.searchParams.append('include-crossrefs', 'true');
+      url.searchParams.append('include-css-link', 'false');
+      url.searchParams.append('inline-styles', 'false');
+      url.searchParams.append('wrapping-div', 'true');
+      url.searchParams.append('div-classes', 'esv-text');
+
+      const response = await fetch(url.toString(), {
+        method: 'GET',
+        headers: {
+          'Authorization': `Token ${this.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`ESV API error: ${response.status}`);
+      }
+
+      const data: ESVPassageResponse = await response.json();
+
+      if (!data.passages || data.passages.length === 0) {
+        return {
+          html: '',
+          canonical: data.canonical || reference,
+          error: i18next.t('esvApi.noPassageFound'),
+        };
+      }
+
+      return {
+        html: data.passages[0],
+        canonical: data.canonical,
+      };
+
+    } catch (error) {
+      console.error('ESV API Passage HTML Error:', error);
+
+      return {
+        html: '',
+        canonical: reference,
+        error: error instanceof Error ? error.message : i18next.t('esvApi.fetchFailed'),
+      };
+    }
+  }
 }
 
 // Export singleton instance
