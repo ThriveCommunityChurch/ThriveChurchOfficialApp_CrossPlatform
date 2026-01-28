@@ -6,6 +6,7 @@ import {
   Text,
   StatusBar,
   Alert,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -20,6 +21,9 @@ import { SermonMessage } from '../../types/api';
 import { setCurrentScreen, logViewBible, logPlayBibleAudio } from '../../services/analytics/analyticsService';
 import { esvApiService } from '../../services/bible/esvApiService';
 import { setupPlayer } from '../../services/audio/trackPlayerService';
+
+// ESV Bible reference image for control center and Now Playing screen
+const ESV_REFERENCE_IMAGE = Image.resolveAssetSource(require('../../../assets/ESV_Reference.png'));
 
 type BiblePassageScreenParams = {
   BiblePassageScreen: {
@@ -111,13 +115,13 @@ const BiblePassageScreen: React.FC = () => {
       // Stop any current playback
       await TrackPlayer.reset();
 
-      // Add track with authorization headers
+      // Add track with authorization headers and ESV reference image
       await TrackPlayer.add({
         id: `bible-${message.PassageRef}`,
         url: audioUrl,
         title: message.PassageRef,
         artist: 'ESV Bible',
-        artwork: message.seriesArt || undefined,
+        artwork: ESV_REFERENCE_IMAGE.uri,
         headers: authHeaders,
       });
 

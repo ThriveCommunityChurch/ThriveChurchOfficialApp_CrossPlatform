@@ -22,7 +22,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
 import { SermonMessage, SermonNotesResponse } from '../../types/api';
 import { getSermonNotes } from '../../services/api/sermonContentService';
-import { createSermonNote, getSermonNoteByMessageId } from '../../services/storage/storage';
+import { createSermonNote, getSermonNoteByMessageId, updateSermonNote } from '../../services/storage/storage';
 import { setCurrentScreen, logCustomEvent } from '../../services/analytics/analyticsService';
 import { CollapsibleSection } from '../../components/CollapsibleSection';
 
@@ -63,68 +63,77 @@ export const SermonNotesScreen: React.FC = () => {
   const handleSaveToNotes = useCallback(async () => {
     if (!notes) return;
 
-    try {
-      // Check if note already exists for this message
-      const existingNote = await getSermonNoteByMessageId(message.MessageId);
-      
-      // Format notes content
-      const formattedContent = formatNotesForStorage(notes);
-      
-      if (existingNote) {
-        // Note already exists - ask to append or replace
-        Alert.alert(
-          t('listen.sermonNotes.noteExists'),
-          t('listen.sermonNotes.noteExistsMessage'),
-          [
-            { text: t('common.cancel'), style: 'cancel' },
-            {
-              text: t('listen.sermonNotes.appendNote'),
-              onPress: async () => {
-                // Navigate to existing note with content to append
-                (navigation as any).navigate('Notes', {
-                  screen: 'NoteDetail',
-                  params: {
-                    noteId: existingNote.id,
-                    appendContent: formattedContent,
-                  },
-                });
-              },
-            },
-          ]
-        );
-      } else {
-        // Create new note with the formatted content
-        await createSermonNote({
-          messageId: message.MessageId,
-          seriesId: seriesId,
-          messageTitle: message.Title,
-          seriesTitle: seriesTitle,
-          seriesArt: seriesArtUrl,
-          speaker: message.Speaker || 'Unknown',
-          messageDate: message.Date || new Date().toISOString(),
-          content: formattedContent,
-        });
+    // Format notes content
+    const formattedContent = formatNotesForStorage(notes);
+
+    // Helper function to save and navigate
+    const saveAndNavigate = async () => {
+      try {
+        // Check if note already exists for this message
+        const existingNote = await getSermonNoteByMessageId(message.MessageId);
+
+        if (existingNote) {
+          // Update existing note with new content
+          await updateSermonNote(existingNote.id, formattedContent);
+        } else {
+          // Create new note with the formatted content
+          await createSermonNote({
+            messageId: message.MessageId,
+            seriesId: seriesId,
+            messageTitle: message.Title,
+            seriesTitle: seriesTitle,
+            seriesArt: seriesArtUrl,
+            speaker: message.Speaker || 'Unknown',
+            messageDate: message.Date || new Date().toISOString(),
+            content: formattedContent,
+          });
+        }
 
         logCustomEvent('save_sermon_notes', {
           message_id: message.MessageId,
           message_title: message.Title,
         });
 
+        // Navigate to the note with full sermon context
+        (navigation as any).navigate('Notes', {
+          screen: 'NoteDetail',
+          params: {
+            messageId: message.MessageId,
+            messageTitle: message.Title,
+            seriesTitle: seriesTitle,
+            seriesArt: seriesArtUrl,
+            speaker: message.Speaker || 'Unknown',
+            messageDate: message.Date || new Date().toISOString(),
+            seriesId: seriesId,
+          },
+        });
+      } catch (err) {
+        console.error('Error saving notes:', err);
+        Alert.alert(t('common.error'), t('listen.sermonNotes.saveFailed'));
+      }
+    };
+
+    try {
+      // Check if note already exists with content
+      const existingNote = await getSermonNoteByMessageId(message.MessageId);
+
+      if (existingNote && existingNote.content?.trim()) {
+        // Note exists with content - confirm overwrite
         Alert.alert(
-          t('common.success'),
-          t('listen.sermonNotes.savedToNotes'),
+          t('listen.sermonNotes.overwriteTitle'),
+          t('listen.sermonNotes.overwriteMessage'),
           [
-            { text: t('common.ok') },
+            { text: t('common.no'), style: 'cancel' },
             {
-              text: t('listen.sermonNotes.viewNotes'),
-              onPress: () => {
-                (navigation as any).navigate('Notes', {
-                  screen: 'NotesList',
-                });
-              },
+              text: t('common.yes'),
+              style: 'destructive',
+              onPress: saveAndNavigate,
             },
           ]
         );
+      } else {
+        // No existing content - just save
+        await saveAndNavigate();
       }
     } catch (err) {
       console.error('Error saving notes:', err);

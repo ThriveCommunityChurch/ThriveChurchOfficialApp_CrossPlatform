@@ -48,6 +48,7 @@ Search for **"Thrive Church Official App"** in the Apple App Store or Google Pla
 
 ### 📖 Bible
 - ESV Bible passage reading with audio playback
+- Bible passage note-taking with ESV Reference artwork
 - YouVersion integration with deep links
 
 ### ⚙️ Settings & Experience

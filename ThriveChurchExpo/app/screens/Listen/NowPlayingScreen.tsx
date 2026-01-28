@@ -294,6 +294,9 @@ export default function NowPlayingScreen() {
   const track = player.currentTrack as any;
   const weekNum = track.weekNum;
 
+  // Check if this is a Bible passage (track ID starts with "bible-")
+  const isBiblePassage = track.id?.startsWith('bible-');
+
   return (
     <View style={styles.container}>
       <View style={[
@@ -363,18 +366,20 @@ export default function NowPlayingScreen() {
           )}
         </View>
 
-        {/* Waveform Visualization */}
-        <View style={[styles.waveformContainer, { marginBottom: marginBottom * 0.67 }]}>
-          <AudioWaveform
-            progress={player.duration > 0 ? player.position / player.duration : 0}
-            duration={player.duration}
-            onSeek={handleSeekComplete}
-            amplitudes={waveformData}
-            isLoading={isLoadingWaveform}
-            height={waveformHeight}
-            isSeeking={isSeeking}
-          />
-        </View>
+        {/* Waveform Visualization - hidden for Bible passages */}
+        {!isBiblePassage && (
+          <View style={[styles.waveformContainer, { marginBottom: marginBottom * 0.67 }]}>
+            <AudioWaveform
+              progress={player.duration > 0 ? player.position / player.duration : 0}
+              duration={player.duration}
+              onSeek={handleSeekComplete}
+              amplitudes={waveformData}
+              isLoading={isLoadingWaveform}
+              height={waveformHeight}
+              isSeeking={isSeeking}
+            />
+          </View>
+        )}
 
         {/* Progress Slider */}
         <View style={[styles.progressContainer, { marginBottom: marginBottom * 1.33 }]}>
