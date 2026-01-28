@@ -25,6 +25,7 @@ import { setCurrentScreen } from '../../services/analytics/analyticsService';
 import { fetchWaveformData } from '../../services/api/waveformService';
 import { adaptWaveformToScreen } from '../../utils/waveformUtils';
 import { PlaybackSpeed, PLAYBACK_SPEED_OPTIONS, formatPlaybackSpeed } from '../../services/playback/playbackSettings';
+import { HEADER_BUTTON_MARGINS } from '../../utils/platformUtils';
 
 const { width, height } = Dimensions.get('window');
 const isTablet = (Platform.OS === 'ios' && Platform.isPad) || Math.min(width, height) >= 768;
@@ -124,7 +125,7 @@ export default function NowPlayingScreen() {
         headerRight: () => (
           <TouchableOpacity
             onPress={handleTakeNotes}
-            style={{ marginRight: 16 }}
+            style={{ marginLeft: HEADER_BUTTON_MARGINS.rightIconLeft }}
             activeOpacity={0.7}
           >
             <Ionicons name="create-outline" size={24} color={theme.colors.text} />

@@ -250,6 +250,7 @@ export const NoteDetailScreen: React.FC = () => {
                 name={isViewMode ? 'create-outline' : 'eye-outline'}
                 size={22}
                 color={theme.colors.text}
+                style={{ marginTop: -3 }}
               />
             </TouchableOpacity>
           )}

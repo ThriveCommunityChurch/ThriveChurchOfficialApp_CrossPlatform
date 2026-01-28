@@ -28,6 +28,7 @@ import { TagSelector } from '../../components/Search/TagSelector';
 import { SpeakerSelector } from '../../components/Search/SpeakerSelector';
 import { SearchResultsList } from '../../components/Search/SearchResultsList';
 import { setCurrentScreen } from '../../services/analytics/analyticsService';
+import { HEADER_BUTTON_MARGINS } from '../../utils/platformUtils';
 
 type NavigationProp = NativeStackNavigationProp<any>;
 
@@ -74,7 +75,7 @@ export const SearchScreen: React.FC = () => {
       headerRight: () => (
         <TouchableOpacity
           onPress={handleSortDirectionToggle}
-          style={{ marginRight: 16 }}
+          style={{ marginLeft: HEADER_BUTTON_MARGINS.rightIconLeft }}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
           <Ionicons
