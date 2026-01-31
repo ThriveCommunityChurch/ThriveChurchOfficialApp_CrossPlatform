@@ -395,7 +395,7 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
                   {series.Tags.map((tag, index) => (
                     <View key={index} style={styles.tabletTopicTag}>
                       <Ionicons name="pricetag" size={14} color={theme.colors.primary} />
-                      <Text style={styles.tabletTopicText}>{getTagDisplayLabel(tag)}</Text>
+                      <Text style={styles.tabletTopicText}>{getTagDisplayLabel(tag, t)}</Text>
                     </View>
                   ))}
                 </View>
@@ -529,12 +529,12 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
               {series.Tags.slice(0, 4).map((tag, index) => (
                 <View key={index} style={styles.phoneTag}>
                   <Ionicons name="pricetag" size={12} color={theme.colors.primary} />
-                  <Text style={styles.phoneTagText}>{getTagDisplayLabel(tag)}</Text>
+                  <Text style={styles.phoneTagText}>{getTagDisplayLabel(tag, t)}</Text>
                 </View>
               ))}
               {series.Tags.length > 4 && (
                 <View style={styles.phoneTagMore}>
-                  <Text style={styles.phoneTagMoreText}>+{series.Tags.length - 4} more</Text>
+                  <Text style={styles.phoneTagMoreText}>+{series.Tags.length - 4} {t('common.more')}</Text>
                 </View>
               )}
             </View>
