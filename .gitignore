@@ -141,3 +141,5 @@ ThriveChurchExpo/android/app/build/
 # Build artifacts
 ThriveChurchExpo/.expo/
 ThriveChurchExpo/.expo-shared/
+
+ThriveChurchExpo/test-results/ios-ui-tests.xcresult/*

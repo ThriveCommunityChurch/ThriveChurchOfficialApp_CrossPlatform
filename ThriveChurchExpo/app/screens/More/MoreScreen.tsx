@@ -341,6 +341,10 @@ const MoreMenuCard: React.FC<{ item: MoreMenuItem; theme: Theme }> = ({ item, th
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       activeOpacity={1}
+      accessible={true}
+      accessibilityLabel={item.title}
+      accessibilityHint={item.subtitle}
+      accessibilityRole="button"
     >
       <Animated.View style={[styles.card, { transform: [{ scale: scaleAnim }] }]}>
         <View style={styles.cardContent}>
