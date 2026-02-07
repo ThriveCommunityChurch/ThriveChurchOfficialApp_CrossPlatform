@@ -130,7 +130,9 @@ const SermonNoteCard: React.FC<SermonNoteCardProps> = ({ note, onPress, onDelete
               {note.messageTitle}
             </Text>
             <Text style={styles.seriesTitle} numberOfLines={1}>
-              {note.seriesTitle || 'Sermon'} • {note.speaker}
+              {note.messageId?.startsWith('bible-')
+                ? (note.speaker || 'ESV Bible')
+                : `${note.seriesTitle || 'Sermon'} • ${note.speaker}`}
             </Text>
             <Text style={styles.notePreview} numberOfLines={1}>
               {getPreview()}

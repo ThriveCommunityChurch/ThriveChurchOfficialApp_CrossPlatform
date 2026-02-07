@@ -250,6 +250,7 @@ export const NoteDetailScreen: React.FC = () => {
                 name={isViewMode ? 'create-outline' : 'eye-outline'}
                 size={22}
                 color={theme.colors.text}
+                style={{ marginTop: -3 }}
               />
             </TouchableOpacity>
           )}
@@ -376,7 +377,9 @@ export const NoteDetailScreen: React.FC = () => {
           <View style={styles.sermonInfo}>
             <Text style={styles.messageTitle} numberOfLines={2}>{messageTitle}</Text>
             <Text style={styles.seriesText} numberOfLines={1}>
-              {seriesTitle || 'Sermon'} • {speaker || ''}
+              {messageId?.startsWith('bible-')
+                ? (speaker || 'ESV Bible')
+                : `${seriesTitle || 'Sermon'} • ${speaker || ''}`}
             </Text>
             <Text style={styles.dateText}>{formatDate(messageDate || '')}</Text>
           </View>

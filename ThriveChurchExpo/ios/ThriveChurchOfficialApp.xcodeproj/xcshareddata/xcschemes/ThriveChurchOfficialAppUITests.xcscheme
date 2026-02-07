@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1640"
+   LastUpgradeVersion = "2620"
    version = "1.7">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -18,7 +18,7 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "ThriveChurchOfficialAppUITests"
+               BlueprintIdentifier = "7ECFF344C6E7758C9E8AF4CA"
                BuildableName = "ThriveChurchOfficialAppUITests.xctest"
                BlueprintName = "ThriveChurchOfficialAppUITests"
                ReferencedContainer = "container:ThriveChurchOfficialApp.xcodeproj">

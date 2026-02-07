@@ -6,6 +6,8 @@
     "retry": "Retry",
     "cancel": "Cancel",
     "ok": "OK",
+    "yes": "Yes",
+    "no": "No",
     "save": "Save",
     "delete": "Delete",
     "edit": "Edit",
@@ -191,9 +193,8 @@
       "saveToNotes": "Save to My Notes",
       "savedToNotes": "Notes saved successfully! You can find them in your Notes section.",
       "saveFailed": "Failed to save notes. Please try again.",
-      "noteExists": "Note Already Exists",
-      "noteExistsMessage": "You already have notes for this sermon. Would you like to append this content?",
-      "appendNote": "Add to Note",
+      "overwriteTitle": "Overwrite Notes?",
+      "overwriteMessage": "You already have notes for this sermon. Saving will overwrite your existing notes.",
       "viewNotes": "View Notes"
     },
     "studyGuide": {

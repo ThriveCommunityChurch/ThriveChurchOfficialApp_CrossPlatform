@@ -141,3 +141,5 @@ ThriveChurchExpo/android/app/build/
 # Build artifacts
 ThriveChurchExpo/.expo/
 ThriveChurchExpo/.expo-shared/
+
+*.keystore

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
-import { NavigationContainer, DefaultTheme, DarkTheme, Theme as NavigationTheme } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme, DarkTheme, Theme as NavigationTheme, getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { View, Text, TouchableOpacity, AppState, AppStateStatus, Platform } from 'react-native';
@@ -15,6 +15,9 @@ import { linking } from './linking';
 const ios = Platform.OS === 'ios';
 const HEADER_FONT_FAMILY = ios ? 'Avenir-Heavy' : 'Lato-Bold';
 const TAB_LABEL_FONT_FAMILY = ios ? 'Avenir-Book' : 'Lato-Regular';
+
+// Import platform utilities for iOS 26+ liquid glass detection
+import { HEADER_BUTTON_MARGINS } from '../utils/platformUtils';
 import { logAppOpen, logAppInBackground } from '../services/analytics/analyticsService';
 import { initializePushNotifications, clearAllNotifications } from '../services/notifications/pushNotificationService';
 import { logAppConfig } from '../config/app.config';
@@ -34,6 +37,8 @@ import { SermonNotesScreen } from '../screens/Listen/SermonNotesScreen';
 import { StudyGuideScreen } from '../screens/Listen/StudyGuideScreen';
 import { BibleSelectionScreen } from '../screens/Bible/BibleSelectionScreen';
 import { BookListScreen } from '../screens/Bible/BookListScreen';
+import { ChapterListScreen } from '../screens/Bible/ChapterListScreen';
+import { ChapterReaderScreen } from '../screens/Bible/ChapterReaderScreen';
 import { NotesListScreen, NoteDetailScreen } from '../screens/Notes';
 import { ConnectScreen, RSSScreen, RSSDetailScreen, WebViewScreen, SmallGroupScreen, ServeScreen, ContactScreen, SocialScreen, ImNewScreen, EventsScreen, EventDetailScreen } from '../screens/Connect';
 import { MoreScreen, AboutScreen, MeetTheTeamScreen } from '../screens/More';
@@ -125,7 +130,7 @@ function ListenStackNavigator({ theme }: { theme: Theme }) {
           headerLeft: () => (
             <TouchableOpacity
               onPress={() => navigation.navigate('Search')}
-              style={{ marginLeft: 16 }}
+              style={{ marginLeft: HEADER_BUTTON_MARGINS.left }}
               accessibilityLabel={t('listen.search.title')}
               accessibilityRole="button"
             >
@@ -133,11 +138,11 @@ function ListenStackNavigator({ theme }: { theme: Theme }) {
             </TouchableOpacity>
           ),
           headerRight: () => (
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 8 }}>
-              <LiveButton style={{ marginRight: 12 }} />
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: HEADER_BUTTON_MARGINS.rightContainer }}>
+              <LiveButton style={{ marginLeft: 12 }} />
               <TouchableOpacity
                 onPress={() => navigation.navigate('NowPlaying')}
-                style={{ marginRight: 16 }}
+                style={{ marginRight: 12 }}
                 accessibilityLabel={t('navigation.nowPlaying')}
                 accessibilityRole="button"
               >
@@ -145,7 +150,7 @@ function ListenStackNavigator({ theme }: { theme: Theme }) {
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => navigation.navigate('RecentlyPlayed')}
-                style={{ marginRight: 16 }}
+                style={{ marginRight: 12 }}
                 accessibilityLabel={t('navigation.recentlyPlayed')}
                 accessibilityRole="button"
               >
@@ -301,6 +306,22 @@ function BibleStackNavigator({ theme }: { theme: Theme }) {
         options={({ route }: any) => ({
           title: route.params?.title || t('navigation.bible'),
           headerBackTitle: t('navigation.bible'),
+        })}
+      />
+      <BibleStack.Screen
+        name="ChapterList"
+        component={ChapterListScreen}
+        options={({ route }: any) => ({
+          title: route.params?.book?.name || t('navigation.bible'),
+          headerBackTitle: t('navigation.bible'),
+        })}
+      />
+      <BibleStack.Screen
+        name="ChapterReader"
+        component={ChapterReaderScreen}
+        options={({ route }: any) => ({
+          title: `${route.params?.book?.name || ''} ${route.params?.chapter || ''}`.trim(),
+          headerBackTitle: route.params?.book?.name || t('navigation.bible'),
         })}
       />
     </BibleStack.Navigator>
@@ -667,6 +688,18 @@ export function RootNavigator() {
               <Ionicons name="create" size={size} color={color} />
             ),
           }}
+          listeners={({ navigation, route }) => ({
+            tabPress: (e) => {
+              // Get the current route name within the Notes stack
+              const routeName = getFocusedRouteNameFromRoute(route) ?? 'NotesList';
+
+              // If we're not on the NotesList screen, reset the stack to NotesList
+              if (routeName !== 'NotesList') {
+                e.preventDefault();
+                navigation.navigate('Notes', { screen: 'NotesList' });
+              }
+            },
+          })}
         >
           {() => <NotesStackNavigator theme={theme} />}
         </Tab.Screen>

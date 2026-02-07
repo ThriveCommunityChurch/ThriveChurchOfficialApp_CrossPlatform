@@ -6,7 +6,8 @@
  *
  * Settings applied:
  * - BuildIndependentTargetsInParallel = YES
- * - LastUpgradeCheck = 1640 (Xcode 16.4)
+ * - LastUpgradeCheck = 2620 (Xcode 26.2) in project.pbxproj
+ * - LastUpgradeVersion = 2620 (Xcode 26.2) in scheme files
  * - CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES
  * - SWIFT_COMPILATION_MODE = wholemodule (Release only)
  * - INFOPLIST_KEY_CFBundleDisplayName
@@ -18,12 +19,14 @@
  * These settings persist across `expo prebuild --clean`
  */
 
-const { withXcodeProject } = require('@expo/config-plugins');
+const { withXcodeProject, withDangerousMod } = require('@expo/config-plugins');
+const fs = require('fs');
+const path = require('path');
 
 const DEVELOPMENT_TEAM = '87ME42WJYA';
 const APP_DISPLAY_NAME = 'Thrive Church Official App';
 const APP_CATEGORY = 'public.app-category.productivity';
-const LAST_UPGRADE_CHECK = '1640'; // Xcode 16.4
+const LAST_UPGRADE_CHECK = '2620'; // Xcode 26.2
 
 /**
  * Apply Xcode recommended project-level settings
@@ -138,12 +141,78 @@ const withAppTargetSettings = (config) => {
 };
 
 /**
+ * Update LastUpgradeVersion and buildConfiguration in all scheme files
+ * This keeps scheme files in sync with the project's LastUpgradeCheck
+ * and ensures Test/Launch/Analyze actions use Release configuration
+ */
+const withSchemeVersionUpdate = (config) => {
+  return withDangerousMod(config, [
+    'ios',
+    async (config) => {
+      const iosRoot = path.join(config.modRequest.projectRoot, 'ios');
+      const schemesDir = path.join(
+        iosRoot,
+        'ThriveChurchOfficialApp.xcodeproj',
+        'xcshareddata',
+        'xcschemes'
+      );
+
+      if (!fs.existsSync(schemesDir)) {
+        console.warn('⚠️ Schemes directory not found:', schemesDir);
+        return config;
+      }
+
+      // Find all .xcscheme files
+      const schemeFiles = fs.readdirSync(schemesDir).filter(f => f.endsWith('.xcscheme'));
+
+      schemeFiles.forEach(schemeFile => {
+        const schemePath = path.join(schemesDir, schemeFile);
+        let schemeContent = fs.readFileSync(schemePath, 'utf8');
+
+        // Update LastUpgradeVersion using regex
+        // Matches: LastUpgradeVersion = "XXXX" (with any number of digits)
+        const oldVersionMatch = schemeContent.match(/LastUpgradeVersion\s*=\s*"(\d+)"/);
+        const oldVersion = oldVersionMatch ? oldVersionMatch[1] : 'unknown';
+
+        schemeContent = schemeContent.replace(
+          /LastUpgradeVersion\s*=\s*"\d+"/,
+          `LastUpgradeVersion = "${LAST_UPGRADE_CHECK}"`
+        );
+
+        // Update buildConfiguration from Debug to Release for TestAction, LaunchAction, AnalyzeAction
+        // This ensures tests run against Release builds for accurate performance testing
+        // The scheme file has a specific structure where each action element has buildConfiguration
+        // on the next line after the opening tag, so we match each action block and update its config
+        const actionsToUpdate = ['TestAction', 'LaunchAction', 'AnalyzeAction'];
+        actionsToUpdate.forEach(action => {
+          // Match the entire action block from <ActionName to </ActionName> and capture it
+          // Then replace buildConfiguration = "Debug" with "Release" within that block
+          const blockRegex = new RegExp(
+            `(<${action}[\\s\\S]*?<\\/${action}>)`,
+            'g'
+          );
+          schemeContent = schemeContent.replace(blockRegex, (match) => {
+            return match.replace(/buildConfiguration\s*=\s*"Debug"/g, 'buildConfiguration = "Release"');
+          });
+        });
+
+        fs.writeFileSync(schemePath, schemeContent, 'utf8');
+        console.log(`✅ Updated ${schemeFile}: LastUpgradeVersion ${oldVersion} → ${LAST_UPGRADE_CHECK}, buildConfiguration → Release`);
+      });
+
+      return config;
+    },
+  ]);
+};
+
+/**
  * Main plugin function
  */
 const withXcodeSettings = (config) => {
   config = withXcodeRecommendedSettings(config);
   config = withXcodeBuildSettings(config);
   config = withAppTargetSettings(config);
+  config = withSchemeVersionUpdate(config);
   return config;
 };
 

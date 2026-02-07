@@ -80,8 +80,8 @@ export const setupPlayer = async (): Promise<void> => {
 };
 
 /**
- * Update skip intervals for lock screen controls
- * Call this when user changes settings
+ * Update skip intervals for lock screen controls.
+ * Call this when user changes skip interval settings.
  */
 export const updatePlayerSkipIntervals = async (
   forward: SkipInterval,
@@ -92,6 +92,28 @@ export const updatePlayerSkipIntervals = async (
     currentSkipBackward = backward;
 
     await TrackPlayer.updateOptions({
+      // We annoyingly must re-specify capabilities here, not just the jump intervals.
+      // In react-native-track-player's iOS native code (TrackPlayer.swift line ~266),
+      // if capabilities is not provided, it defaults to an empty array:
+      //   var capabilitiesStr = options["capabilities"] as? [String] ?? []
+      // This clears all remote commands, causing iOS Control Center to show
+      // grayed-out previous/next track buttons (<<, >>) instead of the skip
+      // forward/backward buttons with interval numbers.
+      // See: https://github.com/doublesymmetry/react-native-track-player/issues/775
+      capabilities: [
+        Capability.Play,
+        Capability.Pause,
+        Capability.Stop,
+        Capability.SeekTo,
+        Capability.JumpForward,
+        Capability.JumpBackward,
+      ],
+      notificationCapabilities: [
+        Capability.Play,
+        Capability.Pause,
+        Capability.JumpForward,
+        Capability.JumpBackward,
+      ],
       forwardJumpInterval: forward,
       backwardJumpInterval: backward,
     });
@@ -172,14 +194,13 @@ export const playbackService = async (): Promise<void> => {
     TrackPlayer.seekTo(position);
   });
 
+  // Use seekBy() for jump controls - this is the recommended approach per react-native-track-player docs
   TrackPlayer.addEventListener(Event.RemoteJumpForward, async ({ interval }) => {
-    const progress = await TrackPlayer.getProgress();
-    await TrackPlayer.seekTo(progress.position + (interval || 15));
+    await TrackPlayer.seekBy(interval || 15);
   });
 
   TrackPlayer.addEventListener(Event.RemoteJumpBackward, async ({ interval }) => {
-    const progress = await TrackPlayer.getProgress();
-    await TrackPlayer.seekTo(Math.max(0, progress.position - (interval || 15)));
+    await TrackPlayer.seekBy(-(interval || 15));
   });
 
   // Handle playback state changes

@@ -149,9 +149,12 @@ puts "✅ Added ${IOS_TEST_TARGET_NAME} target to Xcode project"
     const schemesPath = path.join(iosPath, 'ThriveChurchOfficialApp.xcodeproj', 'xcshareddata', 'xcschemes');
     fs.mkdirSync(schemesPath, { recursive: true });
 
+    // Use the same Xcode version as withXcodeSettings.js
+    const XCODE_VERSION = '2620'; // Xcode 26.2 - keep in sync with withXcodeSettings.js
+
     const schemeContent = `<?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1640"
+   LastUpgradeVersion = "${XCODE_VERSION}"
    version = "1.7">
    <BuildAction
       parallelizeBuildables = "YES"

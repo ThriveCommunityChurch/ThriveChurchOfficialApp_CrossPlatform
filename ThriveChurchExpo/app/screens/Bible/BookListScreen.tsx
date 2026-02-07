@@ -1,6 +1,7 @@
 /**
  * BookListScreen
  * Displays list of Bible books in traditional or alphabetical order
+ * Routes ESV users to native reader, others to YouVersion
  */
 
 import React, { useEffect } from 'react';
@@ -12,14 +13,22 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import { useRoute, RouteProp } from '@react-navigation/native';
+import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BibleOrderType, BibleBook } from '../../types/bible';
 import { getTraditionalBooks, getAlphabeticalBooks } from '../../data/bibleBooks';
 import { openBibleBook } from '../../utils/bibleLinks';
+import { getBibleTranslation } from '../../services/storage/storage';
 import { setCurrentScreen, logCustomEvent } from '../../services/analytics/analyticsService';
 import { useTheme } from '../../hooks/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
+
+type BibleStackParamList = {
+  ChapterList: { book: BibleBook };
+};
+
+type NavigationProp = NativeStackNavigationProp<BibleStackParamList>;
 
 type BookListRouteParams = {
   BookList: {
@@ -56,6 +65,7 @@ const ItemSeparator: React.FC<{ theme: Theme }> = ({ theme }) => {
 
 export const BookListScreen: React.FC = () => {
   const route = useRoute<BookListRouteProp>();
+  const navigation = useNavigation<NavigationProp>();
   const { orderType } = route.params;
   const { theme } = useTheme();
   const styles = createStyles(theme);
@@ -88,7 +98,16 @@ export const BookListScreen: React.FC = () => {
         content_type: 'bible',
       });
 
-      await openBibleBook(book.slug, book.name);
+      // Check user's Bible translation preference
+      const translation = await getBibleTranslation();
+
+      if (translation.code === 'ESV') {
+        // Navigate to native chapter list for ESV
+        navigation.navigate('ChapterList', { book });
+      } else {
+        // Open YouVersion for other translations
+        await openBibleBook(book.slug, book.name);
+      }
     } finally {
       // Small delay to show loading state
       setTimeout(() => setLoading(false), 500);
