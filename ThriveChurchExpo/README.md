@@ -375,7 +375,7 @@ cp credentials.template.json credentials.production.json
 Check that all required fields in your credentials file are filled in. Compare with `credentials.template.json`.
 
 Required fields:
-- `api.baseUrl`, `api.thriveApiKey`, `api.esvApiKey`
+- `api.baseUrl`, `api.esvApiKey`
 - `firebase.ios.apiKey`, `firebase.ios.projectId`
 - `firebase.android.apiKey`, `firebase.android.projectId`
 
