@@ -5,9 +5,11 @@ A modern cross-platform mobile application for Thrive Community Church in Estero
 [![iOS & Android Builds](https://github.com/ThriveCommunityChurch/ThriveChurchOfficialApp_CrossPlatform/actions/workflows/validate-main.yml/badge.svg)](https://github.com/ThriveCommunityChurch/ThriveChurchOfficialApp_CrossPlatform/actions/workflows/validate-main.yml)
 
 ## 📱 Download
-Cross-platform app for iOS and Android coming soon!
-
 Search for **"Thrive Church Official App"** in the Apple App Store or Google Play Store.
+
+### Links
+- iOS - https://apps.apple.com/us/app/thrive-church-official-app/id1138008288
+- Android - https://play.google.com/store/apps/details?id=com.thrivefl.ThriveCommunityChurch
 
 ## 🎯 Key Features
 
