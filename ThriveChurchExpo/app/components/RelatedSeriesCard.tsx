@@ -104,7 +104,7 @@ export const RelatedSeriesCard: React.FC<RelatedSeriesCardProps> = ({
           <View style={styles.tagsContainer}>
             {displayTags.map((tag, index) => (
               <View key={index} style={styles.tag}>
-                <Text style={styles.tagText}>{getTagDisplayLabel(tag)}</Text>
+                <Text style={styles.tagText}>{getTagDisplayLabel(tag, t)}</Text>
               </View>
             ))}
           </View>

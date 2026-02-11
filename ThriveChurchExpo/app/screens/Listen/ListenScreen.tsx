@@ -65,6 +65,10 @@ const SeriesRow = React.memo<SeriesRowProps>(({ row, cardWidth, cardHeight, onSe
               overflow: 'hidden',
               backgroundColor: placeholderColor, // ← ONLY COLOR CHANGED
             }}
+            accessible={true}
+            accessibilityLabel={series.Title}
+            accessibilityHint="Tap to view sermon series"
+            accessibilityRole="button"
           >
             <FastImage
               source={{ uri: series.ArtUrl, priority: FastImage.priority.normal }}
