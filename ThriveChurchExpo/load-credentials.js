@@ -101,7 +101,6 @@ function loadCredentials() {
 function validateCredentials(credentials) {
   const required = [
     'api.baseUrl',
-    'api.thriveApiKey',
     'api.esvApiKey',
     'firebase.ios.apiKey',
     'firebase.ios.projectId',
@@ -141,7 +140,6 @@ function credentialsToExpoExtra(credentials) {
 	    // Use the baseUrl exactly as provided so it can be either
 	    // http://localhost:8080 for dev or a full https:// URL in prod.
 	    API_BASE_URL: credentials.api.baseUrl,
-    THRIVE_API_KEY: credentials.api.thriveApiKey,
     ESV_API_KEY: credentials.api.esvApiKey,
     
     // Firebase Configuration
