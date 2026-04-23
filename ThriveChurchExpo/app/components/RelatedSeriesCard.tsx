@@ -33,7 +33,9 @@ export const RelatedSeriesCard: React.FC<RelatedSeriesCardProps> = ({
   const styles = createStyles(theme);
 
   const formatDateRange = (): string => {
-    const startDate = new Date(series.StartDate).toLocaleDateString('en-US', {
+    // Strip timezone info - API returns dates already in Eastern time with Z suffix
+    const startDateOnly = series.StartDate.replace(/[TZ].*$/, '').replace(/T.*$/, '');
+    const startDate = new Date(startDateOnly + 'T00:00:00').toLocaleDateString('en-US', {
       month: 'short',
       year: 'numeric',
     });
@@ -42,7 +44,8 @@ export const RelatedSeriesCard: React.FC<RelatedSeriesCardProps> = ({
       return t('components.relatedSeries.currentSeries');
     }
 
-    const endDate = new Date(series.EndDate).toLocaleDateString('en-US', {
+    const endDateOnly = series.EndDate.replace(/[TZ].*$/, '').replace(/T.*$/, '');
+    const endDate = new Date(endDateOnly + 'T00:00:00').toLocaleDateString('en-US', {
       month: 'short',
       year: 'numeric',
     });
@@ -104,7 +107,7 @@ export const RelatedSeriesCard: React.FC<RelatedSeriesCardProps> = ({
           <View style={styles.tagsContainer}>
             {displayTags.map((tag, index) => (
               <View key={index} style={styles.tag}>
-                <Text style={styles.tagText}>{getTagDisplayLabel(tag)}</Text>
+                <Text style={styles.tagText}>{getTagDisplayLabel(tag, t)}</Text>
               </View>
             ))}
           </View>

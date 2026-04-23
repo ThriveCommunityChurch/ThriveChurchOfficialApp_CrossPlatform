@@ -157,7 +157,9 @@ export const SermonDetailScreen: React.FC = () => {
 
   const formatDate = (dateString: string): string => {
     try {
-      const date = new Date(dateString);
+      // Strip timezone info - API returns dates already in Eastern time with Z suffix
+      const dateOnly = dateString.replace(/[TZ].*$/, '').replace(/T.*$/, '');
+      const date = new Date(dateOnly + 'T00:00:00');
       return date.toLocaleDateString('en-US', {
         month: 'long',
         day: 'numeric',
@@ -657,13 +659,13 @@ export const SermonDetailScreen: React.FC = () => {
 
             {/* Tags Section */}
             <View style={styles.tabletSection}>
-              <Text style={styles.tabletSectionTitle}>Topics</Text>
+              <Text style={styles.tabletSectionTitle}>{t('listen.topics')}</Text>
               {message.Tags && message.Tags.length > 0 ? (
                 <View style={styles.tabletTagsContainer}>
                   {message.Tags.map((tag, index) => (
                     <View key={index} style={styles.tabletTag}>
                       <Ionicons name="pricetag" size={14} color={theme.colors.primary} />
-                      <Text style={styles.tabletTagText}>{getTagDisplayLabel(tag)}</Text>
+                      <Text style={styles.tabletTagText}>{getTagDisplayLabel(tag, t)}</Text>
                     </View>
                   ))}
                 </View>
@@ -671,7 +673,7 @@ export const SermonDetailScreen: React.FC = () => {
                 <View style={styles.tabletEmptyState}>
                   <Ionicons name="pricetags-outline" size={32} color={theme.colors.textTertiary} />
                   <Text style={styles.tabletEmptyStateText}>
-                    No topics tagged
+                    {t('listen.noTopics')}
                   </Text>
                 </View>
               )}
@@ -807,17 +809,17 @@ export const SermonDetailScreen: React.FC = () => {
           {/* Tags Section - Limited to 4 tags on mobile */}
           {message.Tags && message.Tags.length > 0 && (
             <View style={styles.tagsSection}>
-              <Text style={styles.tagsLabel}>Topics</Text>
+              <Text style={styles.tagsLabel}>{t('listen.topics')}</Text>
               <View style={styles.tagsContainer}>
                 {message.Tags.slice(0, 4).map((tag, index) => (
                   <View key={index} style={styles.tag}>
                     <Ionicons name="pricetag" size={12} color={theme.colors.primary} />
-                    <Text style={styles.tagText}>{getTagDisplayLabel(tag)}</Text>
+                    <Text style={styles.tagText}>{getTagDisplayLabel(tag, t)}</Text>
                   </View>
                 ))}
                 {message.Tags.length > 4 && (
                   <View style={styles.tagMore}>
-                    <Text style={styles.tagMoreText}>+{message.Tags.length - 4} more</Text>
+                    <Text style={styles.tagMoreText}>+{message.Tags.length - 4} {t('common.more')}</Text>
                   </View>
                 )}
               </View>
