@@ -44,22 +44,27 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
   const [listLayoutReady, setListLayoutReady] = useState(false);
 
   // Get all tag names from MessageTag enum (excluding Unknown)
+  // Sort by translated display label for better UX in different languages
   const allTags = useMemo(() => {
     return Object.keys(MessageTag)
       .filter((key) => isNaN(Number(key)) && key !== 'Unknown')
-      .sort();
-  }, []);
+      .sort((a, b) => {
+        const labelA = getTagDisplayLabel(a, t).toLowerCase();
+        const labelB = getTagDisplayLabel(b, t).toLowerCase();
+        return labelA.localeCompare(labelB);
+      });
+  }, [t]);
 
   // Filter tags based on search text
   const filteredTags = useMemo(() => {
     if (!searchText.trim()) return allTags;
-    
+
     const searchLower = searchText.toLowerCase();
     return allTags.filter((tag) => {
-      const displayLabel = getTagDisplayLabel(tag).toLowerCase();
+      const displayLabel = getTagDisplayLabel(tag, t).toLowerCase();
       return displayLabel.includes(searchLower);
     });
-  }, [allTags, searchText]);
+  }, [allTags, searchText, t]);
 
   const handleOpenModal = () => {
     setListLayoutReady(false); // Reset layout state when opening
@@ -92,7 +97,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
 
   const renderTagItem = ({ item }: { item: string }) => {
     const isSelected = selectedTags.includes(item);
-    const displayLabel = getTagDisplayLabel(item);
+    const displayLabel = getTagDisplayLabel(item, t);
 
     return (
       <TouchableOpacity
@@ -136,7 +141,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
             {selectedTags.map((tag) => (
               <View key={tag} style={styles.selectedTagChip}>
                 <Text style={styles.selectedTagChipText} numberOfLines={1}>
-                  {getTagDisplayLabel(tag)}
+                  {getTagDisplayLabel(tag, t)}
                 </Text>
                 <TouchableOpacity
                   onPress={() => handleRemoveTag(tag)}
@@ -215,6 +220,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
                 data={filteredTags}
                 renderItem={renderTagItem}
                 keyExtractor={(item) => item}
+                extraData={selectedTags}
                 estimatedItemSize={56}
                 showsVerticalScrollIndicator={true}
                 contentContainerStyle={styles.modalListContent}

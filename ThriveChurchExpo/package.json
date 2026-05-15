@@ -17,7 +17,10 @@
     "version:minor": "node scripts/increment-build.js --bump-minor",
     "version:major": "node scripts/increment-build.js --bump-major",
     "build:ios": "node scripts/increment-build.js && npm run prebuild:ios",
-    "build:android": "node scripts/increment-build.js && npm run prebuild:android"
+    "build:android": "node scripts/increment-build.js && npm run prebuild:android",
+    "test:ui": "./scripts/run-ui-tests.sh all",
+    "test:ui:ios": "./scripts/run-ui-tests.sh ios",
+    "test:ui:android": "./scripts/run-ui-tests.sh android"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",

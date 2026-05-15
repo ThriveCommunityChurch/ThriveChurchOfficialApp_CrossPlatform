@@ -23,8 +23,7 @@ const mockCredentials = {
   "_comment": "This is a CI-generated mock credentials file. DO NOT use in production.",
   
   "api": {
-    "baseUrl": "localhost:8080",
-    "thriveApiKey": "mock_thrive_api_key_for_ci_testing_only",
+    "baseUrl": "https://api.thrive-fl.org",
     "esvApiKey": "mock_esv_api_key_for_ci_testing_only"
   },
   

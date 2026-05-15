@@ -351,7 +351,9 @@ export const NoteDetailScreen: React.FC = () => {
 
   const formatDate = (dateString: string) => {
     try {
-      const date = new Date(dateString);
+      // Strip timezone info - API returns dates already in Eastern time with Z suffix
+      const dateOnly = dateString.replace(/[TZ].*$/, '').replace(/T.*$/, '');
+      const date = new Date(dateOnly + 'T00:00:00');
       return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     } catch {
       return dateString;
