@@ -51,8 +51,7 @@ Create a `credentials.json` file in the project root (this file is gitignored):
 ```json
 {
   "api": {
-    "baseUrl": "localhost:8080",
-    "thriveApiKey": "YOUR_API_KEY",
+    "baseUrl": "https://api.thrive-fl.org",
     "esvApiKey": "YOUR_ESV_API_KEY"
   },
   "firebase": {

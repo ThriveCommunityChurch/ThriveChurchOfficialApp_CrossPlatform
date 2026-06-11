@@ -775,3 +775,46 @@ export const clearAllSermonNotes = async (): Promise<void> => {
     console.error('Error clearing sermon notes:', error);
   }
 };
+
+// Pin toggle functions
+export const togglePinNote = async (id: string): Promise<boolean> => {
+  try {
+    const notes = await getNotes();
+    const index = notes.findIndex(n => n.id === id);
+    if (index !== -1) {
+      const newPinnedState = !notes[index].isPinned;
+      notes[index] = {
+        ...notes[index],
+        isPinned: newPinnedState,
+        updatedAt: Date.now(),
+      };
+      await saveNotes(notes);
+      return newPinnedState;
+    }
+    return false;
+  } catch (error) {
+    console.error('Error toggling pin note:', error);
+    return false;
+  }
+};
+
+export const togglePinSermonNote = async (id: string): Promise<boolean> => {
+  try {
+    const notes = await getSermonNotes();
+    const index = notes.findIndex(n => n.id === id);
+    if (index !== -1) {
+      const newPinnedState = !notes[index].isPinned;
+      notes[index] = {
+        ...notes[index],
+        isPinned: newPinnedState,
+        updatedAt: Date.now(),
+      };
+      await saveSermonNotes(notes);
+      return newPinnedState;
+    }
+    return false;
+  } catch (error) {
+    console.error('Error toggling pin sermon note:', error);
+    return false;
+  }
+};

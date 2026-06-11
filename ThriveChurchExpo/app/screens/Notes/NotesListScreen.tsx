@@ -3,7 +3,7 @@
  * Master list view of both sermon notes and general notes
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -13,11 +13,13 @@ import {
   Animated,
   Alert,
   Image,
+  Share,
 } from 'react-native';
+import { Swipeable } from 'react-native-gesture-handler';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Note, SermonNote } from '../../types/notes';
-import { getSermonNotes, deleteSermonNote, getNotes, deleteNote } from '../../services/storage/storage';
+import { getSermonNotes, deleteSermonNote, getNotes, deleteNote, togglePinNote, togglePinSermonNote } from '../../services/storage/storage';
 import { setCurrentScreen } from '../../services/analytics/analyticsService';
 import { useTheme } from '../../hooks/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -45,6 +47,8 @@ interface SermonNoteCardProps {
   note: SermonNote;
   onPress: (note: SermonNote) => void;
   onDelete: (note: SermonNote) => void;
+  onPin: (note: SermonNote) => void;
+  onShare: (note: SermonNote) => void;
   isEditMode: boolean;
   theme: Theme;
   t: (key: string) => string;
@@ -54,13 +58,16 @@ interface GeneralNoteCardProps {
   note: Note;
   onPress: (note: Note) => void;
   onDelete: (note: Note) => void;
+  onPin: (note: Note) => void;
+  onShare: (note: Note) => void;
   isEditMode: boolean;
   theme: Theme;
   t: (key: string) => string;
 }
 
-const SermonNoteCard: React.FC<SermonNoteCardProps> = ({ note, onPress, onDelete, isEditMode, theme, t }) => {
+const SermonNoteCard: React.FC<SermonNoteCardProps> = ({ note, onPress, onDelete, onPin, onShare, isEditMode, theme, t }) => {
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
+  const swipeableRef = useRef<Swipeable>(null);
   const styles = createStyles(theme);
 
   const handlePressIn = () => {
@@ -97,68 +104,131 @@ const SermonNoteCard: React.FC<SermonNoteCardProps> = ({ note, onPress, onDelete
     }
   };
 
-  return (
+  const handleSwipeDelete = () => {
+    swipeableRef.current?.close();
+    onDelete(note);
+  };
+
+  const handleSwipePin = () => {
+    swipeableRef.current?.close();
+    onPin(note);
+  };
+
+  const handleSwipeShare = () => {
+    swipeableRef.current?.close();
+    onShare(note);
+  };
+
+  const renderRightActions = () => (
     <TouchableOpacity
-      activeOpacity={1}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      onPress={() => onPress(note)}
+      style={styles.swipeDeleteButton}
+      onPress={handleSwipeDelete}
     >
-      <Animated.View
-        style={[
-          styles.card,
-          { transform: [{ scale: scaleAnim }] },
-        ]}
-      >
-        <View style={styles.cardContent}>
-          {/* Series Art Thumbnail */}
-          {note.seriesArt ? (
-            <Image
-              source={{ uri: note.seriesArt }}
-              style={styles.seriesArt}
-              resizeMode="cover"
-            />
-          ) : (
-            <View style={[styles.seriesArt, styles.seriesArtPlaceholder]}>
-              <Ionicons name="document-text" size={24} color={theme.colors.textSecondary} />
-            </View>
-          )}
-
-          {/* Note Info */}
-          <View style={styles.textContainer}>
-            <Text style={styles.messageTitle} numberOfLines={1}>
-              {note.messageTitle}
-            </Text>
-            <Text style={styles.seriesTitle} numberOfLines={1}>
-              {note.messageId?.startsWith('bible-')
-                ? (note.speaker || 'ESV Bible')
-                : `${note.seriesTitle || 'Sermon'} • ${note.speaker}`}
-            </Text>
-            <Text style={styles.notePreview} numberOfLines={1}>
-              {getPreview()}
-            </Text>
-            <Text style={styles.dateText}>
-              {formatDate(note.messageDate)}
-            </Text>
-          </View>
-        </View>
-
-        {isEditMode && (
-          <TouchableOpacity
-            style={styles.deleteButton}
-            onPress={() => onDelete(note)}
-          >
-            <Text style={styles.deleteButtonText}>{t('notes.list.delete')}</Text>
-          </TouchableOpacity>
-        )}
-      </Animated.View>
+      <Ionicons name="trash-outline" size={24} color={theme.colors.textInverse} />
+      <Text style={styles.swipeDeleteText}>{t('notes.list.delete')}</Text>
     </TouchableOpacity>
+  );
+
+  const renderLeftActions = () => (
+    <View style={styles.swipeLeftActionsContainer}>
+      <TouchableOpacity
+        style={styles.swipePinButton}
+        onPress={handleSwipePin}
+      >
+        <Ionicons name={note.isPinned ? "pin" : "pin-outline"} size={24} color={theme.colors.textInverse} />
+        <Text style={styles.swipeActionText}>{note.isPinned ? t('notes.list.unpin') : t('notes.list.pin')}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.swipeShareButton}
+        onPress={handleSwipeShare}
+      >
+        <Ionicons name="share-outline" size={24} color={theme.colors.textInverse} />
+        <Text style={styles.swipeActionText}>{t('notes.list.share')}</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  return (
+    <Swipeable
+      ref={swipeableRef}
+      renderRightActions={renderRightActions}
+      renderLeftActions={renderLeftActions}
+      rightThreshold={40}
+      leftThreshold={40}
+      overshootRight={false}
+      overshootLeft={false}
+    >
+      <TouchableOpacity
+        activeOpacity={1}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        onPress={() => onPress(note)}
+      >
+        <Animated.View
+          style={[
+            styles.card,
+            { transform: [{ scale: scaleAnim }] },
+          ]}
+        >
+          <View style={styles.cardContent}>
+            {/* Edit mode delete button on left */}
+            {isEditMode && (
+              <TouchableOpacity
+                style={styles.editDeleteButton}
+                onPress={() => onDelete(note)}
+              >
+                <Ionicons name="remove-circle" size={24} color={theme.colors.error} />
+              </TouchableOpacity>
+            )}
+
+            {/* Series Art Thumbnail */}
+            {note.seriesArt ? (
+              <Image
+                source={{ uri: note.seriesArt }}
+                style={styles.seriesArt}
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={[styles.seriesArt, styles.seriesArtPlaceholder]}>
+                <Ionicons name="document-text" size={24} color={theme.colors.textSecondary} />
+              </View>
+            )}
+
+            {/* Note Info */}
+            <View style={styles.textContainer}>
+              <Text style={styles.messageTitle} numberOfLines={1}>
+                {note.messageTitle}
+              </Text>
+              <Text style={styles.seriesTitle} numberOfLines={1}>
+                {note.messageId?.startsWith('bible-')
+                  ? (note.speaker || 'ESV Bible')
+                  : `${note.seriesTitle || 'Sermon'} • ${note.speaker}`}
+              </Text>
+              <Text style={styles.notePreview} numberOfLines={1}>
+                {getPreview()}
+              </Text>
+              <Text style={styles.dateText}>
+                {formatDate(note.messageDate)}
+              </Text>
+            </View>
+
+            {/* Pin indicator */}
+            {note.isPinned && (
+              <View style={styles.pinIndicator}>
+                <Ionicons name="pin" size={16} color={theme.colors.primary} />
+              </View>
+            )}
+          </View>
+        </Animated.View>
+      </TouchableOpacity>
+    </Swipeable>
   );
 };
 
 // General note card (no sermon context)
-const GeneralNoteCard: React.FC<GeneralNoteCardProps> = ({ note, onPress, onDelete, isEditMode, theme, t }) => {
+const GeneralNoteCard: React.FC<GeneralNoteCardProps> = ({ note, onPress, onDelete, onPin, onShare, isEditMode, theme, t }) => {
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
+  const swipeableRef = useRef<Swipeable>(null);
   const styles = createStyles(theme);
 
   const handlePressIn = () => {
@@ -195,57 +265,119 @@ const GeneralNoteCard: React.FC<GeneralNoteCardProps> = ({ note, onPress, onDele
     }
   };
 
-  return (
-    <TouchableOpacity
-      activeOpacity={1}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      onPress={() => onPress(note)}
-    >
-      <Animated.View
-        style={[
-          styles.card,
-          { transform: [{ scale: scaleAnim }] },
-        ]}
-      >
-        <View style={styles.cardContent}>
-          {/* Note icon placeholder */}
-          <View style={[styles.seriesArt, styles.seriesArtPlaceholder]}>
-            <Ionicons name="document-text" size={24} color={theme.colors.textSecondary} />
-          </View>
+  const handleSwipeDelete = () => {
+    swipeableRef.current?.close();
+    onDelete(note);
+  };
 
-          {/* Note Info */}
-          <View style={styles.textContainer}>
-            {note.title ? (
-              <>
-                <Text style={styles.messageTitle} numberOfLines={1}>
-                  {note.title}
-                </Text>
-                <Text style={styles.notePreview} numberOfLines={2}>
+  const handleSwipePin = () => {
+    swipeableRef.current?.close();
+    onPin(note);
+  };
+
+  const handleSwipeShare = () => {
+    swipeableRef.current?.close();
+    onShare(note);
+  };
+
+  const renderRightActions = () => (
+    <TouchableOpacity
+      style={styles.swipeDeleteButton}
+      onPress={handleSwipeDelete}
+    >
+      <Ionicons name="trash-outline" size={24} color={theme.colors.textInverse} />
+      <Text style={styles.swipeDeleteText}>{t('notes.list.delete')}</Text>
+    </TouchableOpacity>
+  );
+
+  const renderLeftActions = () => (
+    <View style={styles.swipeLeftActionsContainer}>
+      <TouchableOpacity
+        style={styles.swipePinButton}
+        onPress={handleSwipePin}
+      >
+        <Ionicons name={note.isPinned ? "pin" : "pin-outline"} size={24} color={theme.colors.textInverse} />
+        <Text style={styles.swipeActionText}>{note.isPinned ? t('notes.list.unpin') : t('notes.list.pin')}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.swipeShareButton}
+        onPress={handleSwipeShare}
+      >
+        <Ionicons name="share-outline" size={24} color={theme.colors.textInverse} />
+        <Text style={styles.swipeActionText}>{t('notes.list.share')}</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  return (
+    <Swipeable
+      ref={swipeableRef}
+      renderRightActions={renderRightActions}
+      renderLeftActions={renderLeftActions}
+      rightThreshold={40}
+      leftThreshold={40}
+      overshootRight={false}
+      overshootLeft={false}
+    >
+      <TouchableOpacity
+        activeOpacity={1}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        onPress={() => onPress(note)}
+      >
+        <Animated.View
+          style={[
+            styles.card,
+            { transform: [{ scale: scaleAnim }] },
+          ]}
+        >
+          <View style={styles.cardContent}>
+            {/* Edit mode delete button on left */}
+            {isEditMode && (
+              <TouchableOpacity
+                style={styles.editDeleteButton}
+                onPress={() => onDelete(note)}
+              >
+                <Ionicons name="remove-circle" size={24} color={theme.colors.error} />
+              </TouchableOpacity>
+            )}
+
+            {/* Note icon placeholder */}
+            <View style={[styles.seriesArt, styles.seriesArtPlaceholder]}>
+              <Ionicons name="document-text" size={24} color={theme.colors.textSecondary} />
+            </View>
+
+            {/* Note Info */}
+            <View style={styles.textContainer}>
+              {note.title ? (
+                <>
+                  <Text style={styles.messageTitle} numberOfLines={1}>
+                    {note.title}
+                  </Text>
+                  <Text style={styles.notePreview} numberOfLines={2}>
+                    {getPreview()}
+                  </Text>
+                </>
+              ) : (
+                <Text style={styles.notePreview} numberOfLines={4}>
                   {getPreview()}
                 </Text>
-              </>
-            ) : (
-              <Text style={styles.notePreview} numberOfLines={4}>
-                {getPreview()}
+              )}
+              <Text style={styles.dateText}>
+                {formatDate(note.updatedAt)}
               </Text>
-            )}
-            <Text style={styles.dateText}>
-              {formatDate(note.updatedAt)}
-            </Text>
-          </View>
-        </View>
+            </View>
 
-        {isEditMode && (
-          <TouchableOpacity
-            style={styles.deleteButton}
-            onPress={() => onDelete(note)}
-          >
-            <Text style={styles.deleteButtonText}>{t('notes.list.delete')}</Text>
-          </TouchableOpacity>
-        )}
-      </Animated.View>
-    </TouchableOpacity>
+            {/* Pin indicator */}
+            {note.isPinned && (
+              <View style={styles.pinIndicator}>
+                <Ionicons name="pin" size={16} color={theme.colors.primary} />
+              </View>
+            )}
+          </View>
+        </Animated.View>
+      </TouchableOpacity>
+    </Swipeable>
   );
 };
 
@@ -279,11 +411,15 @@ export const NotesListScreen: React.FC = () => {
     }, [loadNotes])
   );
 
-  // Combined notes list for display, sorted by most recent activity (createdAt or updatedAt)
+  // Combined notes list for display, sorted by pinned first, then by most recent activity
   const allNotes = [
     ...sermonNotes.map(n => ({ ...n, type: 'sermon' as const })),
     ...generalNotes.map(n => ({ ...n, type: 'general' as const })),
   ].sort((a, b) => {
+    // Pinned notes come first
+    if (a.isPinned && !b.isPinned) return -1;
+    if (!a.isPinned && b.isPinned) return 1;
+    // Then sort by most recent activity
     const aRecent = Math.max(a.createdAt, a.updatedAt);
     const bRecent = Math.max(b.createdAt, b.updatedAt);
     return bRecent - aRecent; // Most recent first
@@ -332,6 +468,9 @@ export const NotesListScreen: React.FC = () => {
   };
 
   const handleDeleteSermonNote = useCallback((note: SermonNote) => {
+    // Check if this is the last note before showing the alert
+    const totalNotes = sermonNotes.length + generalNotes.length;
+
     Alert.alert(
       t('notes.list.deleteTitle'),
       t('notes.list.deleteMessage'),
@@ -343,13 +482,20 @@ export const NotesListScreen: React.FC = () => {
           onPress: async () => {
             await deleteSermonNote(note.id);
             await loadNotes();
+            // Exit edit mode if this was the last note
+            if (totalNotes <= 1) {
+              setIsEditMode(false);
+            }
           },
         },
       ]
     );
-  }, [t, loadNotes]);
+  }, [t, loadNotes, sermonNotes.length, generalNotes.length]);
 
   const handleDeleteGeneralNote = useCallback((note: Note) => {
+    // Check if this is the last note before showing the alert
+    const totalNotes = sermonNotes.length + generalNotes.length;
+
     Alert.alert(
       t('notes.list.deleteTitle'),
       t('notes.list.deleteMessage'),
@@ -361,11 +507,15 @@ export const NotesListScreen: React.FC = () => {
           onPress: async () => {
             await deleteNote(note.id);
             await loadNotes();
+            // Exit edit mode if this was the last note
+            if (totalNotes <= 1) {
+              setIsEditMode(false);
+            }
           },
         },
       ]
     );
-  }, [t, loadNotes]);
+  }, [t, loadNotes, sermonNotes.length, generalNotes.length]);
 
   const handleCreateGeneralNote = () => {
     // Check if there's already an empty general note - if so, open it instead of creating a new one
@@ -378,6 +528,40 @@ export const NotesListScreen: React.FC = () => {
     }
   };
 
+  const handlePinSermonNote = useCallback(async (note: SermonNote) => {
+    await togglePinSermonNote(note.id);
+    await loadNotes();
+  }, [loadNotes]);
+
+  const handlePinGeneralNote = useCallback(async (note: Note) => {
+    await togglePinNote(note.id);
+    await loadNotes();
+  }, [loadNotes]);
+
+  const handleShareSermonNote = useCallback(async (note: SermonNote) => {
+    try {
+      const shareContent = `${note.messageTitle}\n${note.seriesTitle ? `${note.seriesTitle} • ` : ''}${note.speaker}\n\n${note.content}`;
+      await Share.share({
+        message: shareContent,
+        title: note.messageTitle,
+      });
+    } catch (error) {
+      console.error('Error sharing sermon note:', error);
+    }
+  }, []);
+
+  const handleShareGeneralNote = useCallback(async (note: Note) => {
+    try {
+      const shareContent = note.title ? `${note.title}\n\n${note.content}` : note.content;
+      await Share.share({
+        message: shareContent,
+        title: note.title || t('notes.list.generalNote'),
+      });
+    } catch (error) {
+      console.error('Error sharing general note:', error);
+    }
+  }, [t]);
+
   const renderNote = ({ item }: { item: (SermonNote & { type: 'sermon' }) | (Note & { type: 'general' }) }) => {
     if (item.type === 'sermon') {
       return (
@@ -385,6 +569,8 @@ export const NotesListScreen: React.FC = () => {
           note={item}
           onPress={handleSermonNotePress}
           onDelete={handleDeleteSermonNote}
+          onPin={handlePinSermonNote}
+          onShare={handleShareSermonNote}
           isEditMode={isEditMode}
           theme={theme}
           t={t}
@@ -396,6 +582,8 @@ export const NotesListScreen: React.FC = () => {
           note={item}
           onPress={handleGeneralNotePress}
           onDelete={handleDeleteGeneralNote}
+          onPin={handlePinGeneralNote}
+          onShare={handleShareGeneralNote}
           isEditMode={isEditMode}
           theme={theme}
           t={t}
@@ -505,16 +693,54 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     fontFamily: 'Avenir-Book',
     color: theme.colors.textTertiary,
   },
-  deleteButton: {
+  swipeDeleteButton: {
     backgroundColor: theme.colors.error,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
+    marginBottom: 12,
+    borderTopRightRadius: 12,
+    borderBottomRightRadius: 12,
   },
-  deleteButtonText: {
+  swipeDeleteText: {
     color: theme.colors.textInverse,
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: 'Avenir-Medium',
-    textAlign: 'center',
+    marginTop: 4,
+  },
+  swipeLeftActionsContainer: {
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  swipePinButton: {
+    backgroundColor: theme.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 70,
+    borderTopLeftRadius: 12,
+    borderBottomLeftRadius: 12,
+  },
+  swipeShareButton: {
+    backgroundColor: '#4A90D9',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 70,
+  },
+  swipeActionText: {
+    color: theme.colors.textInverse,
+    fontSize: 11,
+    fontFamily: 'Avenir-Medium',
+    marginTop: 4,
+  },
+  editDeleteButton: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingRight: 8,
+  },
+  pinIndicator: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
   },
   headerButton: {
     paddingHorizontal: 16,

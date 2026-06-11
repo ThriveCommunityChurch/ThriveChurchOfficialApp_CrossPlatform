@@ -137,11 +137,11 @@ module.exports = {
       // Custom plugin to enable tablet support and rotation on Android/iOS tablets
       "./plugins/withTabletSupport.js",
       // Custom plugin to configure Android gradle.properties (CI/CD settings + release signing)
-      ["./plugins/withAndroidGradleConfig.js", { credentials }]
+      ["./plugins/withAndroidGradleConfig.js", { credentials }],
       // Note: @react-native-firebase/analytics and @react-native-firebase/messaging
       // do not have Expo config plugins. They are configured via native files
       // (GoogleService-Info.plist and google-services.json) and work at runtime.
-      // "@react-native-firebase/crashlytics", // Temporarily disabled due to Expo SDK 54 compatibility issues
+      "@react-native-firebase/crashlytics",
     ],
     extra: extra,
     scheme: credentials.app.deepLinkScheme,

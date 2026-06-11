@@ -74,6 +74,10 @@ const ConnectCard: React.FC<ConnectCardProps> = ({ item, onPress, theme }) => {
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       onPress={() => onPress(item)}
+      accessible={true}
+      accessibilityLabel={item.title}
+      accessibilityHint={item.subtitle}
+      accessibilityRole="button"
     >
       <Animated.View
         style={[
