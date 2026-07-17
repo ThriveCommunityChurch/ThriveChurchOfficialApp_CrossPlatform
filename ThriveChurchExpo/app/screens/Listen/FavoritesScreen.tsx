@@ -89,14 +89,17 @@ export default function FavoritesScreen() {
 
   return (
     <View style={styles.container}>
-      <FlashList
-        data={favorites}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.messageId}
-        estimatedItemSize={CARD_ESTIMATED_HEIGHT}
-        ListEmptyComponent={renderEmptyState}
-        contentContainerStyle={favorites.length === 0 ? styles.emptyListContent : styles.listContent}
-      />
+      {favorites.length === 0 ? (
+        renderEmptyState()
+      ) : (
+        <FlashList
+          data={favorites}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.messageId}
+          estimatedItemSize={CARD_ESTIMATED_HEIGHT}
+          contentContainerStyle={styles.listContent}
+        />
+      )}
     </View>
   );
 }
@@ -109,9 +112,6 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   listContent: {
     paddingTop: 8,
     paddingBottom: 24,
-  },
-  emptyListContent: {
-    flex: 1,
   },
   emptyState: {
     flex: 1,
