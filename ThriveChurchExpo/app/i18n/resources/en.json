@@ -35,6 +35,7 @@
     "about": "About",
     "nowPlaying": "Now Playing",
     "recentlyPlayed": "Recently Played",
+    "favorites": "Favorites",
     "downloads": "Downloads",
     "downloadSettings": "Download Settings",
     "playbackSettings": "Playback Settings",
@@ -317,6 +318,13 @@
       "resume": "Resume",
       "resumeFrom": "Resume from {{time}}",
       "remaining": "remaining"
+    },
+    "favorites": {
+      "title": "Favorites",
+      "empty": "No Favorites Yet",
+      "emptyDescription": "Tap the heart icon on any sermon to save it here",
+      "sermon": "sermon",
+      "sermons": "sermons"
     },
     "live": {
       "title": "Live",
@@ -666,7 +674,10 @@
       "videoNotAvailable": "Video not available",
       "video": "Video",
       "downloading": "Downloading",
-      "downloaded": "Downloaded"
+      "downloaded": "Downloaded",
+      "addFavorite": "Add to Favorites",
+      "removeFavorite": "Remove from Favorites",
+      "favoriteHint": "Double tap to toggle favorite"
     },
     "bibleReader": {
       "noReference": "No passage reference provided",
@@ -755,7 +766,11 @@
     "noAudioPlaying": "No Audio Playing",
     "selectSermon": "Select a sermon to start listening",
     "week": "Week",
-    "playbackSpeed": "Playback Speed"
+    "playbackSpeed": "Playback Speed",
+    "sleepTimer": "Sleep Timer",
+    "sleepTimerOff": "Off",
+    "sleepTimerEndOfEpisode": "End of Episode",
+    "sleepTimerMinutesFormat": "{{count}} min"
   },
   "videoPlayer": {
     "title": "Video Player",

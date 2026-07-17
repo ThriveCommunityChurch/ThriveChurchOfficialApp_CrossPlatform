@@ -5,6 +5,7 @@ import { useTheme } from '../hooks/useTheme';
 import { useTranslation } from '../hooks/useTranslation';
 import type { Theme } from '../theme/types';
 import { SermonMessage } from '../types/api';
+import { useFavoritesStore } from '../stores/favoritesStore';
 
 interface SermonMessageCardProps {
   message: SermonMessage;
@@ -26,6 +27,20 @@ const SermonMessageCardComponent: React.FC<SermonMessageCardProps> = ({
   const { theme } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
+
+  // Primitive (boolean) selector - only re-renders this card when its own
+  // favorite state flips, not when unrelated favorites change.
+  const isFavorite = useFavoritesStore((state) => state.isFavorite(message.MessageId));
+  // Store actions are stable references, safe to select directly.
+  const toggleFavorite = useFavoritesStore((state) => state.toggleFavorite);
+
+  const handleToggleFavorite = () => {
+    toggleFavorite(message, {
+      seriesTitle: message.seriesTitle,
+      seriesArt: message.seriesArt,
+    });
+  };
+
   const formatDate = (dateString: string): string => {
     try {
       // Strip timezone info - API returns dates already in Eastern time with Z suffix
@@ -162,6 +177,27 @@ const SermonMessageCardComponent: React.FC<SermonMessageCardProps> = ({
             />
           )}
         </View>
+
+        {/* Favorite Toggle (next to download status, top-right corner) */}
+        <TouchableOpacity
+          style={styles.favoriteButton}
+          onPress={handleToggleFavorite}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          accessibilityRole="button"
+          accessibilityState={{ selected: isFavorite }}
+          accessibilityLabel={
+            isFavorite
+              ? t('components.sermonCard.removeFavorite')
+              : t('components.sermonCard.addFavorite')
+          }
+          accessibilityHint={t('components.sermonCard.favoriteHint')}
+        >
+          <Ionicons
+            name={isFavorite ? 'heart' : 'heart-outline'}
+            size={20}
+            color={isFavorite ? theme.colors.primary : theme.colors.textSecondary}
+          />
+        </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );
@@ -281,6 +317,15 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     right: 12,
     width: 24,
     height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  favoriteButton: {
+    position: 'absolute',
+    top: 8,
+    right: 40,
+    width: 28,
+    height: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },

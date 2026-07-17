@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo, useEffect, useRef } from 'react';
-import { View, ActivityIndicator, TouchableOpacity, Text, useWindowDimensions } from 'react-native';
+import React, { useCallback, useMemo, useEffect, useRef, useState } from 'react';
+import { View, ActivityIndicator, TouchableOpacity, Text, useWindowDimensions, RefreshControl } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import FastImage from 'react-native-fast-image';
 import { useInfiniteQuery } from '@tanstack/react-query';
@@ -39,6 +39,63 @@ interface SeriesRowProps {
   placeholderColor: string;
 }
 
+interface SeriesCardProps {
+  series: SermonSeriesSummary;
+  cardWidth: number;
+  cardHeight: number;
+  onSeriesPress: (seriesId: string, artUrl: string) => void;
+  placeholderColor: string;
+}
+
+const SeriesCard = React.memo<SeriesCardProps>(({ series, cardWidth, cardHeight, onSeriesPress, placeholderColor }) => {
+  const [imageFailed, setImageFailed] = useState(false);
+
+  return (
+    <View
+      style={{
+        width: cardWidth,
+        height: cardHeight,
+      }}
+    >
+      <TouchableOpacity
+        onPress={() => onSeriesPress(series.Id, series.ArtUrl)}
+        accessibilityRole="button"
+        accessibilityLabel={series.Title}
+        accessibilityHint="Tap to view sermon series"
+        style={{
+          flex: 1,
+          borderRadius: 8,
+          overflow: 'hidden',
+          backgroundColor: placeholderColor, // ← ONLY COLOR CHANGED
+        }}
+      >
+        {!imageFailed && (
+          <FastImage
+            source={{ uri: series.ArtUrl, priority: FastImage.priority.normal }}
+            style={{ width: '100%', height: '100%' }}
+            resizeMode={FastImage.resizeMode.cover}
+            onError={() => setImageFailed(true)}
+          />
+        )}
+        {imageFailed && (
+          <View
+            style={{
+              flex: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingHorizontal: 8,
+            }}
+          >
+            <Text numberOfLines={3} style={{ textAlign: 'center' }}>
+              {series.Title}
+            </Text>
+          </View>
+        )}
+      </TouchableOpacity>
+    </View>
+  );
+});
+
 const SeriesRow = React.memo<SeriesRowProps>(({ row, cardWidth, cardHeight, onSeriesPress, placeholderColor }) => {
   return (
     <View
@@ -50,33 +107,14 @@ const SeriesRow = React.memo<SeriesRowProps>(({ row, cardWidth, cardHeight, onSe
       }}
     >
       {row.map((series) => (
-        <View
+        <SeriesCard
           key={series.Id}
-          style={{
-            width: cardWidth,
-            height: cardHeight,
-          }}
-        >
-          <TouchableOpacity
-            onPress={() => onSeriesPress(series.Id, series.ArtUrl)}
-            style={{
-              flex: 1,
-              borderRadius: 8,
-              overflow: 'hidden',
-              backgroundColor: placeholderColor, // ← ONLY COLOR CHANGED
-            }}
-            accessible={true}
-            accessibilityLabel={series.Title}
-            accessibilityHint="Tap to view sermon series"
-            accessibilityRole="button"
-          >
-            <FastImage
-              source={{ uri: series.ArtUrl, priority: FastImage.priority.normal }}
-              style={{ width: '100%', height: '100%' }}
-              resizeMode={FastImage.resizeMode.cover}
-            />
-          </TouchableOpacity>
-        </View>
+          series={series}
+          cardWidth={cardWidth}
+          cardHeight={cardHeight}
+          onSeriesPress={onSeriesPress}
+          placeholderColor={placeholderColor}
+        />
       ))}
     </View>
   );
@@ -116,6 +154,7 @@ export default function ListenScreen({ onSeriesPress }: ListenScreenProps) {
     isFetchingNextPage,
     isLoading,
     isError,
+    isRefetching,
     refetch,
   } = useInfiniteQuery({
     queryKey: ['sermons'],
@@ -254,6 +293,14 @@ export default function ListenScreen({ onSeriesPress }: ListenScreenProps) {
         onEndReached={onEndReached}
         onEndReachedThreshold={1 - PRELOAD_THRESHOLD}
         ListFooterComponent={renderFooter}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={() => refetch()}
+            tintColor={theme.colors.primary}
+            colors={[theme.colors.primary]}
+          />
+        }
         keyExtractor={(item) => item.map(series => series.Id).join('-')}
         getItemType={(item) => `row-${item.length}`}
         overrideItemLayout={(layout) => {

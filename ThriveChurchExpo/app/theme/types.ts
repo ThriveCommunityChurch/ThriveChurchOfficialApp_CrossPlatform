@@ -56,6 +56,14 @@ export interface ThemeColors {
   primary: string;
   /** Light version of primary color for backgrounds and highlights */
   primaryLight: string;
+  /**
+   * Accessible text/link color derived from the brand cyan.
+   * Use this (not `primary`) whenever the brand color is applied to TEXT
+   * or inline LINKS, since raw brand cyan (~2.1:1 on white) fails WCAG AA
+   * for text. This color targets >=4.5:1 contrast on white backgrounds.
+   * Large surfaces/buttons should continue to use `primary`/brand cyan.
+   */
+  link: string;
 
   // ===== Status & Feedback =====
   /** Success state color */

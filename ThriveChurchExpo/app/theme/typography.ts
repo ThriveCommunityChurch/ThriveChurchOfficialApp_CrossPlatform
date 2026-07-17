@@ -4,6 +4,30 @@ import type { ThemeColors, TypographyTheme } from './types';
 const ios = Platform.OS === 'ios';
 
 /**
+ * MAX_FONT_SCALE
+ *
+ * Accessibility guardrail for OS-level font scaling (Dynamic Type / Android
+ * font size settings). Fixed-height components (buttons, tab bars, chips,
+ * single-line rows, etc.) can clip or overlap text when the user enlarges
+ * the system font size to very large multiples.
+ *
+ * Apply this as the `maxFontSizeMultiplier` prop on any `<Text>` that lives
+ * inside a fixed-height/fixed-width container, e.g.:
+ *
+ *   <Text maxFontSizeMultiplier={MAX_FONT_SCALE} style={typography.label}>
+ *
+ * This still allows meaningful growth for low-vision users (up to 130% of
+ * the base font size) while preventing layout-breaking clipping at the
+ * largest OS accessibility text sizes. It intentionally does NOT cap
+ * free-flowing body text in scrollable content, where components should be
+ * left to grow naturally - only apply it where a fixed layout would break.
+ *
+ * This constant is not applied automatically anywhere; each screen/component
+ * opts in explicitly by passing it to the Text components that need it.
+ */
+export const MAX_FONT_SCALE = 1.3;
+
+/**
  * Create Typography Theme
  *
  * Generates typography styles with dynamic colors based on the current theme.

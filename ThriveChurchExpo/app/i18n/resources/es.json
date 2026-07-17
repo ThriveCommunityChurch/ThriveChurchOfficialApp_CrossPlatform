@@ -35,6 +35,7 @@
     "about": "Acerca de",
     "nowPlaying": "Reproduciendo",
     "recentlyPlayed": "Reproducidos Recientemente",
+    "favorites": "Favoritos",
     "downloads": "Descargas",
     "downloadSettings": "Ajustes de Descarga",
     "playbackSettings": "Ajustes de Reproducción",
@@ -261,6 +262,13 @@
       "resume": "Reanudar",
       "resumeFrom": "Reanudar desde {{time}}",
       "remaining": "restante"
+    },
+    "favorites": {
+      "title": "Favoritos",
+      "empty": "Aún No Hay Favoritos",
+      "emptyDescription": "Toca el ícono de corazón en cualquier sermón para guardarlo aquí",
+      "sermon": "sermón",
+      "sermons": "sermones"
     },
     "series": {
       "downloadSeries": "Descargar Serie",
@@ -627,7 +635,10 @@
       "videoNotAvailable": "Video no disponible",
       "video": "Video",
       "downloading": "Descargando",
-      "downloaded": "Descargado"
+      "downloaded": "Descargado",
+      "addFavorite": "Añadir a Favoritos",
+      "removeFavorite": "Quitar de Favoritos",
+      "favoriteHint": "Doble toque para alternar favorito"
     },
     "bibleReader": {
       "noReference": "No se proporcionó referencia del pasaje",
@@ -716,7 +727,11 @@
     "noAudioPlaying": "No Hay Audio Reproduciéndose",
     "selectSermon": "Selecciona un sermón para comenzar a escuchar",
     "week": "Semana",
-    "playbackSpeed": "Velocidad de Reproducción"
+    "playbackSpeed": "Velocidad de Reproducción",
+    "sleepTimer": "Temporizador de Apagado",
+    "sleepTimerOff": "Desactivado",
+    "sleepTimerEndOfEpisode": "Fin del Episodio",
+    "sleepTimerMinutesFormat": "{{count}} min"
   },
   "videoPlayer": {
     "title": "Reproductor de Video",
