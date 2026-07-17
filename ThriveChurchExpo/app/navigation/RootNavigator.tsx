@@ -187,11 +187,20 @@ function ListenStackNavigator({ theme }: { theme: Theme }) {
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => navigation.navigate('Downloads')}
+                style={{ marginRight: 12 }}
                 accessibilityLabel={t('listen.downloads.title')}
                 accessibilityRole="button"
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
                 <Ionicons name="download-outline" size={24} color={theme.colors.text} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Favorites')}
+                accessibilityLabel={t('navigation.favorites')}
+                accessibilityRole="button"
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons name="heart-outline" size={24} color={theme.colors.text} />
               </TouchableOpacity>
             </View>
           ),
@@ -256,7 +265,7 @@ function ListenStackNavigator({ theme }: { theme: Theme }) {
       <ListenStack.Screen
         name="Favorites"
         component={FavoritesScreen}
-        options={{ title: 'Favorites' }}
+        options={{ title: t('navigation.favorites') }}
       />
       <ListenStack.Screen
         name="Live"

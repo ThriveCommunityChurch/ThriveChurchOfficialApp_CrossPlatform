@@ -10,29 +10,39 @@
  * - A thin progress line along the top of the bar reflects playback position.
  */
 
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import FastImage from 'react-native-fast-image';
 import { useNavigation } from '@react-navigation/native';
-import { usePlayer } from '../hooks/usePlayer';
+import { usePlayer, usePlayerProgress } from '../hooks/usePlayer';
 import { useTheme } from '../hooks/useTheme';
+import { useTranslation } from '../hooks/useTranslation';
 import type { Theme } from '../theme/types';
 
 const MiniPlayerComponent: React.FC = () => {
-  const { currentTrack, isPlaying, togglePlayPause, position, duration } = usePlayer();
+  const { currentTrack, isPlaying, pause, resume } = usePlayer();
+  // Progress is a separate hook after the usePlayer split (PR #50).
+  const { position, duration } = usePlayerProgress();
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const navigation = useNavigation<any>();
+  const [artworkFailed, setArtworkFailed] = useState(false);
 
   const styles = useMemo(() => createStyles(theme), [theme]);
+
+  const artwork = currentTrack?.artwork as string | undefined;
+
+  useEffect(() => {
+    setArtworkFailed(false);
+  }, [artwork]);
 
   if (!currentTrack) {
     return null;
   }
 
-  const title = (currentTrack.title as string) || 'Untitled';
+  const title = (currentTrack.title as string) || t('miniPlayer.untitled');
   const artist = (currentTrack.artist as string) || '';
-  const artwork = currentTrack.artwork as string | undefined;
 
   const progress = duration > 0 ? Math.min(Math.max(position / duration, 0), 1) : 0;
 
@@ -48,7 +58,7 @@ const MiniPlayerComponent: React.FC = () => {
       onPress={handlePress}
       activeOpacity={0.85}
       accessibilityRole="button"
-      accessibilityLabel={`Now playing: ${accessibleTitle}. Double tap to open the full player.`}
+      accessibilityLabel={t('miniPlayer.openPlayerHint', { track: accessibleTitle })}
     >
       {/* Thin progress line along the top of the bar */}
       <View style={styles.progressTrack} accessibilityElementsHidden importantForAccessibility="no">
@@ -56,11 +66,12 @@ const MiniPlayerComponent: React.FC = () => {
       </View>
 
       <View style={styles.content}>
-        {artwork ? (
+        {artwork && !artworkFailed ? (
           <FastImage
             source={{ uri: artwork }}
             style={styles.artwork}
             resizeMode={FastImage.resizeMode.cover}
+            onError={() => setArtworkFailed(true)}
           />
         ) : (
           <View style={[styles.artwork, styles.placeholderArtwork]}>
@@ -81,10 +92,10 @@ const MiniPlayerComponent: React.FC = () => {
 
         <TouchableOpacity
           style={styles.playButton}
-          onPress={togglePlayPause}
+          onPress={isPlaying ? pause : resume}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           accessibilityRole="button"
-          accessibilityLabel={isPlaying ? 'Pause' : 'Play'}
+          accessibilityLabel={isPlaying ? t('player.pause') : t('player.play')}
         >
           <Ionicons
             name={isPlaying ? 'pause' : 'play'}

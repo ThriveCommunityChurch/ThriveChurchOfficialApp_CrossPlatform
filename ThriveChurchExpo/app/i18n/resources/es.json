@@ -619,6 +619,10 @@
     "error": "Error de reproducción",
     "loading": "Cargando audio..."
   },
+  "miniPlayer": {
+    "untitled": "Sin título",
+    "openPlayerHint": "Reproduciendo ahora: {{track}}. Toca dos veces para abrir el reproductor completo."
+  },
   "alerts": {
     "unableToOpen": "No se Puede Abrir",
     "installYouVersion": "Por favor, instala la aplicación de la Biblia YouVersion para ver este pasaje.",

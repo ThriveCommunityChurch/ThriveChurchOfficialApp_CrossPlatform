@@ -268,6 +268,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     lineHeight: 19,
     fontSize: 16,
     fontWeight: '600',
+    paddingRight: 64,
   },
   metadataRow: {
     flexDirection: 'row',

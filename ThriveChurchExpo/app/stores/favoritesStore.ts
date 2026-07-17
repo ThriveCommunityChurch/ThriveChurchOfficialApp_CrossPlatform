@@ -91,6 +91,24 @@ export const useFavoritesStore = create<FavoritesState>()(
       partialize: (state) => ({
         items: state.items,
       }),
+      // Guard against in-memory writes that happen before AsyncStorage has
+      // finished rehydrating: without a custom merge, zustand/persist's
+      // default merge would blindly overwrite `current` (including any
+      // favorites added while rehydration was still in flight) with
+      // whatever was persisted on disk. Instead, union the two lists,
+      // deduped by messageId, with the persisted copy winning on conflict
+      // but any in-memory-only items retained.
+      merge: (persistedState, currentState) => {
+        const persisted = (persistedState as Partial<FavoritesState> | undefined)?.items ?? [];
+        const seen = new Set(persisted.map((item) => item.messageId));
+        const extra = currentState.items.filter((item) => !seen.has(item.messageId));
+
+        return {
+          ...currentState,
+          ...(persistedState as Partial<FavoritesState> | undefined),
+          items: [...persisted, ...extra],
+        };
+      },
     }
   )
 );

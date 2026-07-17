@@ -50,6 +50,10 @@ interface SeriesCardProps {
 const SeriesCard = React.memo<SeriesCardProps>(({ series, cardWidth, cardHeight, onSeriesPress, placeholderColor }) => {
   const [imageFailed, setImageFailed] = useState(false);
 
+  useEffect(() => {
+    setImageFailed(false);
+  }, [series.ArtUrl]);
+
   return (
     <View
       style={{

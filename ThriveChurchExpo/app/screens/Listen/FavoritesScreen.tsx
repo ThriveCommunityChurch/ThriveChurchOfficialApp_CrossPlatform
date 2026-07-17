@@ -50,7 +50,12 @@ export default function FavoritesScreen() {
       }
     };
 
-    loadDownloadedStatus();
+    loadDownloadedStatus().catch((error) => {
+      console.error('Failed to load favorite download status:', error);
+      if (!cancelled) {
+        setDownloadedIds(new Set());
+      }
+    });
 
     return () => {
       cancelled = true;

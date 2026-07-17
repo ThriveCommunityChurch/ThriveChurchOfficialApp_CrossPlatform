@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 import type { Theme, ThemeColors, TypographyTheme } from '../types';
 import { createTypography } from '../typography';
+import { colors as brandColors } from '../colors';
 
 const ios = Platform.OS === 'ios';
 
@@ -60,7 +61,7 @@ export const lightColors: ThemeColors = {
   // Use for text/links; do NOT use the raw brand cyan (rgb(46,190,216),
   // ~2.1:1 on white) for text - it fails WCAG AA. Brand cyan remains fine
   // for large surfaces/buttons, which are not held to the 4.5:1 text ratio.
-  link: '#0E7C90',
+  link: brandColors.mainBlueAccessibleText,
 
   // ===== Status & Feedback =====
   // success on background: rgb(46,125,50) on #F5F5F5 = 4.1:1 (AA for large text/UI) ✓

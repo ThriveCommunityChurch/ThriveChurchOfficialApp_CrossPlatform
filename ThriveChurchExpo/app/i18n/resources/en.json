@@ -658,6 +658,10 @@
     "error": "Playback error",
     "loading": "Loading audio..."
   },
+  "miniPlayer": {
+    "untitled": "Untitled",
+    "openPlayerHint": "Now playing: {{track}}. Double tap to open the full player."
+  },
   "alerts": {
     "unableToOpen": "Unable to Open",
     "installYouVersion": "Please install the YouVersion Bible app to view this passage.",

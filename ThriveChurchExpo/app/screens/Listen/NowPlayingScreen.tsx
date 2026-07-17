@@ -619,7 +619,13 @@ export default function NowPlayingScreen() {
             style={[styles.speedButton, sleepTimerValue !== null && styles.speedButtonActive]}
             onPress={() => setShowSleepModal(true)}
             activeOpacity={0.7}
-            accessibilityLabel={t('nowPlaying.sleepTimer')}
+            accessibilityLabel={
+              sleepTimerValue === null
+                ? t('nowPlaying.sleepTimer') + ': ' + t('nowPlaying.sleepTimerOff')
+                : sleepTimerValue === 'endOfEpisode'
+                  ? t('nowPlaying.sleepTimer') + ': ' + t('nowPlaying.sleepTimerEndOfEpisode')
+                  : t('nowPlaying.sleepTimer') + ': ' + t('nowPlaying.sleepTimerMinutesFormat', { count: sleepRemainingMinutes ?? sleepTimerValue })
+            }
             accessibilityRole="button"
           >
             <Ionicons
@@ -716,6 +722,8 @@ export default function NowPlayingScreen() {
                     sleepTimerValue === option.value && styles.speedOptionSelected,
                   ]}
                   onPress={() => handleSleepTimerSelect(option.value)}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: sleepTimerValue === option.value }}
                 >
                   <Text
                     style={[
