@@ -3,7 +3,7 @@
  * Main search screen for finding sermon series, messages by tags, and messages by speaker
  */
 
-import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useLayoutEffect, useMemo} from 'react';
 import {
   View,
   Text,
@@ -35,7 +35,7 @@ type NavigationProp = NativeStackNavigationProp<any>;
 export const SearchScreen: React.FC = () => {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const navigation = useNavigation<NavigationProp>();
   const { width } = useWindowDimensions();
 

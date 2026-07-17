@@ -40,7 +40,7 @@ type ViewMode = 'list' | 'calendar';
 export const EventsScreen: React.FC = () => {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const navigation = useNavigation<NavigationProp>();
 
   // State

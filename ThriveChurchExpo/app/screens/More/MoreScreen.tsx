@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo} from 'react';
 import {
   View,
   Text,
@@ -35,7 +35,7 @@ export const MoreScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<any>>();
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const [menuItems, setMenuItems] = useState<MoreMenuItem[]>([]);
 
   // Track screen view
@@ -319,7 +319,7 @@ export const MoreScreen: React.FC = () => {
 // Card Component
 const MoreMenuCard: React.FC<{ item: MoreMenuItem; theme: Theme }> = ({ item, theme }) => {
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const handlePressIn = () => {
     Animated.spring(scaleAnim, {
