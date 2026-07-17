@@ -549,7 +549,7 @@ export function RootNavigator() {
   const appState = useRef(AppState.currentState);
   // Holds a notification payload that arrived before the navigator was ready
   // (e.g. during the onboarding check), to be drained on NavigationContainer ready.
-  const pendingNotificationData = useRef<any>(null);
+  const pendingNotificationData = useRef<any[]>([]);
 
   // Create navigation theme from our theme
   const navigationTheme = useMemo(() => createNavigationTheme(theme), [theme]);
@@ -663,14 +663,14 @@ export function RootNavigator() {
         await initializePushNotifications((remoteMessage) => {
           // Handle notification opened
           if (__DEV__) {
-            console.log('Notification opened:', remoteMessage);
+            console.log('Notification opened');
           }
-          if (navigationRef.current) {
+          if (navigationRef.current?.isReady?.()) {
             handleNotificationNavigation(remoteMessage?.data, navigationRef.current);
           } else {
-            // Navigator not mounted yet (onboarding check / cold start). Retain
-            // the payload; it is drained in NavigationContainer's onReady.
-            pendingNotificationData.current = remoteMessage?.data ?? null;
+            // Navigator not mounted or not ready yet (onboarding check / cold start).
+            // Retain the payload; it is drained in NavigationContainer's onReady.
+            pendingNotificationData.current.push(remoteMessage?.data ?? {});
           }
         });
 
@@ -726,11 +726,9 @@ export function RootNavigator() {
       linking={linking}
       theme={navigationTheme}
       onReady={() => {
-        // Drain any notification that arrived before the navigator was ready.
-        if (pendingNotificationData.current && navigationRef.current) {
-          handleNotificationNavigation(pendingNotificationData.current, navigationRef.current);
-          pendingNotificationData.current = null;
-        }
+        // Drain any notifications that arrived before the navigator was ready.
+        const pending = pendingNotificationData.current.splice(0);
+        pending.forEach((data) => handleNotificationNavigation(data, navigationRef.current));
       }}
     >
       <Tab.Navigator screenOptions={tabScreenOptions}>
