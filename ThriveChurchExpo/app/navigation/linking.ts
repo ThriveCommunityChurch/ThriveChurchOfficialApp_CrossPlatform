@@ -128,14 +128,16 @@ export const handleDeepLink = (
 
     // Pre-resolve bible chapter deep links (needs a resolved book object)
     let chapterDeepLink: { book: (typeof BIBLE_BOOKS)[number]; chapter: number } | null = null;
-    const chapterMatch = path.match(/\/bible\/chapter\/([^/]+)\/([^/]+)/);
+    const chapterMatch = path.match(/\/bible\/chapter\/([^/]+)\/([^/]+)$/);
     if (chapterMatch) {
       const [, bookSlug, chapterStr] = chapterMatch;
       const book = BIBLE_BOOKS.find(
         (b) => b.slug.toLowerCase() === bookSlug.toLowerCase()
       );
-      const chapter = parseInt(chapterStr, 10);
-      if (book && !isNaN(chapter)) {
+      // Only resolve a fully-numeric chapter within the book's range; leave
+      // invalid links (e.g. "3abc", "0", out-of-range) unresolved.
+      const chapter = Number(chapterStr);
+      if (book && Number.isInteger(chapter) && chapter >= 1 && chapter <= book.chapters) {
         chapterDeepLink = { book, chapter };
       }
     }

@@ -547,6 +547,9 @@ export function RootNavigator() {
   const [isCheckingOnboarding, setIsCheckingOnboarding] = useState(true);
   const navigationRef = useRef<any>(null);
   const appState = useRef(AppState.currentState);
+  // Holds a notification payload that arrived before the navigator was ready
+  // (e.g. during the onboarding check), to be drained on NavigationContainer ready.
+  const pendingNotificationData = useRef<any>(null);
 
   // Create navigation theme from our theme
   const navigationTheme = useMemo(() => createNavigationTheme(theme), [theme]);
@@ -664,6 +667,10 @@ export function RootNavigator() {
           }
           if (navigationRef.current) {
             handleNotificationNavigation(remoteMessage?.data, navigationRef.current);
+          } else {
+            // Navigator not mounted yet (onboarding check / cold start). Retain
+            // the payload; it is drained in NavigationContainer's onReady.
+            pendingNotificationData.current = remoteMessage?.data ?? null;
           }
         });
 
@@ -718,6 +725,13 @@ export function RootNavigator() {
       ref={navigationRef}
       linking={linking}
       theme={navigationTheme}
+      onReady={() => {
+        // Drain any notification that arrived before the navigator was ready.
+        if (pendingNotificationData.current && navigationRef.current) {
+          handleNotificationNavigation(pendingNotificationData.current, navigationRef.current);
+          pendingNotificationData.current = null;
+        }
+      }}
     >
       <Tab.Navigator screenOptions={tabScreenOptions}>
         <Tab.Screen

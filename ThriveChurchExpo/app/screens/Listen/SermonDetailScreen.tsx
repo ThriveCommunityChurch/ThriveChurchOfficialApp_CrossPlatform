@@ -69,7 +69,10 @@ export const SermonDetailScreen: React.FC = () => {
   // Get queue state for this message - only extract the fields we need to avoid re-renders
   const { queueStatus, downloadProgress } = useDownloadQueueStore(
     useShallow((state) => {
-      const item = state.items.find((i) => i.messageId === routeMessage?.MessageId);
+      // For a deep link, routeMessage is undefined but messageId is set — fall
+      // back to it so queue status/progress resolve for deep-linked sermons too.
+      const targetMessageId = routeMessage?.MessageId ?? messageId;
+      const item = state.items.find((i) => i.messageId === targetMessageId);
       return {
         queueStatus: item?.status,
         downloadProgress: item?.progress || 0,
