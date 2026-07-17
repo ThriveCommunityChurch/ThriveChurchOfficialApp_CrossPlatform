@@ -235,11 +235,14 @@ const downloadItem = async (item: QueueItem): Promise<void> => {
       downloadPath,
       {},
       (progress) => {
-        const percent = Math.round(
-          (progress.totalBytesWritten / progress.totalBytesExpectedToWrite) * 100
-        );
+        const hasKnownTotal = progress.totalBytesExpectedToWrite > 0;
+        const percent = hasKnownTotal
+          ? Math.round(
+              (progress.totalBytesWritten / progress.totalBytesExpectedToWrite) * 100
+            )
+          : 0;
         const now = Date.now();
-        const percentChanged = percent !== lastReportedPercent;
+        const percentChanged = hasKnownTotal && percent !== lastReportedPercent;
         const timeElapsed = now - lastReportAt >= PROGRESS_THROTTLE_MS;
         if (!percentChanged && !timeElapsed) {
           return;

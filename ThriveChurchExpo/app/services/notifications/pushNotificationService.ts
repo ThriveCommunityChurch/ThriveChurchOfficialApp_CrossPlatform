@@ -96,8 +96,7 @@ export const getFCMToken = async (): Promise<string | null> => {
     const token = await messaging().getToken();
     if (token) {
       if (__DEV__) {
-        console.log('Push: ✅ FCM Token obtained:', token.substring(0, 20) + '...');
-        console.log('Push: Full FCM Token:', token);
+        console.log('Push: FCM token obtained');
       }
       await logInfo('FCM token obtained successfully');
     } else {
@@ -417,11 +416,9 @@ export const initializePushNotifications = async (
     }
 
     // Listen for token refresh (this will fire when APNS token is registered)
-    messaging().onTokenRefresh(async (token) => {
+    messaging().onTokenRefresh(async () => {
       if (__DEV__) {
-        console.log('Push: ✅ FCM Token received via onTokenRefresh!');
-        console.log('Push: FCM Token (first 20 chars):', token.substring(0, 20) + '...');
-        console.log('Push: Full FCM Token:', token);
+        console.log('Push: FCM token refreshed');
       }
       await logInfo('FCM token refreshed');
       // TODO: Send new token to your backend server

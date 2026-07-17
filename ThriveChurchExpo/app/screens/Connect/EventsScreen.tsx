@@ -66,7 +66,13 @@ export const EventsScreen: React.FC = () => {
     refetch,
   } = useQuery({
     queryKey: ['events'],
-    queryFn: () => getAllEvents(false),
+    queryFn: async () => {
+      const response = await getAllEvents(false);
+      if (response.HasErrors) {
+        throw new Error(response.ErrorMessage || 'Failed to load events');
+      }
+      return response;
+    },
   });
 
   // Derive sorted events + featured events, precomputing each event's next

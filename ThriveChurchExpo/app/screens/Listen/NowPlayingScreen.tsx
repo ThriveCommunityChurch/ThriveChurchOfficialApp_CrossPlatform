@@ -223,7 +223,7 @@ export default function NowPlayingScreen() {
     };
 
     loadWaveform();
-  }, [player.currentTrack?.id]);
+  }, [player.currentTrack?.id, player.currentTrack?.url]);
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);

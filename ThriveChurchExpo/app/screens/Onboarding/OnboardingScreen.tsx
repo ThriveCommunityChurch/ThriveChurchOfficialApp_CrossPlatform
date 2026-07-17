@@ -305,7 +305,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
         ))}
       </View>
     );
-  }, [currentIndex]);
+  }, [currentIndex, styles, pages]);
 
   return (
     <View style={styles.container}>

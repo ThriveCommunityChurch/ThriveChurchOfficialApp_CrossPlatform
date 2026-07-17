@@ -75,7 +75,7 @@ export const initializeConfigs = async (options?: {
 
     // If we have cached configs, we can still continue
     if (configsExist) {
-      if (__DEV__) {
+      if (!silent && __DEV__) {
         console.log('Using cached configs despite fetch failure');
       }
       return { usedCache: true, fetchedFresh: false };
