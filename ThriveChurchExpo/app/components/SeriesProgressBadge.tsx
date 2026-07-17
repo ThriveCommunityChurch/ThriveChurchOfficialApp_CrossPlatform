@@ -5,7 +5,7 @@
  * Shows a progress bar and completion percentage for eligible past series.
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/useTheme';
@@ -37,7 +37,7 @@ export const SeriesProgressBadge: React.FC<SeriesProgressBadgeProps> = ({
 }) => {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   if (variant === 'compact') {
     // Compact badge for small spaces

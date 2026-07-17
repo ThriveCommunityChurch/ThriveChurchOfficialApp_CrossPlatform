@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/useTheme';
 import { useTranslation } from '../hooks/useTranslation';
 import { useDownloadQueueStore } from '../stores/downloadQueueStore';
+import { useShallow } from 'zustand/react/shallow';
 import { getDownloadSettings } from '../services/downloads/downloadSettings';
 import type { Theme } from '../theme/types';
 
@@ -14,18 +15,19 @@ export default function OfflineBanner() {
   const netInfo = useNetInfo();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
-  // Get download queue state with primitive selectors to avoid re-renders
-  const items = useDownloadQueueStore((state) => state.items);
-
-  // Compute derived values with useMemo to avoid infinite loops
-  const { activeDownload, pendingCount } = useMemo(() => {
-    const active = items.find((item) => item.status === 'downloading') || null;
-    const queued = items.filter((item) => item.status === 'queued');
-    return {
-      activeDownload: active,
-      pendingCount: queued.length,
-    };
-  }, [items]);
+  // Select only the derived primitives this banner renders. useShallow means
+  // the component re-renders when these values change, not on every unrelated
+  // per-item field update during an active download.
+  const { activeTitle, activeProgress, pendingCount } = useDownloadQueueStore(
+    useShallow((state) => {
+      const active = state.items.find((item) => item.status === 'downloading');
+      return {
+        activeTitle: active?.title ?? null,
+        activeProgress: active?.progress ?? 0,
+        pendingCount: state.items.filter((item) => item.status === 'queued').length,
+      };
+    })
+  );
 
   // Track WiFi-only setting
   const [wifiOnly, setWifiOnly] = useState(true);
@@ -35,7 +37,7 @@ export default function OfflineBanner() {
 
   const isOffline = netInfo.isConnected === false;
   const isWifi = netInfo.type === 'wifi';
-  const hasActiveDownload = !!activeDownload;
+  const hasActiveDownload = !!activeTitle;
 
   // Determine what to show
   const getStatusInfo = (): { text: string; icon: string; color: string } | null => {
@@ -51,8 +53,8 @@ export default function OfflineBanner() {
     if (hasActiveDownload) {
       return {
         text: t('offline.downloadingMessage', {
-          title: activeDownload.title,
-          progress: activeDownload.progress,
+          title: activeTitle,
+          progress: activeProgress,
         }),
         icon: 'cloud-download-outline',
         color: theme.colors.primary,

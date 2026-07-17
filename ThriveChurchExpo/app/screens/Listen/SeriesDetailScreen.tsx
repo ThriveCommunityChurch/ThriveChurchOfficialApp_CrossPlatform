@@ -23,12 +23,13 @@ import type { Theme } from '../../theme/types';
 import OfflineBanner from '../../components/OfflineBanner';
 import OfflineEmptyState from '../../components/OfflineEmptyState';
 import { SermonSeries, SermonMessage } from '../../types/api';
-import { isMessageDownloaded } from '../../services/storage/storage';
+import { getDownloadedMessageIds } from '../../services/storage/storage';
 import { SermonMessageCard } from '../../components/SermonMessageCard';
 import { setCurrentScreen, logCustomEvent } from '../../services/analytics/analyticsService';
 import { getTagDisplayLabel } from '../../types/messageTag';
 import { queueSeriesDownload } from '../../services/downloads/queueProcessor';
 import { useDownloadQueueStore } from '../../stores/downloadQueueStore';
+import { useShallow } from 'zustand/react/shallow';
 import { useSeriesProgress } from '../../hooks/useSeriesProgress';
 import { SeriesProgressBadge } from '../../components/SeriesProgressBadge';
 
@@ -41,7 +42,7 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
   const navigation = useNavigation();
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
   // Calculate orientation and device type
@@ -82,9 +83,11 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
     const loadDownloadedStatus = async () => {
       if (!series?.Messages) return;
 
+      const downloadedIds = await getDownloadedMessageIds();
+      const downloadedIdSet = new Set(downloadedIds);
       const downloaded = new Set<string>();
       for (const message of series.Messages) {
-        if (await isMessageDownloaded(message.MessageId)) {
+        if (downloadedIdSet.has(message.MessageId)) {
           downloaded.add(message.MessageId);
         }
       }
@@ -106,11 +109,14 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
 
   const isCurrentSeries = series?.EndDate == null;
 
-  // Get messages in queue - use stable selector to avoid infinite re-renders
-  const queueItems = useDownloadQueueStore((state) => state.items);
+  // Get messages in queue - select only messageId+status per item (shallow-compared)
+  // so unrelated per-item field churn (progress ticks, bytes) doesn't re-render this screen.
+  const queuedMessageIdList = useDownloadQueueStore(
+    useShallow((state) => state.items.map((item) => item.messageId))
+  );
   const queuedMessageIds = useMemo(
-    () => new Set(queueItems.map((item) => item.messageId)),
-    [queueItems]
+    () => new Set(queuedMessageIdList),
+    [queuedMessageIdList]
   );
 
   // Calculate downloadable messages (not downloaded and not in queue)

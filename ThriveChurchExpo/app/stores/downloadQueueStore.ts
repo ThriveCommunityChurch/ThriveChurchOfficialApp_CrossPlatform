@@ -264,9 +264,17 @@ export const useDownloadQueueStore = create<DownloadQueueState>()(
     {
       name: 'download-queue-storage',
       storage: createJSONStorage(() => AsyncStorage),
-      // Only persist items and isPaused - not processing state
+      // Only persist items and isPaused - not processing state.
+      // Volatile per-tick progress fields are stripped so that in-flight
+      // progress updates don't bloat (or churn) the serialized payload; they
+      // are recomputed live by the queue processor on resume.
       partialize: (state) => ({
-        items: state.items,
+        items: state.items.map((item) => ({
+          ...item,
+          progress: item.status === 'completed' ? 100 : 0,
+          downloadedBytes: 0,
+          totalBytes: 0,
+        })),
         isPaused: state.isPaused,
       }),
     }

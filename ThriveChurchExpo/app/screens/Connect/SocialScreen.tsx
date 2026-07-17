@@ -3,7 +3,7 @@
  * Landing page for social media links with brand logos
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -46,7 +46,7 @@ export const SocialScreen: React.FC = () => {
 
   const isLandscape = windowWidth > windowHeight;
   const isTabletDevice = (Platform.OS === 'ios' && Platform.isPad) || Math.min(windowWidth, windowHeight) >= 768;
-  const styles = createStyles(theme, isTabletDevice, isLandscape);
+  const styles = useMemo(() => createStyles(theme, isTabletDevice, isLandscape), [theme, isTabletDevice, isLandscape]);
 
   const [config, setConfig] = useState<SocialConfig>({
     fbPageId: null,

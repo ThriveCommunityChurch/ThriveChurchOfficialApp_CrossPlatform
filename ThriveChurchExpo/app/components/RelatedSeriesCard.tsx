@@ -5,7 +5,7 @@
  * Used in the Related Series section on tablet devices.
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import FastImage from 'react-native-fast-image';
@@ -22,7 +22,7 @@ interface RelatedSeriesCardProps {
   summaryLines?: number; // Number of lines for summary (default: 4)
 }
 
-export const RelatedSeriesCard: React.FC<RelatedSeriesCardProps> = ({
+const RelatedSeriesCardComponent: React.FC<RelatedSeriesCardProps> = ({
   series,
   onPress,
   showTags = true,
@@ -30,7 +30,7 @@ export const RelatedSeriesCard: React.FC<RelatedSeriesCardProps> = ({
 }) => {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const formatDateRange = (): string => {
     // Strip timezone info - API returns dates already in Eastern time with Z suffix
@@ -116,6 +116,8 @@ export const RelatedSeriesCard: React.FC<RelatedSeriesCardProps> = ({
     </TouchableOpacity>
   );
 };
+
+export const RelatedSeriesCard = React.memo(RelatedSeriesCardComponent);
 
 const createStyles = (theme: Theme) => StyleSheet.create({
   container: {

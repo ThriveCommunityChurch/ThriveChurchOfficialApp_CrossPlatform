@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { NavigationContainer, DefaultTheme, DarkTheme, Theme as NavigationTheme, getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -115,6 +115,30 @@ const createNavigationTheme = (theme: Theme): NavigationTheme => {
 function ListenStackNavigator({ theme }: { theme: Theme }) {
   const { t } = useTranslation();
 
+  const renderListenHome = useCallback(
+    ({ navigation }: any) => (
+      <ListenScreen
+        onSeriesPress={(seriesId: string, artUrl: string) => {
+          navigation.navigate('SeriesDetail', {
+            seriesId,
+            seriesArtUrl: artUrl,
+          });
+        }}
+      />
+    ),
+    []
+  );
+
+  const renderSeriesDetail = useCallback(
+    ({ route }: any) => (
+      <SeriesDetailScreen
+        seriesId={route.params.seriesId}
+        seriesArtUrl={route.params.seriesArtUrl}
+      />
+    ),
+    []
+  );
+
   return (
     <ListenStack.Navigator
       screenOptions={{
@@ -167,16 +191,7 @@ function ListenStackNavigator({ theme }: { theme: Theme }) {
           ),
         })}
       >
-        {({ navigation }) => (
-          <ListenScreen
-            onSeriesPress={(seriesId: string, artUrl: string) => {
-              navigation.navigate('SeriesDetail', {
-                seriesId,
-                seriesArtUrl: artUrl
-              });
-            }}
-          />
-        )}
+        {renderListenHome}
       </ListenStack.Screen>
       <ListenStack.Screen
         name="Search"
@@ -194,12 +209,7 @@ function ListenStackNavigator({ theme }: { theme: Theme }) {
           headerBackTitle: t('navigation.listen')
         })}
       >
-        {({ route }: any) => (
-          <SeriesDetailScreen
-            seriesId={route.params.seriesId}
-            seriesArtUrl={route.params.seriesArtUrl}
-          />
-        )}
+        {renderSeriesDetail}
       </ListenStack.Screen>
       <ListenStack.Screen
         name="SermonDetail"
@@ -541,6 +551,69 @@ export function RootNavigator() {
   // Create navigation theme from our theme
   const navigationTheme = useMemo(() => createNavigationTheme(theme), [theme]);
 
+  // Stable tab screen options object (only changes when theme changes)
+  const tabScreenOptions = useMemo(
+    () => ({
+      headerStyle: { backgroundColor: theme.colors.surface },
+      headerTintColor: theme.colors.text,
+      tabBarStyle: {
+        backgroundColor: theme.colors.surface,
+        borderTopColor: theme.colors.border,
+      },
+      tabBarActiveTintColor: theme.colors.primary,
+      tabBarInactiveTintColor: theme.colors.textSecondary,
+      tabBarLabelStyle: { fontFamily: TAB_LABEL_FONT_FAMILY, fontSize: 12 },
+    }),
+    [theme]
+  );
+
+  // Stable render-function children for each Tab.Screen, keyed on theme,
+  // so React Navigation doesn't see a new component identity every render.
+  const renderListenStack = useCallback(() => <ListenStackNavigator theme={theme} />, [theme]);
+  const renderBibleStack = useCallback(() => <BibleStackNavigator theme={theme} />, [theme]);
+  const renderNotesStack = useCallback(() => <NotesStackNavigator theme={theme} />, [theme]);
+  const renderConnectStack = useCallback(() => <ConnectStackNavigator theme={theme} />, [theme]);
+  const renderMoreStack = useCallback(() => <MoreStackNavigator theme={theme} />, [theme]);
+
+  // Stable tabBarIcon renderers (don't depend on theme; color/size come from props)
+  const renderListenIcon = useCallback(
+    ({ color, size }: { color: string; size: number }) => <Ionicons name="headset" size={size} color={color} />,
+    []
+  );
+  const renderBibleIcon = useCallback(
+    ({ color, size }: { color: string; size: number }) => <Ionicons name="book" size={size} color={color} />,
+    []
+  );
+  const renderNotesIcon = useCallback(
+    ({ color, size }: { color: string; size: number }) => <Ionicons name="create" size={size} color={color} />,
+    []
+  );
+  const renderConnectIcon = useCallback(
+    ({ color, size }: { color: string; size: number }) => <Ionicons name="people" size={size} color={color} />,
+    []
+  );
+  const renderMoreIcon = useCallback(
+    ({ color, size }: { color: string; size: number }) => <Ionicons name="ellipsis-horizontal" size={size} color={color} />,
+    []
+  );
+
+  // Stable Notes tab listeners
+  const notesTabListeners = useCallback(
+    ({ navigation, route }: any) => ({
+      tabPress: (e: any) => {
+        // Get the current route name within the Notes stack
+        const routeName = getFocusedRouteNameFromRoute(route) ?? 'NotesList';
+
+        // If we're not on the NotesList screen, reset the stack to NotesList
+        if (routeName !== 'NotesList') {
+          e.preventDefault();
+          navigation.navigate('Notes', { screen: 'NotesList' });
+        }
+      },
+    }),
+    []
+  );
+
   useEffect(() => {
     const checkOnboarding = async () => {
       try {
@@ -642,90 +715,57 @@ export function RootNavigator() {
       linking={linking}
       theme={navigationTheme}
     >
-      <Tab.Navigator
-        screenOptions={{
-          headerStyle: { backgroundColor: theme.colors.surface },
-          headerTintColor: theme.colors.text,
-          tabBarStyle: {
-            backgroundColor: theme.colors.surface,
-            borderTopColor: theme.colors.border
-          },
-          tabBarActiveTintColor: theme.colors.primary,
-          tabBarInactiveTintColor: theme.colors.textSecondary,
-          tabBarLabelStyle: { fontFamily: TAB_LABEL_FONT_FAMILY, fontSize: 12 },
-        }}
-      >
+      <Tab.Navigator screenOptions={tabScreenOptions}>
         <Tab.Screen
           name="Listen"
           options={{
             headerShown: false,
             tabBarLabel: t('navigation.listen'),
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="headset" size={size} color={color} />
-            ),
+            tabBarIcon: renderListenIcon,
           }}
         >
-          {() => <ListenStackNavigator theme={theme} />}
+          {renderListenStack}
         </Tab.Screen>
         <Tab.Screen
           name="Bible"
           options={{
             headerShown: false,
             tabBarLabel: t('navigation.bible'),
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="book" size={size} color={color} />
-            ),
+            tabBarIcon: renderBibleIcon,
           }}
         >
-          {() => <BibleStackNavigator theme={theme} />}
+          {renderBibleStack}
         </Tab.Screen>
         <Tab.Screen
           name="Notes"
           options={{
             headerShown: false,
             tabBarLabel: t('navigation.notes'),
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="create" size={size} color={color} />
-            ),
+            tabBarIcon: renderNotesIcon,
           }}
-          listeners={({ navigation, route }) => ({
-            tabPress: (e) => {
-              // Get the current route name within the Notes stack
-              const routeName = getFocusedRouteNameFromRoute(route) ?? 'NotesList';
-
-              // If we're not on the NotesList screen, reset the stack to NotesList
-              if (routeName !== 'NotesList') {
-                e.preventDefault();
-                navigation.navigate('Notes', { screen: 'NotesList' });
-              }
-            },
-          })}
+          listeners={notesTabListeners}
         >
-          {() => <NotesStackNavigator theme={theme} />}
+          {renderNotesStack}
         </Tab.Screen>
         <Tab.Screen
           name="Connect"
           options={{
             headerShown: false,
             tabBarLabel: t('navigation.connect'),
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="people" size={size} color={color} />
-            ),
+            tabBarIcon: renderConnectIcon,
           }}
         >
-          {() => <ConnectStackNavigator theme={theme} />}
+          {renderConnectStack}
         </Tab.Screen>
         <Tab.Screen
           name="More"
           options={{
             headerShown: false,
             tabBarLabel: t('navigation.more'),
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="ellipsis-horizontal" size={size} color={color} />
-            ),
+            tabBarIcon: renderMoreIcon,
           }}
         >
-          {() => <MoreStackNavigator theme={theme} />}
+          {renderMoreStack}
         </Tab.Screen>
       </Tab.Navigator>
     </NavigationContainer>

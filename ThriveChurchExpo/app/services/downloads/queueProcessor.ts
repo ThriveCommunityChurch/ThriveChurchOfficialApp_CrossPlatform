@@ -28,6 +28,8 @@ const MAX_RETRIES = 5;
 const RETRY_DELAY_MS = 3000;
 const SSL_RETRY_DELAY_MS = 5000;
 const PROCESS_INTERVAL_MS = 1000;
+// Minimum interval between persisted progress updates for a single download.
+const PROGRESS_THROTTLE_MS = 500;
 
 // Network/SSL errors that should trigger retry with file deletion
 const RETRYABLE_ERRORS = [
@@ -220,6 +222,13 @@ const downloadItem = async (item: QueueItem): Promise<void> => {
 
     const downloadPath = getDownloadPath(item.messageId);
 
+    // Throttle progress updates. The native callback fires many times per
+    // second; each store update maps a new items array and (via persist)
+    // re-serializes the whole queue to AsyncStorage. Only push an update when
+    // the whole-percent value changes or at most every PROGRESS_THROTTLE_MS.
+    let lastReportedPercent = -1;
+    let lastReportAt = 0;
+
     // Create download resumable
     currentDownload = FileSystem.createDownloadResumable(
       item.audioUrl,
@@ -229,6 +238,14 @@ const downloadItem = async (item: QueueItem): Promise<void> => {
         const percent = Math.round(
           (progress.totalBytesWritten / progress.totalBytesExpectedToWrite) * 100
         );
+        const now = Date.now();
+        const percentChanged = percent !== lastReportedPercent;
+        const timeElapsed = now - lastReportAt >= PROGRESS_THROTTLE_MS;
+        if (!percentChanged && !timeElapsed) {
+          return;
+        }
+        lastReportedPercent = percent;
+        lastReportAt = now;
         store.updateProgress(
           item.id,
           percent,

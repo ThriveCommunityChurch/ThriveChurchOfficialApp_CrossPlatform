@@ -3,7 +3,7 @@
  * Master list view of both sermon notes and general notes
  */
 
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -68,7 +68,7 @@ interface GeneralNoteCardProps {
 const SermonNoteCard: React.FC<SermonNoteCardProps> = ({ note, onPress, onDelete, onPin, onShare, isEditMode, theme, t }) => {
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
   const swipeableRef = useRef<Swipeable>(null);
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const handlePressIn = () => {
     Animated.timing(scaleAnim, {
@@ -229,7 +229,7 @@ const SermonNoteCard: React.FC<SermonNoteCardProps> = ({ note, onPress, onDelete
 const GeneralNoteCard: React.FC<GeneralNoteCardProps> = ({ note, onPress, onDelete, onPin, onShare, isEditMode, theme, t }) => {
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
   const swipeableRef = useRef<Swipeable>(null);
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const handlePressIn = () => {
     Animated.timing(scaleAnim, {
@@ -385,7 +385,7 @@ export const NotesListScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const [sermonNotes, setSermonNotes] = useState<SermonNote[]>([]);
   const [generalNotes, setGeneralNotes] = useState<Note[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
