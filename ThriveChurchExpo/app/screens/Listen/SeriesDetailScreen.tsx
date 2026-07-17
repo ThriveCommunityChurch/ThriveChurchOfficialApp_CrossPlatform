@@ -10,6 +10,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
+  Share,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import FastImage from 'react-native-fast-image';
@@ -32,6 +33,7 @@ import { useDownloadQueueStore } from '../../stores/downloadQueueStore';
 import { useShallow } from 'zustand/react/shallow';
 import { useSeriesProgress } from '../../hooks/useSeriesProgress';
 import { SeriesProgressBadge } from '../../components/SeriesProgressBadge';
+import { buildSeriesShareUrl } from '../../navigation/linking';
 
 interface SeriesDetailScreenProps {
   seriesId: string;
@@ -62,6 +64,11 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
       return res.data;
     },
   });
+
+  // Prefer the freshly-fetched series art once loaded; fall back to the
+  // seriesArtUrl passed in navigation params. Deep links / notifications only
+  // supply seriesId (no art), so without this the artwork would be blank.
+  const displaySeriesArtUrl = series?.ArtUrl || seriesArtUrl;
 
   // Series progress tracking
   const seriesProgress = useSeriesProgress({ series });
@@ -222,6 +229,21 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
     );
   }, [series, downloadedMessages, queuedMessageIds, downloadableMessages, handleDownloadSeries, t]);
 
+  // Share this series (uses the deep-link share URL builder)
+  const handleShareSeries = useCallback(async () => {
+    if (!series || !seriesId) return;
+    try {
+      const shareUrl = buildSeriesShareUrl(seriesId);
+      await Share.share({
+        message: `${series.Name}\n${shareUrl}`,
+        title: series.Name,
+      });
+      logCustomEvent('share_series', { series_id: seriesId });
+    } catch (err) {
+      console.error('Error sharing series:', err);
+    }
+  }, [series, seriesId]);
+
   // Format date helper
   const formatDate = (dateString: string): string => {
     try {
@@ -302,7 +324,7 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
         {/* Hero Section with Blurred Background */}
         <View style={[styles.tabletHeroContainer, { height: heroHeight }]}>
           <ImageBackground
-            source={{ uri: seriesArtUrl }}
+            source={{ uri: displaySeriesArtUrl }}
             style={styles.tabletHeroBackground}
             blurRadius={50}
             resizeMode="cover"
@@ -312,7 +334,7 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
                 {/* Left Side - Sharp Series Artwork */}
                 <View style={[styles.tabletHeroArtworkContainer, { width: artworkWidth }]}>
                   <FastImage
-                    source={{ uri: seriesArtUrl }}
+                    source={{ uri: displaySeriesArtUrl }}
                     style={styles.tabletHeroArtwork}
                     resizeMode={FastImage.resizeMode.cover}
                   />
@@ -445,6 +467,18 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
                 </View>
               </TouchableOpacity>
             </View>
+
+            {/* Share Series Section */}
+            <View style={styles.tabletSidebarSection}>
+              <TouchableOpacity
+                style={styles.tabletShareButton}
+                onPress={handleShareSeries}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="share-outline" size={20} color={theme.colors.primary} />
+                <Text style={styles.tabletShareButtonText}>{t('common.share')}</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Right Main Content - Messages */}
@@ -494,7 +528,7 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
         <View style={styles.phoneArtContainer}>
           <View style={styles.phoneArtImageWrapper}>
             <FastImage
-              source={{ uri: seriesArtUrl }}
+              source={{ uri: displaySeriesArtUrl }}
               style={styles.phoneArtwork}
               resizeMode={FastImage.resizeMode.cover}
             />
@@ -573,6 +607,16 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
               <Text style={styles.phoneDownloadSeriesBadgeText}>{downloadableMessages.length}</Text>
             </View>
           )}
+        </TouchableOpacity>
+
+        {/* Share Series Button */}
+        <TouchableOpacity
+          style={styles.phoneShareButton}
+          onPress={handleShareSeries}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="share-outline" size={20} color={theme.colors.primary} />
+          <Text style={styles.phoneShareButtonText}>{t('common.share')}</Text>
         </TouchableOpacity>
 
         {/* Messages List */}
@@ -993,6 +1037,28 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     color: theme.colors.textInverse,
   },
 
+  // Phone Share Series Button
+  phoneShareButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.card,
+    marginHorizontal: 16,
+    marginTop: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+    gap: 8,
+  },
+  phoneShareButtonText: {
+    ...theme.typography.body,
+    fontSize: 15,
+    fontWeight: '600',
+    color: theme.colors.primary,
+  },
+
   // Tablet Download Series Button
   tabletDownloadSeriesButton: {
     flexDirection: 'row',
@@ -1021,5 +1087,25 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     color: theme.colors.textInverse,
     opacity: 0.8,
     marginTop: 2,
+  },
+
+  // Tablet Share Series Button
+  tabletShareButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.card,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+    gap: 8,
+  },
+  tabletShareButtonText: {
+    ...theme.typography.body,
+    fontSize: 15,
+    fontWeight: '600',
+    color: theme.colors.primary,
   },
 });

@@ -23,7 +23,8 @@
     "tryAgain": "Try again",
     "somethingWentWrong": "Something went wrong",
     "checkConnection": "Check your internet connection and try again",
-    "more": "more"
+    "more": "more",
+    "share": "Share"
   },
   "navigation": {
     "listen": "Listen",
@@ -165,6 +166,7 @@
       "remove": "Remove",
       "removeDownload": "Remove Download",
       "loadingDetails": "Loading sermon details...",
+      "notFound": "This sermon could not be found.",
       "errorPlayAudio": "Failed to play audio. Please check your connection and try again.",
       "noVideo": "No Video",
       "noVideoMessage": "This sermon does not have a video available.",

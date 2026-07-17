@@ -9,7 +9,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import type { Theme } from '../theme/types';
 import OfflineBanner from '../components/OfflineBanner';
 import { LiveButton } from '../components/LiveButton';
-import { linking } from './linking';
+import { linking, handleNotificationNavigation } from './linking';
 
 // Platform-specific font families for navigation headers
 const ios = Platform.OS === 'ios';
@@ -660,9 +660,11 @@ export function RootNavigator() {
         await initializePushNotifications((remoteMessage) => {
           // Handle notification opened
           if (__DEV__) {
-            console.log('Notification opened');
+            console.log('Notification opened:', remoteMessage);
           }
-          // TODO: Navigate based on notification data
+          if (navigationRef.current) {
+            handleNotificationNavigation(remoteMessage?.data, navigationRef.current);
+          }
         });
 
         // Clear badge on app open

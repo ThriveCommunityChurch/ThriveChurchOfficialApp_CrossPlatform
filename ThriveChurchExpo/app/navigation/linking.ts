@@ -5,6 +5,7 @@
 
 import { LinkingOptions } from '@react-navigation/native';
 import { deepLinkConfig } from '../config/app.config';
+import { BIBLE_BOOKS } from '../data/bibleBooks';
 
 /**
  * Deep linking configuration for React Navigation
@@ -26,6 +27,13 @@ export const linking: LinkingOptions<any> = {
             path: 'listen/series/:seriesId',
             parse: {
               seriesId: (seriesId: string) => seriesId,
+            },
+          },
+          SermonDetail: {
+            path: 'listen/series/:seriesId/message/:messageId',
+            parse: {
+              seriesId: (seriesId: string) => seriesId,
+              messageId: (messageId: string) => messageId,
             },
           },
           NowPlaying: 'listen/now-playing',
@@ -62,7 +70,7 @@ export const linking: LinkingOptions<any> = {
       Connect: {
         screens: {
           ConnectHome: 'connect',
-          RSS: 'connect/announcements',
+          RSSAnnouncements: 'connect/announcements',
           RSSDetail: {
             path: 'connect/announcements/:date',
             parse: {
@@ -110,14 +118,37 @@ export const handleDeepLink = (
   navigation: any
 ): void => {
   try {
-    console.log('Deep Link: Handling URL:', url);
+    if (__DEV__) {
+      console.log('Deep Link: Handling URL:', url);
+    }
 
     // Parse URL
     const urlObj = new URL(url);
     const path = urlObj.pathname;
 
+    // Pre-resolve bible chapter deep links (needs a resolved book object)
+    let chapterDeepLink: { book: (typeof BIBLE_BOOKS)[number]; chapter: number } | null = null;
+    const chapterMatch = path.match(/\/bible\/chapter\/([^/]+)\/([^/]+)/);
+    if (chapterMatch) {
+      const [, bookSlug, chapterStr] = chapterMatch;
+      const book = BIBLE_BOOKS.find(
+        (b) => b.slug.toLowerCase() === bookSlug.toLowerCase()
+      );
+      const chapter = parseInt(chapterStr, 10);
+      if (book && !isNaN(chapter)) {
+        chapterDeepLink = { book, chapter };
+      }
+    }
+
     // Listen tab deep links
-    if (path.includes('/listen/series/')) {
+    const sermonMatch = path.match(/\/listen\/series\/([^/]+)\/message\/([^/]+)/);
+    if (sermonMatch) {
+      const [, seriesId, messageId] = sermonMatch;
+      navigation.navigate('Listen', {
+        screen: 'SermonDetail',
+        params: { seriesId, messageId },
+      });
+    } else if (path.includes('/listen/series/')) {
       const seriesId = path.split('/listen/series/')[1];
       navigation.navigate('Listen', {
         screen: 'SeriesDetail',
@@ -135,6 +166,12 @@ export const handleDeepLink = (
       navigation.navigate('Listen', { screen: 'ListenHome' });
     }
     // Bible tab deep links
+    else if (chapterDeepLink) {
+      navigation.navigate('Bible', {
+        screen: 'ChapterReader',
+        params: { book: chapterDeepLink.book, chapter: chapterDeepLink.chapter },
+      });
+    }
     else if (path.includes('/bible/')) {
       const order = path.split('/bible/')[1];
       navigation.navigate('Bible', {
@@ -170,7 +207,7 @@ export const handleDeepLink = (
         params: { date },
       });
     } else if (path.includes('/connect/announcements')) {
-      navigation.navigate('Connect', { screen: 'RSS' });
+      navigation.navigate('Connect', { screen: 'RSSAnnouncements' });
     } else if (path.includes('/connect/form/')) {
       const title = decodeURIComponent(path.split('/connect/form/')[1]);
       navigation.navigate('Connect', {
@@ -197,7 +234,9 @@ export const handleDeepLink = (
       navigation.navigate('Listen', { screen: 'ListenHome' });
     }
 
-    console.log('Deep Link: Navigation completed');
+    if (__DEV__) {
+      console.log('Deep Link: Navigation completed');
+    }
   } catch (error) {
     console.error('Deep Link: Error handling URL:', error);
     // Fallback to Listen tab
@@ -213,7 +252,9 @@ export const handleNotificationNavigation = (
   navigation: any
 ): void => {
   try {
-    console.log('Deep Link: Handling notification data:', data);
+    if (__DEV__) {
+      console.log('Deep Link: Handling notification data:', data);
+    }
 
     // Check for deep link URL in notification data
     if (data.url) {
@@ -241,9 +282,21 @@ export const handleNotificationNavigation = (
   }
 };
 
+/**
+ * Share URL builders
+ * Used by sermon/series screens to build shareable links
+ */
+export const buildSeriesShareUrl = (seriesId: string) =>
+  `https://${deepLinkConfig.host}/app/listen/series/${seriesId}`;
+
+export const buildSermonShareUrl = (seriesId: string, messageId: string) =>
+  `https://${deepLinkConfig.host}/app/listen/series/${seriesId}/message/${messageId}`;
+
 export default {
   linking,
   handleDeepLink,
   handleNotificationNavigation,
+  buildSeriesShareUrl,
+  buildSermonShareUrl,
 };
 
