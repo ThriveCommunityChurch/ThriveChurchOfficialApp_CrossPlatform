@@ -9,7 +9,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import type { Theme } from '../theme/types';
 import OfflineBanner from '../components/OfflineBanner';
 import { LiveButton } from '../components/LiveButton';
-import { linking } from './linking';
+import { linking, handleNotificationNavigation } from './linking';
 
 // Platform-specific font families for navigation headers
 const ios = Platform.OS === 'ios';
@@ -547,6 +547,9 @@ export function RootNavigator() {
   const [isCheckingOnboarding, setIsCheckingOnboarding] = useState(true);
   const navigationRef = useRef<any>(null);
   const appState = useRef(AppState.currentState);
+  // Holds a notification payload that arrived before the navigator was ready
+  // (e.g. during the onboarding check), to be drained on NavigationContainer ready.
+  const pendingNotificationData = useRef<any[]>([]);
 
   // Create navigation theme from our theme
   const navigationTheme = useMemo(() => createNavigationTheme(theme), [theme]);
@@ -662,7 +665,13 @@ export function RootNavigator() {
           if (__DEV__) {
             console.log('Notification opened');
           }
-          // TODO: Navigate based on notification data
+          if (navigationRef.current?.isReady?.()) {
+            handleNotificationNavigation(remoteMessage?.data, navigationRef.current);
+          } else {
+            // Navigator not mounted or not ready yet (onboarding check / cold start).
+            // Retain the payload; it is drained in NavigationContainer's onReady.
+            pendingNotificationData.current.push(remoteMessage?.data ?? {});
+          }
         });
 
         // Clear badge on app open
@@ -716,6 +725,11 @@ export function RootNavigator() {
       ref={navigationRef}
       linking={linking}
       theme={navigationTheme}
+      onReady={() => {
+        // Drain any notifications that arrived before the navigator was ready.
+        const pending = pendingNotificationData.current.splice(0);
+        pending.forEach((data) => handleNotificationNavigation(data, navigationRef.current));
+      }}
     >
       <Tab.Navigator screenOptions={tabScreenOptions}>
         <Tab.Screen

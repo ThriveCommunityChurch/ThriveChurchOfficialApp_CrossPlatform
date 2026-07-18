@@ -23,7 +23,8 @@
     "tryAgain": "Intentar de nuevo",
     "somethingWentWrong": "Algo salió mal",
     "checkConnection": "Verifica tu conexión a internet e intenta de nuevo",
-    "more": "más"
+    "more": "más",
+    "share": "Compartir"
   },
   "navigation": {
     "listen": "Escuchar",
@@ -165,6 +166,7 @@
       "remove": "Eliminar",
       "removeDownload": "Eliminar Descarga",
       "loadingDetails": "Cargando detalles del sermón...",
+      "notFound": "No se pudo encontrar este sermón.",
       "errorPlayAudio": "Error al reproducir audio. Verifica tu conexión e intenta de nuevo.",
       "noVideo": "Sin Video",
       "noVideoMessage": "Este sermón no tiene un video disponible.",

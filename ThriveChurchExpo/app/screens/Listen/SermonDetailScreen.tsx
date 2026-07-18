@@ -11,6 +11,7 @@ import {
   Platform,
   ImageBackground,
   useWindowDimensions,
+  Share,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
@@ -36,10 +37,16 @@ import {
   markWifiOnlyPrompted,
   updateDownloadSetting,
 } from '../../services/downloads/downloadSettings';
+import { buildSermonShareUrl } from '../../navigation/linking';
 
 type SermonDetailScreenRouteProp = RouteProp<{
   SermonDetailScreen: {
-    message: SermonMessage;
+    // `message` is provided when navigating from within the app (e.g. from
+    // SeriesDetailScreen). When opened via a deep link, only `seriesId` and
+    // `messageId` are available and the message is resolved from the fetched
+    // series data below.
+    message?: SermonMessage;
+    messageId?: string;
     seriesTitle: string;
     seriesArtUrl: string;
     seriesId: string;
@@ -49,7 +56,7 @@ type SermonDetailScreenRouteProp = RouteProp<{
 export const SermonDetailScreen: React.FC = () => {
   const route = useRoute<SermonDetailScreenRouteProp>();
   const navigation = useNavigation<StackNavigationProp<any>>();
-  const { message, seriesTitle, seriesArtUrl, seriesId } = route.params;
+  const { message: routeMessage, messageId, seriesTitle, seriesArtUrl, seriesId } = route.params;
   const player = usePlayer();
   const { theme } = useTheme();
   const { t } = useTranslation();
@@ -62,7 +69,10 @@ export const SermonDetailScreen: React.FC = () => {
   // Get queue state for this message - only extract the fields we need to avoid re-renders
   const { queueStatus, downloadProgress } = useDownloadQueueStore(
     useShallow((state) => {
-      const item = state.items.find((i) => i.messageId === message.MessageId);
+      // For a deep link, routeMessage is undefined but messageId is set — fall
+      // back to it so queue status/progress resolve for deep-linked sermons too.
+      const targetMessageId = routeMessage?.MessageId ?? messageId;
+      const item = state.items.find((i) => i.messageId === targetMessageId);
       return {
         queueStatus: item?.status,
         downloadProgress: item?.progress || 0,
@@ -76,10 +86,11 @@ export const SermonDetailScreen: React.FC = () => {
   const isLandscape = windowWidth > windowHeight;
   const isTabletDevice = (Platform.OS === 'ios' && Platform.isPad) || Math.min(windowWidth, windowHeight) >= 768;
 
-  // Determine if we need to fetch series data (when coming from search with SeriesId but no artwork)
-  const needsSeriesData = !!(seriesId && !seriesArtUrl);
+  // Determine if we need to fetch series data (when coming from search with SeriesId but no
+  // artwork, or when opened via a deep link that only supplies seriesId + messageId)
+  const needsSeriesData = !!(seriesId && (!seriesArtUrl || !routeMessage));
 
-  // Fetch series data if needed (when coming from search results)
+  // Fetch series data if needed (when coming from search results or a deep link)
   const { data: seriesData, isLoading: isLoadingSeries } = useQuery({
     queryKey: ['series', seriesId],
     queryFn: async (): Promise<SermonSeries> => {
@@ -90,9 +101,19 @@ export const SermonDetailScreen: React.FC = () => {
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 
+  // Resolve the effective message: use the one passed via navigation params, or (when
+  // opened via a deep link with only seriesId + messageId) find it in the fetched series.
+  const message = useMemo(() => {
+    if (routeMessage) return routeMessage;
+    if (seriesData && messageId) {
+      return seriesData.Messages.find((m) => m.MessageId === messageId);
+    }
+    return undefined;
+  }, [routeMessage, seriesData, messageId]);
+
   // Calculate week number from series data if available
   const calculatedWeekNum = useMemo(() => {
-    if (!seriesData || !message.MessageId) return message.WeekNum;
+    if (!message || !seriesData || !message.MessageId) return message?.WeekNum;
 
     const messageIndex = seriesData.Messages.findIndex(
       (m) => m.MessageId === message.MessageId
@@ -102,21 +123,16 @@ export const SermonDetailScreen: React.FC = () => {
 
     // Week number is reverse order (newest = week 1)
     return seriesData.Messages.length - messageIndex;
-  }, [seriesData, message.MessageId, message.WeekNum]);
+  }, [seriesData, message]);
 
   // Use fetched data or fallback to route params
   const displaySeriesTitle = seriesData?.Name || seriesTitle;
   const displaySeriesArtUrl = seriesData?.ArtUrl || seriesArtUrl;
-  const displayWeekNum = calculatedWeekNum || message.WeekNum;
-
-  // Update message object with calculated week number
-  const messageWithWeek = useMemo(() => ({
-    ...message,
-    WeekNum: displayWeekNum,
-  }), [message, displayWeekNum]);
+  const displayWeekNum = calculatedWeekNum || message?.WeekNum;
 
   // Track screen view with sermon info
   useEffect(() => {
+    if (!message) return;
     setCurrentScreen('SermonDetailScreen', 'SermonDetail');
     logCustomEvent('view_sermon', {
       sermon_id: message.MessageId,
@@ -124,9 +140,10 @@ export const SermonDetailScreen: React.FC = () => {
       series_title: displaySeriesTitle,
       content_type: 'sermon',
     });
-  }, [message.MessageId, message.Title, displaySeriesTitle]);
+  }, [message, displaySeriesTitle]);
 
   useEffect(() => {
+    if (!message) return;
     const checkDownloadStatus = async () => {
       const isDownloaded = await isMessageDownloaded(message.MessageId);
       setDownloaded(isDownloaded);
@@ -141,11 +158,11 @@ export const SermonDetailScreen: React.FC = () => {
       }
     };
     checkDownloadStatus();
-  }, [message.MessageId, message.AudioFileSize]);
+  }, [message]);
 
   // Watch for download completion and update downloaded state
   useEffect(() => {
-    if (queueStatus === 'completed') {
+    if (queueStatus === 'completed' && message) {
       // Download just finished - update state
       setDownloaded(true);
       // Also update file size
@@ -153,7 +170,7 @@ export const SermonDetailScreen: React.FC = () => {
         if (size > 0) setFileSize(size);
       });
     }
-  }, [queueStatus, message.MessageId]);
+  }, [queueStatus, message]);
 
   const formatDate = (dateString: string): string => {
     try {
@@ -190,6 +207,7 @@ export const SermonDetailScreen: React.FC = () => {
   };
 
   const handlePlayAudio = useCallback(async () => {
+    if (!message) return;
     try {
       // Track sermon play event
       await logPlaySermon(message.MessageId, message.Title);
@@ -208,7 +226,7 @@ export const SermonDetailScreen: React.FC = () => {
   }, [player, message, seriesId, displaySeriesTitle, displaySeriesArtUrl, downloaded, t]);
 
   const handlePlayVideo = useCallback(() => {
-    if (!message.VideoUrl) {
+    if (!message || !message.VideoUrl) {
       Alert.alert(t('listen.sermon.noVideo'), t('listen.sermon.noVideoMessage'));
       return;
     }
@@ -220,7 +238,7 @@ export const SermonDetailScreen: React.FC = () => {
   }, [navigation, message, displaySeriesTitle, t]);
 
   const handleReadPassage = useCallback(() => {
-    if (!message.PassageRef) {
+    if (!message || !message.PassageRef) {
       Alert.alert(t('listen.sermon.noPassage'), t('listen.sermon.noPassageMessage'));
       return;
     }
@@ -233,6 +251,7 @@ export const SermonDetailScreen: React.FC = () => {
 
   // Helper to actually queue the download and show feedback
   const proceedWithDownload = useCallback(async () => {
+    if (!message) return;
     // Check network status and queue state to provide appropriate feedback
     const networkStatus = await canDownloadNow();
     const queueStore = useDownloadQueueStore.getState();
@@ -270,7 +289,7 @@ export const SermonDetailScreen: React.FC = () => {
   }, [message, displaySeriesTitle, displaySeriesArtUrl, t]);
 
   const handleDownload = useCallback(async () => {
-    if (!message.AudioUrl) {
+    if (!message || !message.AudioUrl) {
       Alert.alert(t('common.error'), t('listen.sermon.noAudioDownload'));
       return;
     }
@@ -312,6 +331,7 @@ export const SermonDetailScreen: React.FC = () => {
   }, [message, t, proceedWithDownload]);
 
   const handleDeleteDownload = useCallback(async () => {
+    if (!message) return;
     Alert.alert(
       t('listen.sermon.removeDownloadTitle'),
       t('listen.sermon.removeDownloadMessage'),
@@ -333,9 +353,10 @@ export const SermonDetailScreen: React.FC = () => {
         },
       ]
     );
-  }, [message.MessageId, t]);
+  }, [message, t]);
 
   const handleTakeNotes = useCallback(() => {
+    if (!message) return;
     // Navigate to Notes tab, then to NoteDetail screen with sermon context
     (navigation as any).navigate('Notes', {
       screen: 'NoteDetail',
@@ -353,6 +374,7 @@ export const SermonDetailScreen: React.FC = () => {
 
   // Navigate to AI-generated sermon notes
   const handleViewSermonNotes = useCallback(() => {
+    if (!message) return;
     navigation.navigate('SermonNotesScreen', {
       message,
       seriesTitle: displaySeriesTitle,
@@ -363,6 +385,7 @@ export const SermonDetailScreen: React.FC = () => {
 
   // Navigate to study guide
   const handleViewStudyGuide = useCallback(() => {
+    if (!message) return;
     navigation.navigate('StudyGuideScreen', {
       message,
       seriesTitle: displaySeriesTitle,
@@ -370,6 +393,50 @@ export const SermonDetailScreen: React.FC = () => {
       seriesId,
     });
   }, [navigation, message, displaySeriesTitle, displaySeriesArtUrl, seriesId]);
+
+  // Share this sermon (uses the deep-link share URL builder)
+  const handleShare = useCallback(async () => {
+    if (!message || !seriesId) return;
+    try {
+      const shareUrl = buildSermonShareUrl(seriesId, message.MessageId);
+      await Share.share({
+        message: `${message.Title}\n${shareUrl}`,
+        title: message.Title,
+      });
+      logCustomEvent('share_sermon', { sermon_id: message.MessageId });
+    } catch (error) {
+      console.error('Error sharing sermon:', error);
+    }
+  }, [message, seriesId]);
+
+  // While the message is still resolving (deep link case) or series data for a
+  // search-result navigation is still loading, show the existing loading state.
+  // Placing this check here (after all hooks, before the message.* accesses below)
+  // keeps hook call order stable across renders while narrowing `message` to
+  // defined for the remainder of the component, including the render helpers below.
+  if (needsSeriesData && isLoadingSeries) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={[styles.summaryText, { marginTop: 16 }]}>
+          {t('listen.sermon.loadingDetails')}
+        </Text>
+      </View>
+    );
+  }
+
+  // Series data finished loading but the deep-linked messageId wasn't found
+  // (stale/bad link). Show a not-found state instead of spinning forever.
+  if (!message) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', padding: 24 }]}>
+        <Ionicons name="alert-circle-outline" size={48} color={theme.colors.textSecondary} />
+        <Text style={[styles.summaryText, { marginTop: 16, textAlign: 'center' }]}>
+          {t('listen.sermon.notFound')}
+        </Text>
+      </View>
+    );
+  }
 
   const hasAudio = !!message.AudioUrl;
   const hasVideo = !!message.VideoUrl;
@@ -492,7 +559,7 @@ export const SermonDetailScreen: React.FC = () => {
                 <Ionicons name="calendar-outline" size={20} color={theme.colors.primary} />
                 <View style={styles.tabletMetadataCardContent}>
                   <Text style={styles.tabletMetadataLabel}>{t('listen.sermon.week')}</Text>
-                  <Text style={styles.tabletMetadataValue}>{messageWithWeek.WeekNum ?? '—'}</Text>
+                  <Text style={styles.tabletMetadataValue}>{displayWeekNum ?? '—'}</Text>
                 </View>
               </View>
 
@@ -613,6 +680,16 @@ export const SermonDetailScreen: React.FC = () => {
                 <Ionicons name="create-outline" size={20} color={theme.colors.text} />
                 <Text style={styles.tabletDownloadButtonText}>{t('listen.sermon.takeNotes')}</Text>
               </TouchableOpacity>
+
+              {/* Share Button */}
+              <TouchableOpacity
+                style={styles.tabletDownloadButton}
+                onPress={handleShare}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="share-outline" size={20} color={theme.colors.text} />
+                <Text style={styles.tabletDownloadButtonText}>{t('common.share')}</Text>
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -706,7 +783,7 @@ export const SermonDetailScreen: React.FC = () => {
         <View style={styles.content}>
           {/* Week Badge */}
           <View style={styles.weekBadge}>
-            <Text style={styles.weekNumber}>{messageWithWeek.WeekNum ?? '—'}</Text>
+            <Text style={styles.weekNumber}>{displayWeekNum ?? '—'}</Text>
             <Text style={styles.weekLabel}>{t('listen.sermon.week')}</Text>
           </View>
 
@@ -911,23 +988,21 @@ export const SermonDetailScreen: React.FC = () => {
               <Ionicons name="create-outline" size={20} color={theme.colors.text} />
               <Text style={styles.secondaryButtonText}>{t('listen.sermon.takeNotes')}</Text>
             </TouchableOpacity>
+
+            {/* Share Button - Full Width */}
+            <TouchableOpacity
+              style={styles.notesButton}
+              onPress={handleShare}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="share-outline" size={20} color={theme.colors.text} />
+              <Text style={styles.secondaryButtonText}>{t('common.share')}</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
     </View>
   );
-
-  // Show loading indicator while fetching series data
-  if (needsSeriesData && isLoadingSeries) {
-    return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={[styles.summaryText, { marginTop: 16 }]}>
-          {t('listen.sermon.loadingDetails')}
-        </Text>
-      </View>
-    );
-  }
 
   // Conditionally render based on device type
   return isTabletDevice ? renderTabletLayout() : renderPhoneLayout();
