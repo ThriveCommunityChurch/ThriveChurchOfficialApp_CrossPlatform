@@ -27,36 +27,50 @@ class WaveformService {
       // Check cache first
       const cached = await this.getCachedWaveform(audioUrl);
       if (cached && cached.length === sampleCount) {
-        console.log('[WaveformService] Using cached waveform for:', audioUrl);
+        if (__DEV__) {
+          console.log('[WaveformService] Using cached waveform for:', audioUrl);
+        }
         return cached;
       }
 
-      console.log('[WaveformService] Extracting waveform for:', audioUrl);
+      if (__DEV__) {
+        console.log('[WaveformService] Extracting waveform for:', audioUrl);
+      }
 
       // Determine if URL is remote or local
       let filePath: string;
       if (audioUrl.startsWith('http://') || audioUrl.startsWith('https://')) {
         // Download and cache remote file
-        console.log('[WaveformService] Downloading remote audio file...');
+        if (__DEV__) {
+          console.log('[WaveformService] Downloading remote audio file...');
+        }
         filePath = await load(audioUrl);
-        console.log('[WaveformService] Downloaded to:', filePath);
+        if (__DEV__) {
+          console.log('[WaveformService] Downloaded to:', filePath);
+        }
       } else {
         // Use local file path directly
         filePath = audioUrl;
       }
 
       // Extract amplitude data
-      console.log('[WaveformService] Computing amplitude data...');
+      if (__DEV__) {
+        console.log('[WaveformService] Computing amplitude data...');
+      }
       const rawAmplitudes = computeAmplitude(filePath, sampleCount);
-      console.log('[WaveformService] Extracted', rawAmplitudes.length, 'amplitude values');
+      if (__DEV__) {
+        console.log('[WaveformService] Extracted', rawAmplitudes.length, 'amplitude values');
+      }
 
       // Normalize and scale the amplitudes to fill the available space
       const normalizedAmplitudes = this.normalizeAmplitudes(rawAmplitudes);
-      console.log('[WaveformService] Normalized amplitude range:',
-        Math.min(...normalizedAmplitudes).toFixed(3),
-        'to',
-        Math.max(...normalizedAmplitudes).toFixed(3)
-      );
+      if (__DEV__) {
+        console.log('[WaveformService] Normalized amplitude range:',
+          Math.min(...normalizedAmplitudes).toFixed(3),
+          'to',
+          Math.max(...normalizedAmplitudes).toFixed(3)
+        );
+      }
 
       // Cache the result
       await this.cacheWaveform(audioUrl, normalizedAmplitudes);
@@ -108,7 +122,9 @@ class WaveformService {
         timestamp: Date.now(),
       };
       await AsyncStorage.setItem(cacheKey, JSON.stringify(data));
-      console.log('[WaveformService] Cached waveform data');
+      if (__DEV__) {
+        console.log('[WaveformService] Cached waveform data');
+      }
     } catch (error) {
       console.error('[WaveformService] Error caching waveform:', error);
     }
@@ -141,11 +157,15 @@ class WaveformService {
     const min = Math.min(...amplitudes);
     const max = Math.max(...amplitudes);
 
-    console.log('[WaveformService] Raw amplitude range:', min.toFixed(6), 'to', max.toFixed(6));
+    if (__DEV__) {
+      console.log('[WaveformService] Raw amplitude range:', min.toFixed(6), 'to', max.toFixed(6));
+    }
 
     // If all values are the same or very close, return uniform heights
     if (max - min < 0.0001) {
-      console.log('[WaveformService] Uniform amplitudes detected, using default heights');
+      if (__DEV__) {
+        console.log('[WaveformService] Uniform amplitudes detected, using default heights');
+      }
       return amplitudes.map(() => 0.7);
     }
 
@@ -184,7 +204,9 @@ class WaveformService {
       const keys = await AsyncStorage.getAllKeys();
       const waveformKeys = keys.filter(key => key.startsWith(WAVEFORM_CACHE_PREFIX));
       await AsyncStorage.multiRemove(waveformKeys);
-      console.log('[WaveformService] Cleared', waveformKeys.length, 'cached waveforms');
+      if (__DEV__) {
+        console.log('[WaveformService] Cleared', waveformKeys.length, 'cached waveforms');
+      }
     } catch (error) {
       console.error('[WaveformService] Error clearing cache:', error);
     }

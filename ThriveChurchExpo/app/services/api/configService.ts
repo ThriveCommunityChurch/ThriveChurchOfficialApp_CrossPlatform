@@ -50,7 +50,7 @@ export const initializeConfigs = async (options?: {
   const configsExist = await hasConfigs();
 
   if (configsExist && !forceRefresh) {
-    if (!silent) {
+    if (!silent && __DEV__) {
       console.log('Configs already loaded from cache, fetching fresh in background...');
     }
 
@@ -63,7 +63,7 @@ export const initializeConfigs = async (options?: {
   }
 
   // No configs exist or force refresh requested - fetch now
-  if (!silent) {
+  if (!silent && __DEV__) {
     console.log('Fetching configs from API...');
   }
 
@@ -75,7 +75,9 @@ export const initializeConfigs = async (options?: {
 
     // If we have cached configs, we can still continue
     if (configsExist) {
-      console.log('Using cached configs despite fetch failure');
+      if (!silent && __DEV__) {
+        console.log('Using cached configs despite fetch failure');
+      }
       return { usedCache: true, fetchedFresh: false };
     }
 
@@ -114,14 +116,14 @@ export const fetchAndStoreConfigs = async (silent: boolean = false): Promise<voi
     const queryParams = keys.map(key => `keys=${key}`).join('&');
     const url = `/api/config/list/?${queryParams}`;
 
-    if (!silent) {
+    if (!silent && __DEV__) {
       console.log('Fetching configs from:', url);
     }
 
     const response = await api.get<ConfigListResponse>(url);
 
     if (response.data && response.data.Configs) {
-      if (!silent) {
+      if (!silent && __DEV__) {
         console.log(`Received ${response.data.Configs.length} configs from API`);
       }
 
@@ -134,12 +136,12 @@ export const fetchAndStoreConfigs = async (silent: boolean = false): Promise<voi
         };
 
         await saveConfigSetting(config.Key, configSetting);
-        if (!silent) {
+        if (!silent && __DEV__) {
           console.log(`Saved config: ${config.Key} = ${config.Value}`);
         }
       }
 
-      if (!silent) {
+      if (!silent && __DEV__) {
         console.log('All configs saved to MMKV successfully');
       }
     } else {
@@ -201,7 +203,9 @@ const mapConfigType = (typeString: string): ConfigType => {
  * Populate AsyncStorage with mock/test configs for development
  */
 export const populateMockConfigs = async (): Promise<void> => {
-  console.log('Populating AsyncStorage with mock configs...');
+  if (__DEV__) {
+    console.log('Populating AsyncStorage with mock configs...');
+  }
 
   const mockConfigs: Array<{ key: string; config: ConfigSetting }> = [
     {
@@ -304,9 +308,13 @@ export const populateMockConfigs = async (): Promise<void> => {
 
   for (const { key, config } of mockConfigs) {
     await saveConfigSetting(key, config);
-    console.log(`Mock config saved: ${key} = ${config.Value}`);
+    if (__DEV__) {
+      console.log(`Mock config saved: ${key} = ${config.Value}`);
+    }
   }
 
-  console.log('Mock configs populated successfully!');
+  if (__DEV__) {
+    console.log('Mock configs populated successfully!');
+  }
 };
 

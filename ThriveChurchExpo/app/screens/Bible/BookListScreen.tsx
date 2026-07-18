@@ -4,7 +4,7 @@
  * Routes ESV users to native reader, others to YouVersion
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo} from 'react';
 import {
   View,
   Text,
@@ -46,7 +46,7 @@ interface BookItemProps {
 }
 
 const BookItem: React.FC<BookItemProps> = ({ book, onPress, theme }) => {
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   return (
     <TouchableOpacity
       style={styles.bookItem}
@@ -59,7 +59,7 @@ const BookItem: React.FC<BookItemProps> = ({ book, onPress, theme }) => {
 };
 
 const ItemSeparator: React.FC<{ theme: Theme }> = ({ theme }) => {
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   return <View style={styles.separator} />;
 };
 
@@ -68,7 +68,7 @@ export const BookListScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const { orderType } = route.params;
   const { theme } = useTheme();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const [loading, setLoading] = React.useState(false);
 
   // Track screen view

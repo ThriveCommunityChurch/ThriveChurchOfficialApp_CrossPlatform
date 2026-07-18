@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/useTheme';
@@ -15,7 +15,7 @@ interface SermonMessageCardProps {
   noHorizontalMargin?: boolean;
 }
 
-export const SermonMessageCard: React.FC<SermonMessageCardProps> = ({
+const SermonMessageCardComponent: React.FC<SermonMessageCardProps> = ({
   message,
   downloaded,
   downloading,
@@ -25,7 +25,7 @@ export const SermonMessageCard: React.FC<SermonMessageCardProps> = ({
 }) => {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const formatDate = (dateString: string): string => {
     try {
       // Strip timezone info - API returns dates already in Eastern time with Z suffix
@@ -166,6 +166,8 @@ export const SermonMessageCard: React.FC<SermonMessageCardProps> = ({
     </TouchableOpacity>
   );
 };
+
+export const SermonMessageCard = React.memo(SermonMessageCardComponent);
 
 const createStyles = (theme: Theme) => StyleSheet.create({
   container: {

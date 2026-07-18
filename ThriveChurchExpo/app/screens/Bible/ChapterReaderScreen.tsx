@@ -4,7 +4,7 @@
  * Includes audio playback and note-taking functionality
  */
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo} from 'react';
 import {
   View,
   Text,
@@ -142,7 +142,7 @@ export const ChapterReaderScreen: React.FC = () => {
   const { book, chapter } = route.params;
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const webViewRef = useRef<WebView>(null);
 
   const [loading, setLoading] = useState(true);

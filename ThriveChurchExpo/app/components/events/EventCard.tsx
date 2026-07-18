@@ -3,7 +3,7 @@
  * Displays an event summary in list views with badges for featured/online/recurring
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -26,10 +26,10 @@ interface EventCardProps {
   hideFeaturedBadge?: boolean;
 }
 
-export const EventCard: React.FC<EventCardProps> = ({ event, onPress, hideFeaturedBadge = false }) => {
+const EventCardComponent: React.FC<EventCardProps> = ({ event, onPress, hideFeaturedBadge = false }) => {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
@@ -141,6 +141,8 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onPress, hideFeatur
     </TouchableOpacity>
   );
 };
+
+export const EventCard = React.memo(EventCardComponent);
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({

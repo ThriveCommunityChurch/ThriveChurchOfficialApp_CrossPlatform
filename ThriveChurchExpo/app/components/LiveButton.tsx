@@ -3,7 +3,7 @@
  * A header button that shows live streaming status and navigates to the Live screen
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   TouchableOpacity,
   Text,
@@ -34,7 +34,7 @@ export const LiveButton: React.FC<LiveButtonProps> = ({ style }) => {
   const { theme } = useTheme();
   const navigation = useNavigation<NavigationProp>();
   const { data, isLoading } = useLiveStream();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const isLive = data?.isLive ?? false;
 

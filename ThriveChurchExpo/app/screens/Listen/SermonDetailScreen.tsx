@@ -53,7 +53,7 @@ export const SermonDetailScreen: React.FC = () => {
   const player = usePlayer();
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
   const [downloaded, setDownloaded] = useState(false);

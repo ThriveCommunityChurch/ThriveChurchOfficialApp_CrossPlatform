@@ -3,7 +3,7 @@
  * Displays a single item in the download queue with progress and actions
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -77,7 +77,7 @@ const getActionIcon = (status: QueueItemStatus): keyof typeof Ionicons.glyphMap 
   }
 };
 
-export const DownloadQueueItem: React.FC<DownloadQueueItemProps> = ({
+const DownloadQueueItemComponent: React.FC<DownloadQueueItemProps> = ({
   item,
   onPause,
   onResume,
@@ -87,7 +87,7 @@ export const DownloadQueueItem: React.FC<DownloadQueueItemProps> = ({
 }) => {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const handleActionPress = () => {
     switch (item.status) {
@@ -182,6 +182,8 @@ export const DownloadQueueItem: React.FC<DownloadQueueItemProps> = ({
     </View>
   );
 };
+
+export const DownloadQueueItem = React.memo(DownloadQueueItemComponent);
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({

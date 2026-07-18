@@ -3,7 +3,7 @@
  * Generic WebView screen for displaying forms (Serve, Small Group, Prayer Requests)
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { View, StyleSheet, ActivityIndicator, Linking, Alert } from 'react-native';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { WebView } from 'react-native-webview';
@@ -22,7 +22,7 @@ type WebViewRouteProp = RouteProp<ConnectStackParamList, 'WebViewForm'>;
 export const WebViewScreen: React.FC = () => {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const route = useRoute<WebViewRouteProp>();
   const { url, title } = route.params;
   const [loading, setLoading] = React.useState(true);

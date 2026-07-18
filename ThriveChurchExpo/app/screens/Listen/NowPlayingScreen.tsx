@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -16,7 +16,7 @@ import TrackPlayer from 'react-native-track-player';
 import { useTheme } from '../../hooks/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
-import { usePlayer } from '../../hooks/usePlayer';
+import { usePlayer, usePlayerProgress } from '../../hooks/usePlayer';
 import { usePlaybackSettings } from '../../hooks/usePlaybackSettings';
 import { AudioWaveform } from '../../components/AudioWaveform';
 import { ProgressSlider } from '../../components/ProgressSlider';
@@ -69,11 +69,14 @@ const SCALE = {
 
 export default function NowPlayingScreen() {
   const player = usePlayer();
+  // Progress ticks (~1x/sec) are consumed only here, kept separate from the
+  // player controls hook so other screens don't re-render on every tick.
+  const progress = usePlayerProgress();
   const { theme } = useTheme();
   const { t } = useTranslation();
   const navigation = useNavigation<StackNavigationProp<any>>();
   const { skipForward, skipBackward, defaultSpeed } = usePlaybackSettings();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const [isSeeking, setIsSeeking] = useState(false);
   const [seekPosition, setSeekPosition] = useState(0);
   const [waveformData, setWaveformData] = useState<number[]>([]);
@@ -141,9 +144,9 @@ export default function NowPlayingScreen() {
 
   useEffect(() => {
     if (!isSeeking) {
-      setSeekPosition(player.position);
+      setSeekPosition(progress.position);
     }
-  }, [player.position, isSeeking]);
+  }, [progress.position, isSeeking]);
 
   // Load waveform when track changes
   useEffect(() => {
@@ -185,23 +188,32 @@ export default function NowPlayingScreen() {
           return;
         }
 
-        // Fallback: Extract waveform on-device for messages without pre-computed data
-        console.log('[NowPlayingScreen] No pre-computed waveform available, extracting on-device');
-
-        if (!player.currentTrack.url) {
+        // Fallback: extract waveform on-device — but ONLY for locally
+        // downloaded files. Extracting from a remote URL would re-download the
+        // entire audio file (tens of MB) while it is already being streamed by
+        // TrackPlayer. For remote streams without pre-computed data we show the
+        // animated fallback bars instead.
+        const trackUrl = player.currentTrack.url;
+        if (!trackUrl) {
           console.warn('[NowPlayingScreen] No audio URL available');
           setWaveformData([]);
           setIsLoadingWaveform(false);
           return;
         }
 
+        const isLocalFile = trackUrl.startsWith('file://');
+        if (!isLocalFile) {
+          if (__DEV__) {
+            console.log('[NowPlayingScreen] Remote stream — skipping on-device extraction, using fallback bars');
+          }
+          setWaveformData([]);
+          setIsLoadingWaveform(false);
+          return;
+        }
+
         setIsLoadingWaveform(true);
-        console.log('[NowPlayingScreen] Extracting waveform for:', player.currentTrack.url);
-
-        const amplitudes = await waveformService.extractWaveform(player.currentTrack.url, 120);
+        const amplitudes = await waveformService.extractWaveform(trackUrl, 120);
         setWaveformData(amplitudes);
-
-        console.log('[NowPlayingScreen] Waveform extracted successfully (on-device)');
       } catch (error) {
         console.error('[NowPlayingScreen] Error loading waveform:', error);
         setWaveformData([]); // Will use fallback waveform in AudioWaveform component
@@ -211,7 +223,7 @@ export default function NowPlayingScreen() {
     };
 
     loadWaveform();
-  }, [player.currentTrack?.id]);
+  }, [player.currentTrack?.id, player.currentTrack?.url]);
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -370,8 +382,8 @@ export default function NowPlayingScreen() {
         {!isBiblePassage && (
           <View style={[styles.waveformContainer, { marginBottom: marginBottom * 0.67 }]}>
             <AudioWaveform
-              progress={player.duration > 0 ? player.position / player.duration : 0}
-              duration={player.duration}
+              progress={progress.duration > 0 ? progress.position / progress.duration : 0}
+              duration={progress.duration}
               onSeek={handleSeekComplete}
               amplitudes={waveformData}
               isLoading={isLoadingWaveform}
@@ -384,8 +396,8 @@ export default function NowPlayingScreen() {
         {/* Progress Slider */}
         <View style={[styles.progressContainer, { marginBottom: marginBottom * 1.33 }]}>
           <ProgressSlider
-            value={isSeeking ? seekPosition : player.position}
-            maximumValue={player.duration || 1}
+            value={isSeeking ? seekPosition : progress.position}
+            maximumValue={progress.duration || 1}
             onSlidingStart={handleSeekStart}
             onValueChange={handleSeekChange}
             onSlidingComplete={handleSeekComplete}
@@ -398,13 +410,13 @@ export default function NowPlayingScreen() {
               isTablet ? theme.typography.body as any : theme.typography.caption as any,
               { color: theme.colors.textSecondary }
             ]}>
-              {formatTime(isSeeking ? seekPosition : player.position)}
+              {formatTime(isSeeking ? seekPosition : progress.position)}
             </Text>
             <Text style={[
               isTablet ? theme.typography.body as any : theme.typography.caption as any,
               { color: theme.colors.textSecondary }
             ]}>
-              {formatTime(player.duration)}
+              {formatTime(progress.duration)}
             </Text>
           </View>
         </View>

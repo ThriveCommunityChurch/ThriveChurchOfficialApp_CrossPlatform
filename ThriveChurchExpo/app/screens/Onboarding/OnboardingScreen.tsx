@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -161,7 +161,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
 
   const isSmallScreen = screenDimensions.width < SMALL_SCREEN_BREAKPOINT;
   const isXLTablet = screenDimensions.width >= XL_TABLET_BREAKPOINT;
-  const styles = createStyles(theme, screenDimensions.width, screenDimensions.height, isXLTablet);
+  const styles = useMemo(() => createStyles(theme, screenDimensions.width, screenDimensions.height, isXLTablet), [theme, screenDimensions.width, screenDimensions.height, isXLTablet]);
 
   // Track pending scroll after rotation
   const pendingScrollRef = useRef<{ index: number; width: number } | null>(null);
@@ -305,7 +305,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
         ))}
       </View>
     );
-  }, [currentIndex]);
+  }, [currentIndex, styles, pages]);
 
   return (
     <View style={styles.container}>

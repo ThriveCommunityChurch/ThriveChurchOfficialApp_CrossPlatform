@@ -4,7 +4,7 @@
  * Responsive design for both phone and tablet devices
  */
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -36,7 +36,7 @@ export const ContactScreen: React.FC = () => {
 
   const isLandscape = windowWidth > windowHeight;
   const isTabletDevice = (Platform.OS === 'ios' && Platform.isPad) || Math.min(windowWidth, windowHeight) >= 768;
-  const styles = createStyles(theme, isTabletDevice, isLandscape);
+  const styles = useMemo(() => createStyles(theme, isTabletDevice, isLandscape), [theme, isTabletDevice, isLandscape]);
 
   const [config, setConfig] = useState<ContactConfig>({ email: null, phone: null });
 

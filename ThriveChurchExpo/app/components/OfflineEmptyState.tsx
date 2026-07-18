@@ -4,7 +4,7 @@
  * for accessing offline content like downloaded sermons and Bible.
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -38,7 +38,7 @@ export default function OfflineEmptyState({
   const { theme } = useTheme();
   const { t } = useTranslation();
   const navigation = useNavigation<any>();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const handleViewDownloads = () => {
     navigation.navigate('Listen', { screen: 'Downloads' });
