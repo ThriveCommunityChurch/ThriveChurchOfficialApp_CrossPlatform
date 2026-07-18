@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react'
 import { NavigationContainer, DefaultTheme, DarkTheme, Theme as NavigationTheme, getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { createBottomTabNavigator, BottomTabBar } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { View, Text, TouchableOpacity, AppState, AppStateStatus, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, AppState, AppStateStatus, Platform, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/useTheme';
 import { useTranslation } from '../hooks/useTranslation';
@@ -177,30 +177,28 @@ function ListenStackNavigator({ theme }: { theme: Theme }) {
                 <Ionicons name="play-circle" size={24} color={theme.colors.text} />
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => navigation.navigate('RecentlyPlayed')}
-                style={{ marginRight: 12 }}
-                accessibilityLabel={t('navigation.recentlyPlayed')}
+                onPress={() =>
+                  Alert.alert(t('navigation.library'), undefined, [
+                    {
+                      text: t('navigation.recentlyPlayed'),
+                      onPress: () => navigation.navigate('RecentlyPlayed'),
+                    },
+                    {
+                      text: t('listen.downloads.title'),
+                      onPress: () => navigation.navigate('Downloads'),
+                    },
+                    {
+                      text: t('navigation.favorites'),
+                      onPress: () => navigation.navigate('Favorites'),
+                    },
+                    { text: t('common.cancel'), style: 'cancel' },
+                  ])
+                }
+                accessibilityLabel={t('navigation.library')}
                 accessibilityRole="button"
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                <Ionicons name="time-outline" size={24} color={theme.colors.text} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('Downloads')}
-                style={{ marginRight: 12 }}
-                accessibilityLabel={t('listen.downloads.title')}
-                accessibilityRole="button"
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
-                <Ionicons name="download-outline" size={24} color={theme.colors.text} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('Favorites')}
-                accessibilityLabel={t('navigation.favorites')}
-                accessibilityRole="button"
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
-                <Ionicons name="heart-outline" size={24} color={theme.colors.text} />
+                <Ionicons name="ellipsis-horizontal" size={24} color={theme.colors.text} />
               </TouchableOpacity>
             </View>
           ),
