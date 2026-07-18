@@ -284,17 +284,19 @@ const downloadItem = async (item: QueueItem): Promise<void> => {
 
       // Best-effort: also persist the pre-computed waveform so offline playback
       // can render the real waveform without a network fetch or CPU-heavy
-      // on-device extraction. Never fail the download if this is unavailable.
-      try {
-        const waveform = await fetchWaveformData(item.messageId);
-        if (waveform && waveform.length > 0) {
-          await saveDownloadedWaveform(item.messageId, waveform);
-        }
-      } catch (waveformError) {
-        if (__DEV__) {
-          console.log('Could not persist waveform for download:', item.messageId);
-        }
-      }
+      // on-device extraction. Fire-and-forget so download completion isn't
+      // delayed by the waveform network fetch, and never fail the download.
+      fetchWaveformData(item.messageId)
+        .then((waveform) => {
+          if (waveform && waveform.length > 0) {
+            return saveDownloadedWaveform(item.messageId, waveform);
+          }
+        })
+        .catch(() => {
+          if (__DEV__) {
+            console.log('Could not persist waveform for download:', item.messageId);
+          }
+        });
 
       // Update queue item status
       store.setItemStatus(item.id, 'completed');

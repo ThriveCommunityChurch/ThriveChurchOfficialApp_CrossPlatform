@@ -155,7 +155,7 @@ export const clearDownloadedMessages = async (): Promise<void> => {
     // Remove each message and its persisted waveform
     for (const id of ids) {
       await AsyncStorage.removeItem(`message_${id}`);
-      await AsyncStorage.removeItem(`${DOWNLOADED_WAVEFORM_PREFIX}${id}`);
+      await removeDownloadedWaveform(id);
     }
 
     // Clear the IDs list
@@ -235,7 +235,7 @@ export const removeDownloadedMessage = async (messageId: string): Promise<void> 
   try {
     // Remove the message object and its persisted waveform
     await AsyncStorage.removeItem(`message_${messageId}`);
-    await AsyncStorage.removeItem(`${DOWNLOADED_WAVEFORM_PREFIX}${messageId}`);
+    await removeDownloadedWaveform(messageId);
 
     // Update the IDs list
     const ids = await getDownloadedMessageIds();
