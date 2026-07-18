@@ -659,7 +659,9 @@ export function RootNavigator() {
         // Initialize push notifications
         await initializePushNotifications((remoteMessage) => {
           // Handle notification opened
-          console.log('Notification opened:', remoteMessage);
+          if (__DEV__) {
+            console.log('Notification opened');
+          }
           // TODO: Navigate based on notification data
         });
 

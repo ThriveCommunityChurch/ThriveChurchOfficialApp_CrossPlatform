@@ -231,7 +231,7 @@ export const setupForegroundMessageHandler = (): (() => void) | undefined => {
     // Handle messages when app is in foreground
     const unsubscribe = messaging().onMessage(async (remoteMessage) => {
       if (__DEV__) {
-        console.log('Push: Foreground message received:', remoteMessage);
+        console.log('Push: Foreground message received');
       }
 
       // Display notification using Notifee for better UX
@@ -268,7 +268,7 @@ export const setupBackgroundMessageHandler = (): void => {
   try {
     messaging().setBackgroundMessageHandler(async (remoteMessage) => {
       if (__DEV__) {
-        console.log('Push: Background message received:', remoteMessage);
+        console.log('Push: Background message received');
       }
 
       // Display notification using Notifee
@@ -304,7 +304,7 @@ export const setupNotificationOpenedHandler = (
     // Handle notification opened when app was in background or quit
     messaging().onNotificationOpenedApp((remoteMessage) => {
       if (__DEV__) {
-        console.log('Push: Notification opened app from background:', remoteMessage);
+        console.log('Push: Notification opened app from background');
       }
       onNotificationOpened(remoteMessage);
     });
@@ -315,7 +315,7 @@ export const setupNotificationOpenedHandler = (
       .then((remoteMessage) => {
         if (remoteMessage) {
           if (__DEV__) {
-            console.log('Push: Notification opened app from quit state:', remoteMessage);
+            console.log('Push: Notification opened app from quit state');
           }
           onNotificationOpened(remoteMessage);
         }
@@ -325,7 +325,7 @@ export const setupNotificationOpenedHandler = (
     notifee.onForegroundEvent(({ type, detail }) => {
       if (type === EventType.PRESS) {
         if (__DEV__) {
-          console.log('Push: Notifee notification pressed:', detail);
+          console.log('Push: Notifee notification pressed');
         }
         // Handle notification press
         if (detail.notification?.data) {
