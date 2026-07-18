@@ -23,6 +23,7 @@ import { ProgressSlider } from '../../components/ProgressSlider';
 import { waveformService } from '../../services/audio/waveformService';
 import { setCurrentScreen } from '../../services/analytics/analyticsService';
 import { fetchWaveformData } from '../../services/api/waveformService';
+import { getDownloadedWaveform } from '../../services/storage/storage';
 import { adaptWaveformToScreen } from '../../utils/waveformUtils';
 import { PlaybackSpeed, PLAYBACK_SPEED_OPTIONS, formatPlaybackSpeed } from '../../services/playback/playbackSettings';
 import { HEADER_BUTTON_MARGINS } from '../../utils/platformUtils';
@@ -168,6 +169,16 @@ export default function NowPlayingScreen() {
       }
 
       try {
+        // First, use the waveform persisted at download time if present. This is
+        // instant and works offline, avoiding both the network fetch and the
+        // CPU-heavy on-device extraction for downloaded sermons.
+        const savedWaveform = await getDownloadedWaveform(messageId);
+        if (savedWaveform && savedWaveform.length > 0) {
+          setWaveformData(adaptWaveformToScreen(savedWaveform));
+          setIsLoadingWaveform(false);
+          return;
+        }
+
         // Try to fetch pre-computed waveform data from API
         console.log('[NowPlayingScreen] Attempting to fetch pre-computed waveform for:', messageId);
         const precomputedWaveform = await fetchWaveformData(messageId);

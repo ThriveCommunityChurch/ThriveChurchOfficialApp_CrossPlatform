@@ -152,9 +152,10 @@ export const clearDownloadedMessages = async (): Promise<void> => {
   try {
     const ids = await getDownloadedMessageIds();
 
-    // Remove each message
+    // Remove each message and its persisted waveform
     for (const id of ids) {
       await AsyncStorage.removeItem(`message_${id}`);
+      await removeDownloadedWaveform(id);
     }
 
     // Clear the IDs list
@@ -163,6 +164,50 @@ export const clearDownloadedMessages = async (): Promise<void> => {
     console.log('All downloaded messages cleared from storage');
   } catch (error) {
     console.error('Error clearing downloaded messages:', error);
+  }
+};
+
+// Prefix for the pre-computed waveform persisted alongside a downloaded sermon,
+// so offline playback can render the real waveform without a network fetch or
+// CPU-heavy on-device extraction.
+const DOWNLOADED_WAVEFORM_PREFIX = 'downloaded_waveform_';
+
+const downloadedWaveformKey = (messageId: string) => `${DOWNLOADED_WAVEFORM_PREFIX}${messageId}`;
+
+// Persist the (raw, API-format) waveform numbers for a downloaded message.
+export const saveDownloadedWaveform = async (messageId: string, waveform: number[]): Promise<void> => {
+  if (!isStorageAvailable()) return;
+  if (!messageId || !Array.isArray(waveform) || waveform.length === 0) return;
+
+  try {
+    await AsyncStorage.setItem(downloadedWaveformKey(messageId), JSON.stringify(waveform));
+  } catch (error) {
+    console.error('Error saving downloaded waveform:', error);
+  }
+};
+
+// Retrieve the persisted waveform for a downloaded message, or null if absent.
+export const getDownloadedWaveform = async (messageId: string): Promise<number[] | null> => {
+  if (!isStorageAvailable()) return null;
+
+  try {
+    const data = await AsyncStorage.getItem(downloadedWaveformKey(messageId));
+    if (!data) return null;
+    const parsed = JSON.parse(data);
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : null;
+  } catch (error) {
+    console.error('Error reading downloaded waveform:', error);
+    return null;
+  }
+};
+
+export const removeDownloadedWaveform = async (messageId: string): Promise<void> => {
+  if (!isStorageAvailable()) return;
+
+  try {
+    await AsyncStorage.removeItem(downloadedWaveformKey(messageId));
+  } catch (error) {
+    console.error('Error removing downloaded waveform:', error);
   }
 };
 
@@ -188,9 +233,10 @@ export const removeDownloadedMessage = async (messageId: string): Promise<void> 
   if (!isStorageAvailable()) return;
 
   try {
-    // Remove the message object
+    // Remove the message object and its persisted waveform
     await AsyncStorage.removeItem(`message_${messageId}`);
-    
+    await removeDownloadedWaveform(messageId);
+
     // Update the IDs list
     const ids = await getDownloadedMessageIds();
     const filtered = ids.filter(id => id !== messageId);
