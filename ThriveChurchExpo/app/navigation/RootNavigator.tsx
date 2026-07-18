@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react'
 import { NavigationContainer, DefaultTheme, DarkTheme, Theme as NavigationTheme, getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { createBottomTabNavigator, BottomTabBar } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { View, Text, TouchableOpacity, AppState, AppStateStatus, Platform, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, AppState, AppStateStatus, Platform, Alert, ActionSheetIOS } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/useTheme';
 import { useTranslation } from '../hooks/useTranslation';
@@ -117,6 +117,46 @@ const createNavigationTheme = (theme: Theme): NavigationTheme => {
 function ListenStackNavigator({ theme }: { theme: Theme }) {
   const { t } = useTranslation();
 
+  // Opens the "Library" overflow menu (Recently Played / Downloads / Favorites)
+  // using each platform's native pattern: an action sheet on iOS and a Material
+  // dialog on Android, so it looks right on both.
+  const openLibraryMenu = useCallback(
+    (navigation: any) => {
+      const items = [
+        { label: t('navigation.recentlyPlayed'), route: 'RecentlyPlayed' },
+        { label: t('listen.downloads.title'), route: 'Downloads' },
+        { label: t('navigation.favorites'), route: 'Favorites' },
+      ];
+
+      if (Platform.OS === 'ios') {
+        const options = [...items.map((i) => i.label), t('common.cancel')];
+        const cancelButtonIndex = options.length - 1;
+        ActionSheetIOS.showActionSheetWithOptions(
+          {
+            title: t('navigation.library'),
+            options,
+            cancelButtonIndex,
+            userInterfaceStyle: theme.isDark ? 'dark' : 'light',
+          },
+          (index) => {
+            if (index !== undefined && index < items.length) {
+              navigation.navigate(items[index].route);
+            }
+          }
+        );
+      } else {
+        Alert.alert(t('navigation.library'), undefined, [
+          ...items.map((i) => ({
+            text: i.label,
+            onPress: () => navigation.navigate(i.route),
+          })),
+          { text: t('common.cancel'), style: 'cancel' as const },
+        ]);
+      }
+    },
+    [t, theme.isDark]
+  );
+
   const renderListenHome = useCallback(
     ({ navigation }: any) => (
       <ListenScreen
@@ -177,28 +217,16 @@ function ListenStackNavigator({ theme }: { theme: Theme }) {
                 <Ionicons name="play-circle" size={24} color={theme.colors.text} />
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() =>
-                  Alert.alert(t('navigation.library'), undefined, [
-                    {
-                      text: t('navigation.recentlyPlayed'),
-                      onPress: () => navigation.navigate('RecentlyPlayed'),
-                    },
-                    {
-                      text: t('listen.downloads.title'),
-                      onPress: () => navigation.navigate('Downloads'),
-                    },
-                    {
-                      text: t('navigation.favorites'),
-                      onPress: () => navigation.navigate('Favorites'),
-                    },
-                    { text: t('common.cancel'), style: 'cancel' },
-                  ])
-                }
+                onPress={() => openLibraryMenu(navigation)}
                 accessibilityLabel={t('navigation.library')}
                 accessibilityRole="button"
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                <Ionicons name="ellipsis-horizontal" size={24} color={theme.colors.text} />
+                <Ionicons
+                  name={Platform.OS === 'ios' ? 'ellipsis-horizontal' : 'ellipsis-vertical'}
+                  size={24}
+                  color={theme.colors.text}
+                />
               </TouchableOpacity>
             </View>
           ),
