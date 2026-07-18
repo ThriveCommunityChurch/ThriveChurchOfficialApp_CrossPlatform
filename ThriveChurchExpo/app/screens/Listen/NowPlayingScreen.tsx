@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import TrackPlayer from 'react-native-track-player';
+import TrackPlayer, { Event, useTrackPlayerEvents } from 'react-native-track-player';
 import { useTheme } from '../../hooks/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
@@ -30,6 +30,10 @@ import { HEADER_BUTTON_MARGINS } from '../../utils/platformUtils';
 
 const { width, height } = Dimensions.get('window');
 const isTablet = (Platform.OS === 'ios' && Platform.isPad) || Math.min(width, height) >= 768;
+
+// Sleep timer configuration
+type SleepTimerValue = number | 'endOfEpisode' | null;
+const SLEEP_TIMER_MINUTE_OPTIONS: number[] = [5, 10, 15, 30, 45, 60];
 
 // Responsive scaling factors
 const SCALE = {
@@ -85,6 +89,13 @@ export default function NowPlayingScreen() {
   // Playback speed state (session override)
   const [currentSpeed, setCurrentSpeed] = useState<PlaybackSpeed>(1);
   const [showSpeedModal, setShowSpeedModal] = useState(false);
+  // Sleep timer state
+  const [sleepTimerValue, setSleepTimerValue] = useState<SleepTimerValue>(null);
+  const [sleepRemainingMinutes, setSleepRemainingMinutes] = useState<number | null>(null);
+  const [showSleepModal, setShowSleepModal] = useState(false);
+  const sleepTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sleepIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const sleepEndAtRef = useRef<number | null>(null);
 
   // Track screen view
   useEffect(() => {
@@ -101,6 +112,94 @@ export default function NowPlayingScreen() {
       });
     }
   }, [player.currentTrack?.id, defaultSpeed]);
+
+  // Clears any armed sleep timer (timeout + countdown interval) and resets state
+  const clearSleepTimer = useCallback(() => {
+    if (sleepTimeoutRef.current) {
+      clearTimeout(sleepTimeoutRef.current);
+      sleepTimeoutRef.current = null;
+    }
+    if (sleepIntervalRef.current) {
+      clearInterval(sleepIntervalRef.current);
+      sleepIntervalRef.current = null;
+    }
+    sleepEndAtRef.current = null;
+    setSleepTimerValue(null);
+    setSleepRemainingMinutes(null);
+  }, []);
+
+  // Clear the sleep timer whenever a new track starts playing
+  useEffect(() => {
+    clearSleepTimer();
+  }, [player.currentTrack?.id, clearSleepTimer]);
+
+  // Clear the sleep timer on unmount
+  useEffect(() => {
+    return () => {
+      if (sleepTimeoutRef.current) {
+        clearTimeout(sleepTimeoutRef.current);
+      }
+      if (sleepIntervalRef.current) {
+        clearInterval(sleepIntervalRef.current);
+      }
+    };
+  }, []);
+
+  // Support "End of episode" sleep timer option by pausing when the queue ends
+  useTrackPlayerEvents([Event.PlaybackQueueEnded], () => {
+    if (sleepTimerValue === 'endOfEpisode') {
+      player.pause().catch(err => console.warn('Error pausing for sleep timer:', err));
+      clearSleepTimer();
+    }
+  });
+
+  const handleSleepTimerSelect = useCallback((value: SleepTimerValue) => {
+    // Always clear any existing timer before applying a new selection
+    if (sleepTimeoutRef.current) {
+      clearTimeout(sleepTimeoutRef.current);
+      sleepTimeoutRef.current = null;
+    }
+    if (sleepIntervalRef.current) {
+      clearInterval(sleepIntervalRef.current);
+      sleepIntervalRef.current = null;
+    }
+    sleepEndAtRef.current = null;
+
+    if (value === null) {
+      setSleepTimerValue(null);
+      setSleepRemainingMinutes(null);
+      setShowSleepModal(false);
+      return;
+    }
+
+    if (value === 'endOfEpisode') {
+      setSleepTimerValue('endOfEpisode');
+      setSleepRemainingMinutes(null);
+      setShowSleepModal(false);
+      return;
+    }
+
+    // Numeric minutes: arm a timeout that pauses playback, plus a periodic
+    // tick to keep the displayed remaining-minutes estimate fresh.
+    const durationMs = value * 60 * 1000;
+    sleepEndAtRef.current = Date.now() + durationMs;
+    setSleepTimerValue(value);
+    setSleepRemainingMinutes(value);
+
+    sleepTimeoutRef.current = setTimeout(() => {
+      player.pause().catch(err => console.warn('Error pausing for sleep timer:', err));
+      clearSleepTimer();
+    }, durationMs);
+
+    sleepIntervalRef.current = setInterval(() => {
+      if (sleepEndAtRef.current) {
+        const remainingMs = sleepEndAtRef.current - Date.now();
+        setSleepRemainingMinutes(Math.max(0, Math.ceil(remainingMs / 60000)));
+      }
+    }, 30000);
+
+    setShowSleepModal(false);
+  }, [player, clearSleepTimer]);
 
   // Handle take notes navigation
   const handleTakeNotes = useCallback(() => {
@@ -503,15 +602,51 @@ export default function NowPlayingScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Speed Control */}
-        <TouchableOpacity
-          style={styles.speedButton}
-          onPress={() => setShowSpeedModal(true)}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="speedometer-outline" size={isTablet ? 20 : 18} color={theme.colors.primary} />
-          <Text style={styles.speedButtonText}>{formatPlaybackSpeed(currentSpeed)}</Text>
-        </TouchableOpacity>
+        {/* Secondary Controls: Speed + Sleep Timer */}
+        <View style={styles.secondaryControlsRow}>
+          {/* Speed Control */}
+          <TouchableOpacity
+            style={styles.speedButton}
+            onPress={() => setShowSpeedModal(true)}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="speedometer-outline" size={isTablet ? 20 : 18} color={theme.colors.primary} />
+            <Text style={styles.speedButtonText}>{formatPlaybackSpeed(currentSpeed)}</Text>
+          </TouchableOpacity>
+
+          {/* Sleep Timer Control */}
+          <TouchableOpacity
+            style={[styles.speedButton, sleepTimerValue !== null && styles.speedButtonActive]}
+            onPress={() => setShowSleepModal(true)}
+            activeOpacity={0.7}
+            accessibilityLabel={
+              sleepTimerValue === null
+                ? t('nowPlaying.sleepTimer') + ': ' + t('nowPlaying.sleepTimerOff')
+                : sleepTimerValue === 'endOfEpisode'
+                  ? t('nowPlaying.sleepTimer') + ': ' + t('nowPlaying.sleepTimerEndOfEpisode')
+                  : t('nowPlaying.sleepTimer') + ': ' + t('nowPlaying.sleepTimerMinutesFormat', { count: sleepRemainingMinutes ?? sleepTimerValue })
+            }
+            accessibilityRole="button"
+          >
+            <Ionicons
+              name={sleepTimerValue !== null ? 'moon' : 'moon-outline'}
+              size={isTablet ? 20 : 18}
+              color={sleepTimerValue !== null ? theme.colors.background : theme.colors.primary}
+            />
+            <Text
+              style={[
+                styles.speedButtonText,
+                sleepTimerValue !== null && styles.speedButtonTextActive,
+              ]}
+            >
+              {sleepTimerValue === null
+                ? t('nowPlaying.sleepTimer')
+                : sleepTimerValue === 'endOfEpisode'
+                  ? t('nowPlaying.sleepTimerEndOfEpisode')
+                  : t('nowPlaying.sleepTimerMinutesFormat', { count: sleepRemainingMinutes ?? sleepTimerValue })}
+            </Text>
+          </TouchableOpacity>
+        </View>
 
         {/* Speed Selection Modal */}
         <Modal
@@ -545,6 +680,60 @@ export default function NowPlayingScreen() {
                     {option.label}
                   </Text>
                   {currentSpeed === option.value && (
+                    <Ionicons name="checkmark" size={20} color={theme.colors.primary} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
+        </Modal>
+
+        {/* Sleep Timer Selection Modal */}
+        <Modal
+          visible={showSleepModal}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setShowSleepModal(false)}
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowSleepModal(false)}
+          >
+            <View style={styles.speedModalContent}>
+              <Text style={styles.speedModalTitle}>{t('nowPlaying.sleepTimer')}</Text>
+              {([
+                { key: 'off', label: t('nowPlaying.sleepTimerOff'), value: null as SleepTimerValue },
+                ...SLEEP_TIMER_MINUTE_OPTIONS.map((minutes) => ({
+                  key: `min-${minutes}`,
+                  label: t('nowPlaying.sleepTimerMinutesFormat', { count: minutes }),
+                  value: minutes as SleepTimerValue,
+                })),
+                {
+                  key: 'endOfEpisode',
+                  label: t('nowPlaying.sleepTimerEndOfEpisode'),
+                  value: 'endOfEpisode' as SleepTimerValue,
+                },
+              ]).map((option) => (
+                <TouchableOpacity
+                  key={option.key}
+                  style={[
+                    styles.speedOption,
+                    sleepTimerValue === option.value && styles.speedOptionSelected,
+                  ]}
+                  onPress={() => handleSleepTimerSelect(option.value)}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: sleepTimerValue === option.value }}
+                >
+                  <Text
+                    style={[
+                      styles.speedOptionText,
+                      sleepTimerValue === option.value && styles.speedOptionTextSelected,
+                    ]}
+                  >
+                    {option.label}
+                  </Text>
+                  {sleepTimerValue === option.value && (
                     <Ionicons name="checkmark" size={20} color={theme.colors.primary} />
                   )}
                 </TouchableOpacity>
@@ -622,7 +811,15 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     justifyContent: 'center',
     // width and height are now dynamic
   },
-  // Speed control button
+  // Row housing the speed and sleep timer buttons
+  secondaryControlsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: isTablet ? 24 : 16,
+    gap: 12,
+  },
+  // Speed control button (also reused for the sleep timer button)
   speedButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -631,14 +828,19 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     paddingHorizontal: isTablet ? 20 : 16,
     backgroundColor: theme.colors.card,
     borderRadius: isTablet ? 24 : 20,
-    marginTop: isTablet ? 24 : 16,
     gap: 6,
+  },
+  speedButtonActive: {
+    backgroundColor: theme.colors.primary,
   },
   speedButtonText: {
     ...theme.typography.body,
     color: theme.colors.primary,
     fontWeight: '600',
     fontSize: isTablet ? 16 : 14,
+  },
+  speedButtonTextActive: {
+    color: theme.colors.background,
   },
   // Modal styles
   modalOverlay: {

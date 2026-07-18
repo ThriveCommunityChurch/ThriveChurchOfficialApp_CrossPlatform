@@ -37,6 +37,9 @@ export const darkColors: ThemeColors = {
   // ===== Accents & Actions =====
   primary: 'rgb(46,190,216)', // mainBlue
   primaryLight: 'rgba(46,190,216,0.35)', // bgBlue
+  // Dark mode already has sufficient contrast with the bright brand cyan on
+  // dark surfaces, so `link` maps to the same mainBlue used by `primary`.
+  link: 'rgb(46,190,216)', // mainBlue - no change needed in dark mode
 
   // ===== Status & Feedback =====
   success: 'rgb(196,214,118)', // bgGreen
