@@ -14,7 +14,8 @@ import {
   getTotalDownloadsSize,
   formatBytes,
 } from './downloadManager';
-import { saveDownloadedMessage } from '../storage/storage';
+import { saveDownloadedMessage, saveDownloadedWaveform } from '../storage/storage';
+import { fetchWaveformData } from '../api/waveformService';
 import type { SermonMessage } from '../../types/api';
 import {
   logDownloadQueueAdd,
@@ -280,6 +281,20 @@ const downloadItem = async (item: QueueItem): Promise<void> => {
 
       // Save to storage
       await saveDownloadedMessage(downloadedMessage);
+
+      // Best-effort: also persist the pre-computed waveform so offline playback
+      // can render the real waveform without a network fetch or CPU-heavy
+      // on-device extraction. Never fail the download if this is unavailable.
+      try {
+        const waveform = await fetchWaveformData(item.messageId);
+        if (waveform && waveform.length > 0) {
+          await saveDownloadedWaveform(item.messageId, waveform);
+        }
+      } catch (waveformError) {
+        if (__DEV__) {
+          console.log('Could not persist waveform for download:', item.messageId);
+        }
+      }
 
       // Update queue item status
       store.setItemStatus(item.id, 'completed');
