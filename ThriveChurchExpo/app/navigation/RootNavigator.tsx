@@ -217,6 +217,15 @@ function ListenStackNavigator({ theme }: { theme: Theme }) {
                 <Ionicons name="play-circle" size={24} color={theme.colors.text} />
               </TouchableOpacity>
               <TouchableOpacity
+                onPress={() => navigation.navigate('Favorites')}
+                style={{ marginRight: 12 }}
+                accessibilityLabel={t('navigation.favorites')}
+                accessibilityRole="button"
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons name="heart-outline" size={24} color={theme.colors.text} />
+              </TouchableOpacity>
+              <TouchableOpacity
                 onPress={() => openLibraryMenu(navigation)}
                 accessibilityLabel={t('navigation.library')}
                 accessibilityRole="button"
@@ -291,7 +300,11 @@ function ListenStackNavigator({ theme }: { theme: Theme }) {
       <ListenStack.Screen
         name="Favorites"
         component={FavoritesScreen}
-        options={{ title: t('navigation.favorites') }}
+        options={{
+          title: t('navigation.favorites'),
+          headerBackTitle: t('navigation.listen'),
+          headerTitleAlign: 'center',
+        }}
       />
       <ListenStack.Screen
         name="Live"
