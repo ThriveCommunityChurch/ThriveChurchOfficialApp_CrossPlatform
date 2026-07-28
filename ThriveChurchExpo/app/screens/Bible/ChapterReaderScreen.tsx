@@ -17,7 +17,7 @@ import {
   Modal,
   ScrollView,
 } from 'react-native';
-import { WebView } from 'react-native-webview';
+import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -143,7 +143,7 @@ export const ChapterReaderScreen: React.FC = () => {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const webViewRef = useRef<WebView>(null);
+  const webViewRef = useRef<React.ElementRef<typeof WebView>>(null);
 
   const [loading, setLoading] = useState(true);
   const [html, setHtml] = useState<string>('');
@@ -502,7 +502,7 @@ export const ChapterReaderScreen: React.FC = () => {
         originWhitelist={['*']}
         javaScriptEnabled={true}
         showsVerticalScrollIndicator={true}
-        onShouldStartLoadWithRequest={(request) => {
+        onShouldStartLoadWithRequest={(request: { url: string; isTopFrame: boolean }) => {
           // Allow initial HTML load (about:blank, data:, or the baseUrl)
           if (
             request.url === 'about:blank' ||
