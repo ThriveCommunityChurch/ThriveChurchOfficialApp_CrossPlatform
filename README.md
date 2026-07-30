@@ -82,17 +82,18 @@ Search for **"Thrive Church Official App"** in the Apple App Store or Google Pla
 
 ### Prerequisites
 
+**Common (all platforms):**
+- Node.js (v26 or higher)
+- pnpm 10.34.0 (`corepack enable` or `npm install -g pnpm@10.34.0`)
+
 **For iOS Development (macOS only):**
 - Xcode 15.0 or later
 - iOS 15.0+ deployment target
 - CocoaPods installed (`sudo gem install cocoapods`)
-- Node.js (v16 or higher)
 
 **For Android Development:**
 - Android Studio with Android SDK
 - Java Development Kit (JDK 17+)
-- Node.js (v26 or higher)
-- pnpm 10.34.0 (`corepack enable` or `npm install -g pnpm@10.34.0`)
 
 ### Setup Instructions
 

@@ -23,7 +23,7 @@ This guide covers debugging, building, and deploying the Thrive Church app built
 - **Xcode**: 15.x or later (for iOS development)
 - **Android Studio**: Latest version (for Android development)
 - **CocoaPods**: 1.14.x or later (for iOS dependencies)
-- **Expo CLI**: Installed globally via `pnpm add -g expo-cli`
+- **Expo CLI**: No global install needed — use the project-local CLI via `pnpm exec expo` (the legacy global `expo-cli` package is deprecated)
 
 ### Required Accounts
 

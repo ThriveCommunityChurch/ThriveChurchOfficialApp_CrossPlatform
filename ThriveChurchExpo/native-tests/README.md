@@ -117,7 +117,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           version: 10.34.0
       - uses: actions/setup-node@v4
@@ -133,13 +133,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           version: 10.34.0
       - uses: actions/setup-node@v4
         with:
           node-version: '26'
           cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run prebuild:android
       - uses: actions/setup-java@v4
         with:
           java-version: '17'
