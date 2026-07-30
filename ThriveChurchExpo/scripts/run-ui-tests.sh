@@ -47,7 +47,7 @@ run_ios_tests() {
     
     # Check if Xcode project exists
     if [ ! -d "ThriveChurchOfficialApp.xcworkspace" ]; then
-        print_error "Xcode workspace not found. Run 'npm run prebuild:ios' first."
+        print_error "Xcode workspace not found. Run 'pnpm run prebuild:ios' first."
         exit 1
     fi
     
@@ -97,7 +97,7 @@ run_android_tests() {
     
     # Check if gradle wrapper exists
     if [ ! -f "gradlew" ]; then
-        print_error "Gradle wrapper not found. Run 'npm run prebuild:android' first."
+        print_error "Gradle wrapper not found. Run 'pnpm run prebuild:android' first."
         exit 1
     fi
     

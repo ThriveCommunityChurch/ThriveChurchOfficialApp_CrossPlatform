@@ -91,7 +91,8 @@ Search for **"Thrive Church Official App"** in the Apple App Store or Google Pla
 **For Android Development:**
 - Android Studio with Android SDK
 - Java Development Kit (JDK 17+)
-- Node.js (v16 or higher)
+- Node.js (v26 or higher)
+- pnpm 10.34.0 (`corepack enable` or `npm install -g pnpm@10.34.0`)
 
 ### Setup Instructions
 
@@ -99,7 +100,7 @@ Search for **"Thrive Church Official App"** in the Apple App Store or Google Pla
    ```bash
    git clone https://github.com/ThriveCommunityChurch/ThriveChurchOfficialApp_CrossPlatform.git
    cd ThriveChurchOfficialApp_CrossPlatform/ThriveChurchExpo
-   npm install
+   pnpm install
    ```
 
 2. **Configure required files**:
@@ -191,13 +192,13 @@ The app integrates with the ESV (English Standard Version) Bible API for scriptu
 ### Basic Commands
 ```bash
 # Start development server
-npm start
+pnpm start
 
 # Build and run iOS
-npm run ios
+pnpm run ios
 
 # Build and run Android
-npm run android
+pnpm run android
 
 # Clear cache and restart
 npx expo start --dev-client --clear
@@ -334,7 +335,7 @@ For production, use EAS Build (Expo Application Services):
 
 ```bash
 # Install EAS CLI
-npm install -g eas-cli
+pnpm add -g eas-cli
 
 # Login to Expo
 eas login

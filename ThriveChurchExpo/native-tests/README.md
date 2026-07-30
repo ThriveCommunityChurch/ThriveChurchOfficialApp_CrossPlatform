@@ -40,24 +40,24 @@ The Expo config plugin (`plugins/withNativeUITests.js`) automatically:
 
 ## Running Tests
 
-### Using npm scripts (Recommended)
+### Using pnpm scripts (Recommended)
 
 ```bash
 # Run all UI tests (iOS + Android)
-npm run test:ui
+pnpm run test:ui
 
 # Run iOS tests only
-npm run test:ui:ios
+pnpm run test:ui:ios
 
 # Run Android tests only
-npm run test:ui:android
+pnpm run test:ui:android
 ```
 
 ### Using the shell script directly
 
 ```bash
 # Make sure you've run prebuild first
-npm run prebuild
+pnpm run prebuild
 
 # Run tests
 ./scripts/run-ui-tests.sh ios       # iOS only
@@ -69,7 +69,7 @@ npm run prebuild
 
 ```bash
 # Run on a specific simulator
-IOS_DESTINATION="platform=iOS Simulator,name=iPhone 14" npm run test:ui:ios
+IOS_DESTINATION="platform=iOS Simulator,name=iPhone 14" pnpm run test:ui:ios
 ```
 
 ### Running Individual Test Classes
@@ -117,21 +117,29 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.0
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-      - run: npm ci
+          node-version: '26'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
       - run: sudo gem install xcodeproj
-      - run: npm run prebuild:ios
-      - run: npm run test:ui:ios
+      - run: pnpm run prebuild:ios
+      - run: pnpm run test:ui:ios
 
   android-ui-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.0
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '26'
+          cache: 'pnpm'
       - uses: actions/setup-java@v4
         with:
           java-version: '17'
@@ -140,13 +148,13 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 33
-          script: npm run test:ui:android
+          script: pnpm run test:ui:android
 ```
 
 ## Troubleshooting
 
 ### Tests fail with "Metro server not running"
-Tests are configured to run in Release mode. Make sure you ran `npm run prebuild` before testing.
+Tests are configured to run in Release mode. Make sure you ran `pnpm run prebuild` before testing.
 
 ### Onboarding tests are skipped
 Onboarding tests use `XCTSkip`/`assumeTrue` when onboarding has already been completed. To re-run onboarding tests, clear the app data:
@@ -162,6 +170,6 @@ Install it with: `sudo gem install xcodeproj`
 ## Adding New Tests
 
 1. Add new test files to `native-tests/ios/` or `native-tests/android/`
-2. Run `npm run prebuild` to copy files to native projects
+2. Run `pnpm run prebuild` to copy files to native projects
 3. Tests will automatically be included in the test targets
 

@@ -18,12 +18,12 @@ This guide covers debugging, building, and deploying the Thrive Church app built
 
 ### Required Software
 
-- **Node.js**: v18.x or later
-- **npm**: v9.x or later
+- **Node.js**: v26.x or later
+- **pnpm**: 10.34.0 (`corepack enable` or `npm install -g pnpm@10.34.0`)
 - **Xcode**: 15.x or later (for iOS development)
 - **Android Studio**: Latest version (for Android development)
 - **CocoaPods**: 1.14.x or later (for iOS dependencies)
-- **Expo CLI**: Installed globally via `npm install -g expo-cli`
+- **Expo CLI**: Installed globally via `pnpm add -g expo-cli`
 
 ### Required Accounts
 
@@ -39,10 +39,10 @@ This guide covers debugging, building, and deploying the Thrive Church app built
 
 ```bash
 cd ThriveChurchExpo
-npm install --legacy-peer-deps
+pnpm install
 ```
 
-**Note**: We use `--legacy-peer-deps` due to some peer dependency conflicts in the current package versions.
+**Note**: A couple of packages report peer dependency warnings (e.g. `react-native-fast-image`); pnpm surfaces these as warnings rather than install failures, so no extra flags are needed.
 
 ### 2. Set Up Credentials
 
@@ -227,7 +227,7 @@ cd android && ./gradlew clean && cd ..
 # Reset everything
 watchman watch-del-all
 rm -rf node_modules
-npm install --legacy-peer-deps
+pnpm install
 cd ios && rm -rf Pods Podfile.lock && pod install && cd ..
 ```
 
@@ -241,7 +241,7 @@ cd ios && rm -rf Pods Podfile.lock && pod install && cd ..
 
 1. Install EAS CLI:
    ```bash
-   npm install -g eas-cli
+   pnpm add -g eas-cli
    ```
 
 2. Login to Expo:

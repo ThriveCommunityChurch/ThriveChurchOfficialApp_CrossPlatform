@@ -16,9 +16,10 @@ This guide covers building and deploying the Thrive Church app using Expo Bare W
 ## Prerequisites
 
 ### General Requirements
-- Node.js (v16 or higher)
-- Expo CLI: `npm install -g @expo/cli`
-- EAS CLI: `npm install -g @expo/eas-cli` (for production builds)
+- Node.js (v26 or higher)
+- pnpm 10.34.0 (`corepack enable` or `npm install -g pnpm@10.34.0`)
+- Expo CLI: `pnpm add -g @expo/cli`
+- EAS CLI: `pnpm add -g @expo/eas-cli` (for production builds)
 
 ### Android Requirements
 - Android Studio with Android SDK
@@ -118,7 +119,7 @@ EAS (Expo Application Services) provides cloud-based builds that are perfect for
 
 ```bash
 # Install EAS CLI globally
-npm install -g @expo/eas-cli
+pnpm add -g @expo/eas-cli
 
 # Login to your Expo account
 eas login
@@ -320,12 +321,12 @@ npx expo start --dev-client --clear
 #### Issue: Build fails with dependency errors
 **Solution:**
 ```bash
-# Clear npm cache
-npm cache clean --force
+# Clear pnpm store cache
+pnpm store prune
 
 # Reinstall dependencies
-rm -rf node_modules package-lock.json
-npm install
+rm -rf node_modules pnpm-lock.yaml
+pnpm install
 
 # Try build again
 eas build --platform ios --profile production
@@ -409,7 +410,7 @@ npx expo run:android --variant release
 **Commands Changed:**
 - `npx react-native run-ios` → `npx expo run:ios`
 - `npx react-native run-android` → `npx expo run:android`
-- `npm start` → `npx expo start --dev-client`
+- `pnpm start` → `pnpm exec expo start --dev-client`
 
 ### Firebase Configuration
 
