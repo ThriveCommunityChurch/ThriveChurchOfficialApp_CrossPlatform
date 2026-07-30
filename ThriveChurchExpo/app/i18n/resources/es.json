@@ -730,18 +730,20 @@
     "noVideoAvailable": "No hay video disponible",
     "noVideoMessage": "Este sermón no tiene video"
   },
-  "biblePassage": {
-    "title": "Pasaje Bíblico",
-    "error": "Error",
-    "noPassageReference": "No hay referencia de pasaje bíblico disponible",
-    "esvApiNotConfigured": "API de ESV No Configurada",
-    "esvApiMessage": "Para escuchar audio bíblico, necesitas:\n\n1. Obtener una clave API gratuita de api.esv.org\n2. Agregarla a la configuración de tu aplicación\n\nLa API de ESV es gratuita para uso no comercial.",
-    "ok": "OK",
-    "audioPlaybackError": "Error de Reproducción de Audio",
-    "unableToPlayAudio": "No se puede reproducir el audio bíblico. Por favor verifica tu conexión a internet e intenta de nuevo.",
-    "noPassageAvailable": "No hay pasaje bíblico disponible",
-    "noPassageMessage": "Este sermón no tiene una referencia de pasaje bíblico"
-  },
+"biblePassage": {
+     "title": "Pasaje Bíblico",
+     "error": "Error",
+     "noPassageReference": "No hay referencia de pasaje bíblico disponible",
+     "esvApiNotConfigured": "API de ESV No Configurada",
+     "esvApiMessage": "Para escuchar audio bíblico, necesitas:\n\n1. Obtener una clave API gratuita de api.esv.org\n2. Agregarla a la configuración de tu aplicación\n\nLa API de ESV es gratuita para uso no comercial.",
+     "fishApiNotConfigured": "API de Fish No Configurada",
+     "fishApiMessage": "Para escuchar audio bíblico, necesitas:\n\n1. Obtener una clave API gratuita de api.fish.audio\n2. Agregarla a la configuración de tu aplicación\n\nLa API de Fish es requerida para la conversión de texto a voz.",
+     "ok": "OK",
+     "audioPlaybackError": "Error de Reproducción de Audio",
+     "unableToPlayAudio": "No se puede reproducir el audio bíblico. Por favor verifica tu conexión a internet e intenta de nuevo.",
+     "noPassageAvailable": "No hay pasaje bíblico disponible",
+     "noPassageMessage": "Este sermón no tiene una referencia de pasaje bíblico"
+   },
   "rssDetail": {
     "error": "Error",
     "unableToOpenLink": "No se puede abrir el enlace"

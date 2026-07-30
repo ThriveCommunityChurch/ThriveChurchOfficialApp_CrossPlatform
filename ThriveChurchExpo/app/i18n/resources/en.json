@@ -769,18 +769,20 @@
     "noVideoAvailable": "No video available",
     "noVideoMessage": "This sermon doesn't have a video"
   },
-  "biblePassage": {
-    "title": "Bible Passage",
-    "error": "Error",
-    "noPassageReference": "No Bible passage reference available",
-    "esvApiNotConfigured": "ESV API Not Configured",
-    "esvApiMessage": "To listen to Bible audio, you need to:\n\n1. Get a free API key from api.esv.org\n2. Add it to your app configuration\n\nThe ESV API is free for non-commercial use.",
-    "ok": "OK",
-    "audioPlaybackError": "Audio Playback Error",
-    "unableToPlayAudio": "Unable to play Bible audio. Please check your internet connection and try again.",
-    "noPassageAvailable": "No Bible passage available",
-    "noPassageMessage": "This sermon doesn't have a Bible passage reference"
-  },
+"biblePassage": {
+     "title": "Bible Passage",
+     "error": "Error",
+     "noPassageReference": "No Bible passage reference available",
+     "esvApiNotConfigured": "ESV API Not Configured",
+     "esvApiMessage": "To listen to Bible audio, you need to:\n\n1. Get a free API key from api.esv.org\n2. Add it to your app configuration\n\nThe ESV API is free for non-commercial use.",
+     "fishApiNotConfigured": "Fish API Not Configured",
+     "fishApiMessage": "To listen to Bible audio, you need to:\n\n1. Get a free API key from api.fish.audio\n2. Add it to your app configuration\n\nThe Fish API is required for text-to-speech conversion.",
+     "ok": "OK",
+     "audioPlaybackError": "Audio Playback Error",
+     "unableToPlayAudio": "Unable to play Bible audio. Please check your internet connection and try again.",
+     "noPassageAvailable": "No Bible passage available",
+     "noPassageMessage": "This sermon doesn't have a Bible passage reference"
+   },
   "rssDetail": {
     "error": "Error",
     "unableToOpenLink": "Unable to open link"

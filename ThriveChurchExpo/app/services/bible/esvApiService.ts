@@ -41,10 +41,12 @@ export interface BiblePassage {
 class ESVApiService {
   private readonly baseUrl = 'https://api.esv.org/v3';
   private readonly apiKey: string;
+  private readonly fishApiKey: string;
 
   constructor() {
-    // Load API key from centralized credentials configuration
+    // Load API keys from centralized credentials configuration
     this.apiKey = apiConfig.esvApiKey || 'DEMO_KEY';
+    this.fishApiKey = apiConfig.fishApiKey || '';
   }
 
   /**
@@ -167,49 +169,122 @@ class ESVApiService {
     return patterns.some(pattern => pattern.test(reference.trim()));
   }
 
-  /**
-   * Get audio URL for a Bible passage
-   * The ESV API returns a redirect to an MP3 file
-   * @param reference - Bible reference (e.g., "John 3:16", "Genesis 1:1-3")
-   * @returns string - URL to audio file with authorization headers
-   */
-  getAudioUrl(reference: string): string {
-    if (!reference || reference.trim() === '') {
-      throw new Error('No passage reference provided');
+/**
+    * Get audio URL for a Bible passage using Fish Audio TTS with streaming
+    * @param reference - Bible reference (e.g., "John 3:16", "Genesis 1:1-3")
+    * @returns Promise<string> - URL to audio blob object
+    */
+   async getAudioUrl(reference: string): Promise<string> {
+     if (!reference || reference.trim() === '') {
+       throw new Error('No passage reference provided');
+     }
+
+     // First, get the passage text from ESV API
+     const passage = await this.getPassage(reference);
+     if (passage.error) {
+       throw new Error(passage.error);
+     }
+
+     const text = passage.text;
+     if (!text) {
+       throw new Error('No text found for passage');
+     }
+
+     // If Fish API key is not configured, throw an error
+     if (!this.fishApiKey) {
+       throw new Error('Fish API key not configured');
+     }
+
+try {
+        const response = await fetch('https://api.fish.audio/v1/tts', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${this.fishApiKey}`,
+            'Content-Type': 'application/json',
+            model: 's2.1-pro-free',
+          },
+          body: JSON.stringify({
+            text: text,
+            // We need a reference_id for the voice. We can use a default one or make it configurable.
+            // For now, we'll use a placeholder. In production, we should allow voice selection.
+            reference_id: 'e3cd384158934cc9a01029cd7d278634', // Updated voice reference_id
+            format: 'mp3',
+          }),
+        });
+
+       if (!response.ok) {
+         // Try to get error message from response
+         let errorMessage = `Fish API error: ${response.status}`;
+         try {
+           const errorData = await response.json();
+           if (errorData.message) {
+             errorMessage = `Fish API error: ${errorData.message}`;
+           }
+         } catch (e) {
+           // Ignore
+         }
+         throw new Error(errorMessage);
+       }
+
+       // Handle streaming response - read chunks as they arrive
+       const reader = response.body?.getReader();
+       if (!reader) {
+         throw new Error('Response body is not readable');
+       }
+
+       const chunks: Uint8Array[] = [];
+       let done = false;
+
+       while (!done) {
+         const { value, done: doneReading } = await reader.read();
+         done = doneReading;
+         if (value) {
+           chunks.push(value);
+         }
+       }
+
+// Concatenate all chunks
+        const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
+        if (totalLength === 0) {
+          throw new Error('Received empty audio response from Fish API');
+        }
+        const result = new Uint8Array(totalLength);
+        let position = 0;
+        for (const chunk of chunks) {
+          result.set(chunk, position);
+          position += chunk.length;
+        }
+
+        // Create blob URL from the concatenated audio data
+        const blob = new Blob([result], { type: 'audio/mpeg' });
+        return URL.createObjectURL(blob);
+     } catch (error) {
+       console.error('Fish Audio TTS Error:', error);
+       throw error;
+     }
+   }
+
+
+
+/**
+    * Get API status and configuration info
+    * @returns object with API status information
+    */
+   getApiStatus() {
+     return {
+       hasApiKey: this.apiKey !== 'DEMO_KEY',
+       baseUrl: this.baseUrl,
+       isConfigured: this.apiKey !== 'DEMO_KEY',
+     };
+   }
+
+/**
+     * Check if Fish API key is configured
+     * @returns boolean
+     */
+    hasFishApiKey(): boolean {
+      return !!this.fishApiKey;
     }
-
-    if (this.apiKey === 'DEMO_KEY') {
-      throw new Error('ESV API key not configured');
-    }
-
-    // Encode the reference for URL
-    const encodedReference = encodeURIComponent(reference);
-
-    // Return the audio URL - the client will need to add Authorization header
-    return `${this.baseUrl}/passage/audio/?q=${encodedReference}`;
-  }
-
-  /**
-   * Get authorization header for ESV API requests
-   * @returns object with Authorization header
-   */
-  getAuthHeaders(): { Authorization: string } {
-    return {
-      Authorization: `Token ${this.apiKey}`,
-    };
-  }
-
-  /**
-   * Get API status and configuration info
-   * @returns object with API status information
-   */
-  getApiStatus() {
-    return {
-      hasApiKey: this.apiKey !== 'DEMO_KEY',
-      baseUrl: this.baseUrl,
-      isConfigured: this.apiKey !== 'DEMO_KEY',
-    };
-  }
 
   /**
    * Fetch a Bible chapter as HTML from the ESV API

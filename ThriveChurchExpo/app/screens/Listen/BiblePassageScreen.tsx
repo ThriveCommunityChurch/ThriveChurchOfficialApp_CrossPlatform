@@ -82,53 +82,62 @@ const BiblePassageScreen: React.FC = () => {
     navigation.goBack();
   }, [navigation]);
 
-  const handlePlayAudio = useCallback(async () => {
-    if (!message.PassageRef) {
-      Alert.alert(t('biblePassage.error'), t('biblePassage.noPassageReference'));
-      return;
-    }
+const handlePlayAudio = useCallback(async () => {
+     if (!message.PassageRef) {
+       Alert.alert(t('biblePassage.error'), t('biblePassage.noPassageReference'));
+       return;
+     }
 
-    try {
-      setIsLoadingAudio(true);
+     try {
+       setIsLoadingAudio(true);
 
-      // Check if ESV API is configured
-      const apiStatus = esvApiService.getApiStatus();
-      if (!apiStatus.isConfigured) {
-        Alert.alert(
-          t('biblePassage.esvApiNotConfigured'),
-          t('biblePassage.esvApiMessage'),
-          [{ text: t('biblePassage.ok') }]
-        );
-        return;
-      }
+       // Check if ESV API is configured
+       const apiStatus = esvApiService.getApiStatus();
+       if (!apiStatus.isConfigured) {
+         Alert.alert(
+           t('biblePassage.esvApiNotConfigured'),
+           t('biblePassage.esvApiMessage'),
+           [{ text: t('biblePassage.ok') }]
+         );
+         return;
+       }
 
-      // Track Bible audio play event
-      await logPlayBibleAudio(message.PassageRef);
+       // Check if Fish API is configured
+       if (!esvApiService.hasFishApiKey()) {
+         Alert.alert(
+           t('biblePassage.fishApiNotConfigured'),
+           t('biblePassage.fishApiMessage'),
+           [{ text: t('biblePassage.ok') }]
+         );
+         setIsLoadingAudio(false);
+         return;
+       }
 
-      // Get audio URL
-      const audioUrl = esvApiService.getAudioUrl(message.PassageRef);
-      const authHeaders = esvApiService.getAuthHeaders();
+       // Track Bible audio play event
+       await logPlayBibleAudio(message.PassageRef);
 
-      // Setup player
-      await setupPlayer();
+       // Get audio URL
+       const audioUrl = await esvApiService.getAudioUrl(message.PassageRef);
 
-      // Stop any current playback
-      await TrackPlayer.reset();
+       // Setup player
+       await setupPlayer();
 
-      // Add track with authorization headers and ESV reference image
-      await TrackPlayer.add({
-        id: `bible-${message.PassageRef}`,
-        url: audioUrl,
-        title: message.PassageRef,
-        artist: 'ESV Bible',
-        artwork: ESV_REFERENCE_IMAGE.uri,
-        headers: authHeaders,
-      });
+       // Stop any current playback
+       await TrackPlayer.reset();
 
-      // Play audio
-      await TrackPlayer.play();
-      // Note: isPlaying state will be updated by the polling effect
-      // isLoadingAudio will be cleared by polling effect when playback starts
+       // Add track with ESV reference image (audio blob does not require headers)
+       await TrackPlayer.add({
+         id: `bible-${message.PassageRef}`,
+         url: audioUrl,
+         title: message.PassageRef,
+         artist: 'ESV Bible',
+         artwork: ESV_REFERENCE_IMAGE.uri,
+       });
+
+       // Play audio
+       await TrackPlayer.play();
+       // Note: isPlaying state will be updated by the polling effect
+       // isLoadingAudio will be cleared by polling effect when playback starts
 
     } catch (error) {
       console.error('Error playing Bible audio:', error);

@@ -15,8 +15,9 @@ const extra = expoConfig?.extra || {};
  */
 export const apiConfig = {
   baseURL: extra.API_BASE_URL || 'http://localhost:8080',
-  timeout: 30000, // 30 seconds
+  timeout: 30000,
   esvApiKey: extra.ESV_API_KEY || '',
+  fishApiKey: extra.FISH_API_KEY || '',
 };
 
 /**

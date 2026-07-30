@@ -218,59 +218,68 @@ export const ChapterReaderScreen: React.FC = () => {
     return () => clearInterval(interval);
   }, [chapterReference]);
 
-  // Handle audio playback
-  const handlePlayAudio = useCallback(async () => {
-    try {
-      setIsLoadingAudio(true);
+// Handle audio playback
+   const handlePlayAudio = useCallback(async () => {
+     try {
+       setIsLoadingAudio(true);
 
-      // Check if ESV API is configured
-      const apiStatus = esvApiService.getApiStatus();
-      if (!apiStatus.isConfigured) {
-        Alert.alert(
-          t('biblePassage.esvApiNotConfigured'),
-          t('biblePassage.esvApiMessage'),
-          [{ text: t('biblePassage.ok') }]
-        );
-        setIsLoadingAudio(false);
-        return;
-      }
+       // Check if ESV API is configured
+       const apiStatus = esvApiService.getApiStatus();
+       if (!apiStatus.isConfigured) {
+         Alert.alert(
+           t('biblePassage.esvApiNotConfigured'),
+           t('biblePassage.esvApiMessage'),
+           [{ text: t('biblePassage.ok') }]
+         );
+         setIsLoadingAudio(false);
+         return;
+       }
 
-      // Track Bible audio play event
-      await logPlayBibleAudio(chapterReference);
+       // Check if Fish API is configured
+       if (!esvApiService.hasFishApiKey()) {
+         Alert.alert(
+           t('biblePassage.fishApiNotConfigured'),
+           t('biblePassage.fishApiMessage'),
+           [{ text: t('biblePassage.ok') }]
+         );
+         setIsLoadingAudio(false);
+         return;
+       }
 
-      // Get audio URL
-      const audioUrl = esvApiService.getAudioUrl(chapterReference);
-      const authHeaders = esvApiService.getAuthHeaders();
+       // Track Bible audio play event
+       await logPlayBibleAudio(chapterReference);
 
-      // Setup player
-      await setupPlayer();
+       // Get audio URL
+       const audioUrl = await esvApiService.getAudioUrl(chapterReference);
 
-      // Stop any current playback
-      await TrackPlayer.reset();
+       // Setup player
+       await setupPlayer();
 
-      // Add track with authorization headers and ESV reference image
-      await TrackPlayer.add({
-        id: `bible-${chapterReference}`,
-        url: audioUrl,
-        title: chapterReference,
-        artist: 'ESV Bible',
-        artwork: ESV_REFERENCE_IMAGE.uri,
-        headers: authHeaders,
-      });
+       // Stop any current playback
+       await TrackPlayer.reset();
 
-      // Play audio
-      await TrackPlayer.play();
+       // Add track with ESV reference image (audio blob does not require headers)
+       await TrackPlayer.add({
+         id: `bible-${chapterReference}`,
+         url: audioUrl,
+         title: chapterReference,
+         artist: 'ESV Bible',
+         artwork: ESV_REFERENCE_IMAGE.uri,
+       });
 
-    } catch (err) {
-      console.error('Error playing Bible audio:', err);
-      setIsLoadingAudio(false);
-      Alert.alert(
-        t('biblePassage.audioPlaybackError'),
-        t('biblePassage.unableToPlayAudio'),
-        [{ text: t('biblePassage.ok') }]
-      );
-    }
-  }, [chapterReference, t]);
+       // Play audio
+       await TrackPlayer.play();
+
+     } catch (err) {
+       console.error('Error playing Bible audio:', err);
+       setIsLoadingAudio(false);
+       Alert.alert(
+         t('biblePassage.audioPlaybackError'),
+         t('biblePassage.unableToPlayAudio'),
+         [{ text: t('biblePassage.ok') }]
+       );
+     }
+   }, [chapterReference, t]);
 
   const handleStopAudio = useCallback(async () => {
     try {
