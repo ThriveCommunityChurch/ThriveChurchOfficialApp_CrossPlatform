@@ -115,6 +115,9 @@ Both iOS and Android test suites include:
 jobs:
   ios-ui-tests:
     runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: ThriveChurchExpo
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v6
@@ -124,6 +127,7 @@ jobs:
         with:
           node-version: '26'
           cache: 'pnpm'
+          cache-dependency-path: ThriveChurchExpo/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - run: sudo gem install xcodeproj
       - run: pnpm run prebuild:ios
@@ -131,6 +135,9 @@ jobs:
 
   android-ui-tests:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ThriveChurchExpo
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v6
@@ -140,6 +147,7 @@ jobs:
         with:
           node-version: '26'
           cache: 'pnpm'
+          cache-dependency-path: ThriveChurchExpo/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - run: pnpm run prebuild:android
       - uses: actions/setup-java@v4

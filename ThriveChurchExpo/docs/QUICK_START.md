@@ -10,7 +10,7 @@ Get up and running with Thrive Church app development using Expo Bare Workflow i
 
 **Common (all platforms):**
 - Node.js (v26 or higher)
-- pnpm 10.34.0 (`corepack enable` or `npm install -g pnpm@10.34.0`)
+- pnpm 10.34.0 (`npm install -g pnpm@10.34.0`)
 
 **For Android Development:**
 - Android Studio with Android SDK

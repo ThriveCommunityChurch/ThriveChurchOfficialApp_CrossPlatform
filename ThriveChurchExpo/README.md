@@ -5,7 +5,7 @@
 ## 📋 Prerequisites
 
 - Node.js 26+ installed
-- pnpm 10.34.0 (`corepack enable` or `npm install -g pnpm@10.34.0`)
+- pnpm 10.34.0 (`npm install -g pnpm@10.34.0`)
 - Xcode (for iOS development)
 - Android Studio (for Android development)
 - Git

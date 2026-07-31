@@ -19,7 +19,7 @@ This guide covers debugging, building, and deploying the Thrive Church app built
 ### Required Software
 
 - **Node.js**: v26.x or later
-- **pnpm**: 10.34.0 (`corepack enable` or `npm install -g pnpm@10.34.0`)
+- **pnpm**: 10.34.0 (`npm install -g pnpm@10.34.0`)
 - **Xcode**: 15.x or later (for iOS development)
 - **Android Studio**: Latest version (for Android development)
 - **CocoaPods**: 1.14.x or later (for iOS dependencies)

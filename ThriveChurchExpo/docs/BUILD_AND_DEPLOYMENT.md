@@ -17,7 +17,7 @@ This guide covers building and deploying the Thrive Church app using Expo Bare W
 
 ### General Requirements
 - Node.js (v26 or higher)
-- pnpm 10.34.0 (`corepack enable` or `npm install -g pnpm@10.34.0`)
+- pnpm 10.34.0 (`npm install -g pnpm@10.34.0`)
 - Expo CLI: `pnpm add -g @expo/cli`
 - EAS CLI: `pnpm add -g eas-cli` (for production builds)
 
