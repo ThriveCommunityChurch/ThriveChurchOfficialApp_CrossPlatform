@@ -2,6 +2,10 @@
   "name": "thrivechurchexpo",
   "version": "1.0.0",
   "main": "index.js",
+  "engines": {
+    "node": ">=26.0.0"
+  },
+  "packageManager": "pnpm@10.34.0",
   "scripts": {
     "start": "expo start --dev-client",
     "android": "expo run:android",
@@ -16,8 +20,8 @@
     "version:patch": "node scripts/increment-build.js --bump-patch",
     "version:minor": "node scripts/increment-build.js --bump-minor",
     "version:major": "node scripts/increment-build.js --bump-major",
-    "build:ios": "node scripts/increment-build.js && npm run prebuild:ios",
-    "build:android": "node scripts/increment-build.js && npm run prebuild:android",
+    "build:ios": "node scripts/increment-build.js && pnpm run prebuild:ios",
+    "build:android": "node scripts/increment-build.js && pnpm run prebuild:android",
     "test:ui": "./scripts/run-ui-tests.sh all",
     "test:ui:ios": "./scripts/run-ui-tests.sh ios",
     "test:ui:android": "./scripts/run-ui-tests.sh android"
@@ -74,6 +78,7 @@
   },
   "private": true,
   "devDependencies": {
+    "@types/node": "^26.1.2",
     "@types/react": "~19.1.0",
     "eslint": "^9.39.5",
     "prettier": "^3.9.6",

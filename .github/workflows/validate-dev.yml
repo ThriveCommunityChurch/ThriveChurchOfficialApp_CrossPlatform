@@ -29,43 +29,49 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
       
-      # Step 2: Setup Node.js 22.x (LTS)
+      # Step 2: Setup pnpm
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10.34.0
+
+      # Step 3: Setup Node.js 26.x
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: '22.x'
-          cache: 'npm'
-          cache-dependency-path: ThriveChurchExpo/package-lock.json
-      
-      # Step 3: Install dependencies
+          node-version: '26.x'
+          cache: 'pnpm'
+          cache-dependency-path: ThriveChurchExpo/pnpm-lock.yaml
+
+      # Step 4: Install dependencies
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: pnpm install --frozen-lockfile
       
-      # Step 4: Generate mock credentials for CI
+      # Step 5: Generate mock credentials for CI
       # This creates a fake credentials.json file so the app configuration can load
       - name: Generate mock credentials
         run: node scripts/generate-ci-credentials.js
-      
-      # Step 5: TypeScript type checking
+
+      # Step 6: TypeScript type checking
       # Validates that all TypeScript code compiles without errors
       - name: TypeScript type check
-        run: npx tsc --noEmit
+        run: pnpm exec tsc --noEmit
 
-      # Step 6: Dependency security audit
+      # Step 7: Dependency security audit
       # Checks for known security vulnerabilities in dependencies
       - name: Security audit
-        run: npm audit --audit-level=moderate
+        run: pnpm audit --audit-level=moderate
         continue-on-error: true
-      
-      # Step 7: Expo export validation
+
+      # Step 8: Expo export validation
       # Validates that the JavaScript bundle can be created successfully
       # This catches import errors, bundle configuration issues, etc.
       - name: Validate Expo export
-        run: npx expo export --platform all --output-dir dist
+        run: pnpm exec expo export --platform all --output-dir dist
         env:
           # Disable telemetry in CI
           EXPO_NO_TELEMETRY: 1
-      
+
       # Step 9: Summary
       - name: Validation summary
         if: success()

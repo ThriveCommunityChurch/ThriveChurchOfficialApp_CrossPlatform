@@ -213,8 +213,8 @@ application.registerForRemoteNotifications()
 **Task 1.1: Install Firebase Packages**
 ```bash
 cd ThriveChurchExpo
-npm install @react-native-firebase/analytics@^23.4.0
-npm install @react-native-firebase/messaging@^23.4.0
+pnpm add @react-native-firebase/analytics@^23.4.0
+pnpm add @react-native-firebase/messaging@^23.4.0
 ```
 
 **Task 1.2: Enable Firebase Plugins**

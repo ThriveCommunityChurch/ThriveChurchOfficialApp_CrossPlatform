@@ -8,13 +8,15 @@ Get up and running with Thrive Church app development using Expo Bare Workflow i
 
 ### Required Software
 
+**Common (all platforms):**
+- Node.js (v26 or higher)
+- pnpm 10.34.0 (`npm install -g pnpm@10.34.0`)
+
 **For Android Development:**
-- Node.js (v16 or higher)
 - Android Studio with Android SDK
 - Java Development Kit (JDK 17+)
 
 **For iOS Development (macOS only):**
-- Node.js (v16 or higher)
 - Xcode (latest version)
 - CocoaPods
 
@@ -22,7 +24,7 @@ Get up and running with Thrive Church app development using Expo Bare Workflow i
 
 ```bash
 # Install Expo CLI globally
-npm install -g @expo/cli
+pnpm add -g @expo/cli
 
 # Verify installation
 expo --version
@@ -39,7 +41,7 @@ expo --version
 cd ThriveChurchExpo
 
 # Install Node dependencies
-npm install
+pnpm install
 
 # For iOS only: Install CocoaPods dependencies
 cd ios && pod install && cd ..
@@ -106,7 +108,7 @@ npx expo start --dev-client
 
 1. **Install dependencies:**
    ```bash
-   npm install
+   pnpm install
    cd ios && pod install && cd ..
    ```
 
@@ -152,7 +154,7 @@ npx expo run:android  # For Android
 
 3. **New dependencies:**
    ```bash
-   npm install <package-name>
+   pnpm add <package-name>
    
    # For iOS, update pods if needed
    cd ios && pod install && cd ..
@@ -365,7 +367,7 @@ npx expo start --dev-client --clear
 **Commands:**
 - `npx react-native run-ios` → `npx expo run:ios`
 - `npx react-native run-android` → `npx expo run:android`
-- `npm start` → `npx expo start --dev-client`
+- `pnpm start` → `pnpm exec expo start --dev-client`
 
 **Benefits:**
 - ✅ **Automatic linking** - No manual native module setup

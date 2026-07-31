@@ -4,7 +4,8 @@
 
 ## 📋 Prerequisites
 
-- Node.js 18+ installed
+- Node.js 26+ installed
+- pnpm 10.34.0 (`npm install -g pnpm@10.34.0`)
 - Xcode (for iOS development)
 - Android Studio (for Android development)
 - Git
@@ -17,7 +18,7 @@
 
 ```bash
 cd ThriveChurchExpo
-npm install
+pnpm install
 ```
 
 ### 2. Setup Credentials
@@ -153,13 +154,13 @@ npx expo run:android --variant release
 
 ```bash
 # Run TypeScript check
-npx tsc --noEmit
+pnpm exec tsc --noEmit
 
 # Run tests (if configured)
-npm test
+pnpm test
 
 # Lint code (if configured)
-npm run lint
+pnpm run lint
 ```
 
 ### Credentials
@@ -190,7 +191,7 @@ cd android && ./gradlew clean && cd ..
 # Full nuclear reset (when nothing else works)
 watchman watch-del-all
 rm -rf node_modules
-npm install --legacy-peer-deps
+pnpm install
 cd ios && rm -rf Pods Podfile.lock && pod install && cd ..
 
 # Kill process on port 8081 (if Metro won't start)
@@ -346,9 +347,9 @@ npx expo prebuild --platform ios --clean
 npx expo prebuild --platform android --clean
 ```
 
-**Always use `--legacy-peer-deps`** when installing npm packages:
+**Peer dependency warnings are expected** for a couple of packages (e.g. `react-native-fast-image`) — pnpm surfaces them as warnings rather than install failures, so no extra flags are needed:
 ```bash
-npm install --legacy-peer-deps <package-name>
+pnpm add <package-name>
 ```
 
 **Gesture Handler Import**: `react-native-gesture-handler` must be imported first in `index.js` (already configured)
@@ -404,8 +405,8 @@ npx expo start --clear
 rm -rf node_modules
 rm -rf ios/Pods
 rm -rf android/.gradle
-npm install
-npx expo prebuild --clean
+pnpm install
+pnpm exec expo prebuild --clean
 ```
 
 ### TypeScript errors
