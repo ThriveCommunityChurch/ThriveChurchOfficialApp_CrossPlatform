@@ -208,6 +208,11 @@ npx expo run:android
 
 ### Production Builds
 
+> Store releases are automated. Merging to `master` builds on EAS and uploads to
+> TestFlight and Google Play with no local machine involved — see
+> [docs/CI_CD_RELEASE.md](docs/CI_CD_RELEASE.md). The commands below are for
+> one-off local builds.
+
 ```bash
 # iOS - Using Xcode (Archive with Distribution profile)
 APP_ENV=production npx expo prebuild --platform ios --clean
@@ -250,25 +255,26 @@ Release builds require a keystore. Setup steps:
 
 ### CI/CD Setup
 
-For automated builds, inject credentials at build time:
+Automated releases are configured. See
+**[docs/CI_CD_RELEASE.md](docs/CI_CD_RELEASE.md)** for the full setup guide.
 
-```bash
-# 1. Create credentials file from CI secrets
-echo "$CREDENTIALS_JSON" > credentials.production.json
+Short version — every push to `master` runs
+`.github/workflows/release-master.yml`, which prebuilds on a Linux runner, then
+runs `eas build --profile production --auto-submit` to ship to TestFlight and
+the Google Play internal track.
 
-# 2. Set Android keystore password (if building Android)
-export THRIVE_RELEASE_STORE_PASSWORD="$KEYSTORE_PASSWORD"
-export THRIVE_RELEASE_KEY_PASSWORD="$KEY_PASSWORD"
+Required GitHub configuration:
 
-# 3. Build with production environment
-APP_ENV=production npx expo prebuild --clean
-```
+| Kind | Name | Purpose |
+| --- | --- | --- |
+| Secret | `EXPO_TOKEN` | Expo robot access token |
+| Secret | `THRIVE_CREDENTIALS_PRODUCTION` | Base64 of `credentials.production.json` |
+| Variable | `EAS_PROJECT_ID` | EAS project UUID from `eas project:info` |
 
-Required CI secrets:
-- `CREDENTIALS_JSON` - Contents of `credentials.production.json`
-- `KEYSTORE_PASSWORD` - Android keystore password (Android builds only)
-- `KEY_PASSWORD` - Android key password (Android builds only)
-- Keystore file should be stored as a base64-encoded secret or secure file
+Signing keys and store submission keys live on EAS (`eas credentials`), not in
+GitHub. The workflow sets `THRIVE_REMOTE_SIGNING=1`, which tells
+`plugins/withAndroidGradleConfig.js` to leave release signing to EAS; local
+builds are unaffected and still use the keystore setup described above.
 
 ---
 

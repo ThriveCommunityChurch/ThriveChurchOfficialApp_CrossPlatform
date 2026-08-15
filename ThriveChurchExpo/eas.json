@@ -1,0 +1,73 @@
+{
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "remote",
+    "requireCommit": false
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "credentialsSource": "remote",
+      "env": {
+        "APP_ENV": "development",
+        "EXPO_NO_TELEMETRY": "1",
+        "THRIVE_REMOTE_VERSIONS": "1",
+        "THRIVE_REMOTE_SIGNING": "1"
+      },
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "resourceClass": "m-medium"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "credentialsSource": "remote",
+      "autoIncrement": true,
+      "env": {
+        "APP_ENV": "production",
+        "EXPO_NO_TELEMETRY": "1",
+        "THRIVE_REMOTE_VERSIONS": "1",
+        "THRIVE_REMOTE_SIGNING": "1"
+      },
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "resourceClass": "m-medium"
+      }
+    },
+    "production": {
+      "distribution": "store",
+      "credentialsSource": "remote",
+      "autoIncrement": true,
+      "env": {
+        "APP_ENV": "production",
+        "EXPO_NO_TELEMETRY": "1",
+        "THRIVE_REMOTE_VERSIONS": "1",
+        "THRIVE_REMOTE_SIGNING": "1"
+      },
+      "android": {
+        "buildType": "app-bundle",
+        "resourceClass": "medium"
+      },
+      "ios": {
+        "resourceClass": "m-medium"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "android": {
+        "track": "internal",
+        "releaseStatus": "completed",
+        "changesNotSentForReview": false
+      },
+      "ios": {
+        "language": "en-US"
+      }
+    }
+  }
+}
