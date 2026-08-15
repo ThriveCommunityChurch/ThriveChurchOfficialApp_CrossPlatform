@@ -260,8 +260,14 @@ Automated releases are configured. See
 
 Short version — every push to `master` runs
 `.github/workflows/release-master.yml`, which prebuilds on a Linux runner, then
-runs `eas build --profile production --auto-submit` to ship to TestFlight and
-the Google Play internal track.
+runs `eas build --profile production --auto-submit-with-profile=production` to
+ship to TestFlight and the Google Play internal track.
+
+Store *deployment* stays manual on purpose: bundles upload automatically, and a
+human presses the release button in each console. `eas.json` carries three
+submit profiles (`production`, `production-beta`, `production-store`) so moving
+toward unattended production releases is a config change rather than a rewrite.
+See [the release ladder](docs/CI_CD_RELEASE.md#the-release-ladder).
 
 Required GitHub configuration:
 

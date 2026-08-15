@@ -9,6 +9,7 @@
       "developmentClient": true,
       "distribution": "internal",
       "credentialsSource": "remote",
+      "environment": "development",
       "env": {
         "APP_ENV": "development",
         "EXPO_NO_TELEMETRY": "1",
@@ -16,15 +17,17 @@
         "THRIVE_REMOTE_SIGNING": "1"
       },
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "resourceClass": "medium"
       },
       "ios": {
-        "resourceClass": "m-medium"
+        "resourceClass": "medium"
       }
     },
     "preview": {
       "distribution": "internal",
       "credentialsSource": "remote",
+      "environment": "preview",
       "autoIncrement": true,
       "env": {
         "APP_ENV": "production",
@@ -33,15 +36,17 @@
         "THRIVE_REMOTE_SIGNING": "1"
       },
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "resourceClass": "medium"
       },
       "ios": {
-        "resourceClass": "m-medium"
+        "resourceClass": "medium"
       }
     },
     "production": {
       "distribution": "store",
       "credentialsSource": "remote",
+      "environment": "production",
       "autoIncrement": true,
       "env": {
         "APP_ENV": "production",
@@ -54,7 +59,7 @@
         "resourceClass": "medium"
       },
       "ios": {
-        "resourceClass": "m-medium"
+        "resourceClass": "medium"
       }
     }
   },
@@ -62,11 +67,24 @@
     "production": {
       "android": {
         "track": "internal",
-        "releaseStatus": "completed",
-        "changesNotSentForReview": false
+        "releaseStatus": "completed"
       },
       "ios": {
         "language": "en-US"
+      }
+    },
+    "production-beta": {
+      "extends": "production",
+      "android": {
+        "track": "beta",
+        "releaseStatus": "completed"
+      }
+    },
+    "production-store": {
+      "extends": "production",
+      "android": {
+        "track": "production",
+        "releaseStatus": "draft"
       }
     }
   }
