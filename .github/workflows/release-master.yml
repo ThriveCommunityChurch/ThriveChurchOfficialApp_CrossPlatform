@@ -1,0 +1,188 @@
+name: Release (EAS Build + Store Submit)
+
+# Fully automated store release pipeline.
+#
+# Trigger: every push to master (i.e. every merged PR), or manual dispatch.
+#
+# Flow:
+#   1. Install dependencies and materialize real production credentials from secrets
+#   2. Run `expo prebuild` plus the repo's post-prebuild patch scripts on Linux,
+#      so the config plugins remain the single source of truth for native config
+#   3. Hand the prebuilt project to EAS Build (cloud macOS + Linux workers)
+#   4. EAS auto-submits the resulting artifacts to App Store Connect (TestFlight)
+#      and Google Play (internal track)
+#
+# No local macOS machine is involved at any point. Build numbers are owned by
+# EAS (appVersionSource: "remote" + autoIncrement in eas.json), so nothing is
+# committed back to master and branch protection is never in the way. The
+# marketing version still comes from ThriveChurchExpo/version.json.
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Platform to build'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - ios
+          - android
+      submit:
+        description: 'Submit the build to the stores when it finishes'
+        required: true
+        default: true
+        type: boolean
+      submit_profile:
+        description: 'Which submit profile to use (controls the Google Play track; iOS always goes to TestFlight)'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production        # Play internal testing track
+          - production-beta   # Play open testing track
+          - production-store  # Play production track, as a DRAFT release you roll out by hand
+
+# One release at a time. Do not cancel an in-flight release: a cancelled job
+# would orphan an EAS build that has already consumed a remote version number.
+concurrency:
+  group: release-master
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build and submit
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    defaults:
+      run:
+        working-directory: ThriveChurchExpo
+
+    env:
+      EXPO_NO_TELEMETRY: 1
+      APP_ENV: production
+      # Build numbers come from EAS, not version.json (see app.config.js)
+      THRIVE_REMOTE_VERSIONS: '1'
+      # Android keystore is held by EAS, so the local signing plugin stands down
+      THRIVE_REMOTE_SIGNING: '1'
+      EAS_PROJECT_ID: ${{ vars.EAS_PROJECT_ID }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10.34.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '26.x'
+          cache: 'pnpm'
+          cache-dependency-path: ThriveChurchExpo/pnpm-lock.yaml
+
+      - name: Verify required configuration
+        run: |
+          missing=0
+          if [ -z "${EXPO_TOKEN}" ]; then
+            echo "::error::Missing secret EXPO_TOKEN (create one at https://expo.dev/settings/access-tokens)"
+            missing=1
+          fi
+          if [ -z "${THRIVE_CREDENTIALS_PRODUCTION}" ]; then
+            echo "::error::Missing secret THRIVE_CREDENTIALS_PRODUCTION (base64 of credentials.production.json)"
+            missing=1
+          fi
+          if [ -z "${EAS_PROJECT_ID}" ]; then
+            echo "::error::Missing repository variable EAS_PROJECT_ID (run 'eas init', then 'eas project:info')"
+            missing=1
+          fi
+          if [ "$missing" -ne 0 ]; then
+            echo "See ThriveChurchExpo/docs/CI_CD_RELEASE.md for setup instructions."
+            exit 1
+          fi
+          echo "All required secrets and variables are present."
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          THRIVE_CREDENTIALS_PRODUCTION: ${{ secrets.THRIVE_CREDENTIALS_PRODUCTION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Official Expo action: installs the EAS CLI and authenticates it with
+      # EXPO_TOKEN. https://docs.expo.dev/build/building-on-ci/
+      - name: Setup EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+          packager: pnpm
+
+      - name: Write production credentials and Firebase configs
+        run: pnpm run credentials:ci
+        env:
+          THRIVE_CREDENTIALS_PRODUCTION: ${{ secrets.THRIVE_CREDENTIALS_PRODUCTION }}
+
+      - name: TypeScript type check
+        run: pnpm exec tsc --noEmit
+
+      - name: Prebuild native projects
+        run: pnpm run prebuild:ci
+
+      # We intentionally do NOT pass --no-wait, which is what the docs use for
+      # their minimal CI example. Waiting is what makes the red/green check on
+      # master mean something: without it the job goes green the instant the
+      # build is queued, and a failed build or a rejected upload is invisible
+      # unless someone opens the Expo dashboard.
+      - name: Build and submit via EAS
+        run: |
+          # Inputs are empty on a push event, so resolve defaults in bash rather
+          # than in a GitHub expression (boolean/null coercion there is a trap).
+          PLATFORM="${PLATFORM_INPUT:-all}"
+          SUBMIT_PROFILE="${SUBMIT_PROFILE_INPUT:-production}"
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ] && [ "${SUBMIT_INPUT}" = "false" ]; then
+            SUBMIT=false
+          else
+            SUBMIT=true
+          fi
+
+          set -- --platform "${PLATFORM}" --profile production --non-interactive
+          if [ "${SUBMIT}" = "true" ]; then
+            # --auto-submit defaults to the submit profile matching the build
+            # profile; name it explicitly so the Play track is always deliberate.
+            set -- "$@" --auto-submit-with-profile="${SUBMIT_PROFILE}"
+            echo "Submitting with submit profile '${SUBMIT_PROFILE}'."
+            echo "iOS goes to App Store Connect / TestFlight regardless of profile."
+          else
+            echo "Build only — skipping store submission."
+          fi
+
+          echo "Running: eas build $*"
+          eas build "$@"
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          PLATFORM_INPUT: ${{ inputs.platform }}
+          SUBMIT_INPUT: ${{ inputs.submit }}
+          SUBMIT_PROFILE_INPUT: ${{ inputs.submit_profile }}
+
+      - name: Release summary
+        if: always()
+        run: |
+          {
+            echo "## Release run"
+            echo ""
+            echo "- Commit: \`${GITHUB_SHA}\`"
+            echo "- Marketing version: \`$(node -p "require('./version.json').version")\`"
+            echo "- Platform: \`${{ inputs.platform || 'all' }}\`"
+            echo "- Submit profile: \`${{ inputs.submit_profile || 'production' }}\`"
+            echo "- Build number: assigned remotely by EAS (see the build page)"
+            echo ""
+            echo "Builds: https://expo.dev/accounts/thrive-church/projects/ThriveChurchExpo/builds"
+            echo "Submissions: https://expo.dev/accounts/thrive-church/projects/ThriveChurchExpo/submissions"
+          } >> "$GITHUB_STEP_SUMMARY"

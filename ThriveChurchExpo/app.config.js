@@ -20,6 +20,30 @@ const extra = credentialsToExpoExtra(credentials);
 const versionPath = path.join(__dirname, 'version.json');
 const versionData = JSON.parse(fs.readFileSync(versionPath, 'utf8'));
 
+// When building through EAS, build numbers are owned by EAS (appVersionSource:
+// "remote" in eas.json with autoIncrement enabled). Emitting a local buildNumber
+// or versionCode in that mode makes EAS warn about a conflicting source of truth,
+// so we omit them and let EAS write the incremented values into the native
+// projects. Local builds are unaffected and keep using version.json.
+const useRemoteVersions = process.env.THRIVE_REMOTE_VERSIONS === '1';
+
+const iosVersionFields = useRemoteVersions
+  ? {}
+  : { buildNumber: String(versionData.buildNumber) };
+
+const androidVersionFields = useRemoteVersions
+  ? {}
+  : { versionCode: versionData.buildNumber };
+
+// EAS project association. Not a secret — it identifies the project on Expo's
+// servers. Set EAS_PROJECT_ID in CI (repository variable) or in your shell.
+// Get it with `eas project:info` after running `eas init`.
+const easProjectId = process.env.EAS_PROJECT_ID;
+
+const expoExtra = easProjectId
+  ? { ...extra, eas: { projectId: easProjectId } }
+  : extra;
+
 module.exports = {
   expo: {
     name: credentials.app.name,
@@ -37,7 +61,7 @@ module.exports = {
     ios: {
       supportsTablet: true,
       bundleIdentifier: credentials.app.bundleIdIos,
-      buildNumber: String(versionData.buildNumber),
+      ...iosVersionFields,
       googleServicesFile: "./GoogleService-Info.plist",
       infoPlist: {
         // Firebase URL Schemes
@@ -83,7 +107,7 @@ module.exports = {
         backgroundColor: "#FFFFFF"
       },
       package: credentials.app.bundleIdAndroid,
-      versionCode: versionData.buildNumber,
+      ...androidVersionFields,
       googleServicesFile: "./google-services.json",
       permissions: [
         "INTERNET",
@@ -143,7 +167,7 @@ module.exports = {
       // (GoogleService-Info.plist and google-services.json) and work at runtime.
       "@react-native-firebase/crashlytics",
     ],
-    extra: extra,
+    extra: expoExtra,
     scheme: credentials.app.deepLinkScheme,
     // EAS Build configuration
     owner: "thrive-church",

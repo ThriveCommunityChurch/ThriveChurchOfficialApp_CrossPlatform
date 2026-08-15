@@ -1,0 +1,91 @@
+{
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "remote",
+    "requireCommit": false
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "credentialsSource": "remote",
+      "environment": "development",
+      "env": {
+        "APP_ENV": "development",
+        "EXPO_NO_TELEMETRY": "1",
+        "THRIVE_REMOTE_VERSIONS": "1",
+        "THRIVE_REMOTE_SIGNING": "1"
+      },
+      "android": {
+        "buildType": "apk",
+        "resourceClass": "medium"
+      },
+      "ios": {
+        "resourceClass": "medium"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "credentialsSource": "remote",
+      "environment": "preview",
+      "autoIncrement": true,
+      "env": {
+        "APP_ENV": "production",
+        "EXPO_NO_TELEMETRY": "1",
+        "THRIVE_REMOTE_VERSIONS": "1",
+        "THRIVE_REMOTE_SIGNING": "1"
+      },
+      "android": {
+        "buildType": "apk",
+        "resourceClass": "medium"
+      },
+      "ios": {
+        "resourceClass": "medium"
+      }
+    },
+    "production": {
+      "distribution": "store",
+      "credentialsSource": "remote",
+      "environment": "production",
+      "autoIncrement": true,
+      "env": {
+        "APP_ENV": "production",
+        "EXPO_NO_TELEMETRY": "1",
+        "THRIVE_REMOTE_VERSIONS": "1",
+        "THRIVE_REMOTE_SIGNING": "1"
+      },
+      "android": {
+        "buildType": "app-bundle",
+        "resourceClass": "medium"
+      },
+      "ios": {
+        "resourceClass": "medium"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "android": {
+        "track": "internal",
+        "releaseStatus": "completed"
+      },
+      "ios": {
+        "language": "en-US"
+      }
+    },
+    "production-beta": {
+      "extends": "production",
+      "android": {
+        "track": "beta",
+        "releaseStatus": "completed"
+      }
+    },
+    "production-store": {
+      "extends": "production",
+      "android": {
+        "track": "production",
+        "releaseStatus": "draft"
+      }
+    }
+  }
+}

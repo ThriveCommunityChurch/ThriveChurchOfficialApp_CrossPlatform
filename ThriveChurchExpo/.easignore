@@ -1,0 +1,59 @@
+# .easignore controls which files are uploaded to EAS Build.
+#
+# IMPORTANT: when this file exists, EAS ignores .gitignore entirely. That is the
+# whole point of having it here: .gitignore excludes credentials.*.json and the
+# Firebase config files, but EAS Build must receive them, because app.config.js
+# reads credentials at config-resolution time on the build server.
+#
+# Anything listed below is NOT uploaded. Keep native directories (android/, ios/)
+# uploadable: CI runs `expo prebuild` on the GitHub runner so that the repo's
+# config plugins and post-prebuild patch scripts are the source of truth.
+
+# Dependencies
+node_modules/
+
+# Expo / Metro
+.expo/
+dist/
+web-build/
+.metro-health-check*
+expo-env.d.ts
+
+# Build outputs (regenerated on the EAS worker)
+android/build/
+android/.gradle/
+android/app/build/
+android/local.properties
+android/.cxx/
+android/*.aab
+android/*.apk
+ios/build/
+ios/Pods/
+ios/DerivedData/
+ios/*.ipa
+ios/*.dSYM
+ios/*.dSYM.zip
+ios/*.xcworkspace/xcuserdata/
+ios/*.xcodeproj/xcuserdata/
+
+# Signing material — EAS holds these remotely, never upload them
+*.keystore
+*.jks
+*.p8
+*.p12
+*.mobileprovision
+*.pem
+google-play-service-account.json
+
+# Local noise
+.DS_Store
+*.tsbuildinfo
+*.orig.*
+npm-debug.*
+.env*.local
+
+# Docs are not needed by the builder.
+# native-tests/ is deliberately NOT ignored: plugins/withNativeUITests.js sources
+# it, so it must be present if EAS ever re-runs prebuild.
+docs/
+*.md

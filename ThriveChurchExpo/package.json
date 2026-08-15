@@ -14,6 +14,7 @@
     "prebuild": "npx expo prebuild --clean",
     "prebuild:ios": "npx expo prebuild --clean --platform ios && node scripts/add-ios-splash-copyright.js && node scripts/patch-podfile-properties.js && cp GoogleService-Info.plist ios/ThriveChurchOfficialApp/ && cd ios && pod install",
     "prebuild:android": "npx expo prebuild --clean --platform android && node scripts/copy-android-splash.js",
+    "prebuild:ci": "expo prebuild --clean --no-install && node scripts/patch-podfile-properties.js && node scripts/copy-track-player-headers.js && node scripts/add-ios-splash-copyright.js && node scripts/copy-android-splash.js && cp GoogleService-Info.plist ios/ThriveChurchOfficialApp/",
     "generate:splash": "node scripts/generate-android-splash.js",
     "patch-podfile": "node scripts/patch-podfile-properties.js",
     "version:bump": "node scripts/increment-build.js",
@@ -22,6 +23,9 @@
     "version:major": "node scripts/increment-build.js --bump-major",
     "build:ios": "node scripts/increment-build.js && pnpm run prebuild:ios",
     "build:android": "node scripts/increment-build.js && pnpm run prebuild:android",
+    "credentials:ci": "node scripts/write-production-credentials.js && node generate-firebase-configs.js",
+    "eas:build:production": "eas build --platform all --profile production --non-interactive",
+    "eas:release": "eas build --platform all --profile production --non-interactive --auto-submit",
     "test:ui": "./scripts/run-ui-tests.sh all",
     "test:ui:ios": "./scripts/run-ui-tests.sh ios",
     "test:ui:android": "./scripts/run-ui-tests.sh android"
