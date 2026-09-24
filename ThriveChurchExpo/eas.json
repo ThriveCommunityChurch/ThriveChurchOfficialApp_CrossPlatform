@@ -47,6 +47,7 @@
       "distribution": "store",
       "credentialsSource": "remote",
       "environment": "production",
+      "node": "26.0.0",
       "autoIncrement": true,
       "env": {
         "APP_ENV": "production",

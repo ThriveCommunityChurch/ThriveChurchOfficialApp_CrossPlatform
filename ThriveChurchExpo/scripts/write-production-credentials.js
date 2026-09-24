@@ -79,9 +79,11 @@ function main() {
   }
 
   if (credentials.environment !== 'production') {
-    console.warn(
-      `Warning: credentials.environment is "${credentials.environment}", expected "production".`
+    console.error(
+      `\nERROR: credentials.environment is "${credentials.environment}", expected "production".`
     );
+    console.error('Refusing to write non-production credentials for a store release.\n');
+    process.exit(1);
   }
 
   const serialized = JSON.stringify(credentials, null, 2) + '\n';

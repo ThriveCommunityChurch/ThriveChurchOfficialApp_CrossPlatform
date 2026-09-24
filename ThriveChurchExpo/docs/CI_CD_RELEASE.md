@@ -87,6 +87,20 @@ For local EAS commands, export it in your shell:
 export EAS_PROJECT_ID=<the-uuid-from-eas-project-info>
 ```
 
+Then seed EAS's remote build counters. With `appVersionSource: "remote"`, EAS
+initializes its counters from the local project (`version.json` is currently at
+build 200), so if the stores already contain a higher `versionCode` / build
+number, the first automated build would be rejected as a duplicate. Check the
+highest version shipped in Play Console and App Store Connect, then run once per
+platform:
+
+```bash
+eas build:version:set
+```
+
+Answer **yes** to using the remote version source and enter a number higher than
+anything already in the stores. This is a one-time step.
+
 ### 2. Upload signing credentials to EAS
 
 The pipeline uses EAS **remote** credentials (`"credentialsSource": "remote"` in

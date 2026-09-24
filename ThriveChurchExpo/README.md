@@ -264,7 +264,10 @@ runs `eas build --profile production --auto-submit-with-profile=production` to
 ship to TestFlight and the Google Play internal track.
 
 Store *deployment* stays manual on purpose: bundles upload automatically, and a
-human presses the release button in each console. `eas.json` carries three
+human promotes them in each console. On Android the build lands on the internal
+track (live to internal testers as soon as the upload processes) and a person
+promotes it toward production in Play Console; on iOS the build lands in
+TestFlight and a person submits it for App Store review. `eas.json` carries three
 submit profiles (`production`, `production-beta`, `production-store`) so moving
 toward unattended production releases is a config change rather than a rewrite.
 See [the release ladder](docs/CI_CD_RELEASE.md#the-release-ladder).
