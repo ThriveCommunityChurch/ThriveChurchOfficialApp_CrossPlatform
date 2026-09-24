@@ -170,7 +170,7 @@ module.exports = {
     extra: expoExtra,
     scheme: credentials.app.deepLinkScheme,
     // EAS Build configuration
-    owner: "thrive-church",
+    owner: "thrive-fl",
     updates: {
       fallbackToCacheTimeout: 0
     },
