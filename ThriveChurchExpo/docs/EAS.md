@@ -120,11 +120,12 @@ offers a storage choice, pick **EAS servers** — the profiles pin
 
 ---
 
-## 6. Seed the remote build counters (one time)
+## 6. Seed the remote build counters (one time, mandatory)
 
-With `appVersionSource: remote`, EAS initializes its counters from the local
-project (`version.json`), so if the stores already hold a higher `versionCode`
-/ build number, the first automated build is rejected as a duplicate. Check the
+CI builds set `THRIVE_REMOTE_VERSIONS=1`, which omits the local build numbers,
+so EAS initializes the remote counters at 1 and the first automated build would
+ship as version 2 — a guaranteed duplicate of what's already in the stores.
+Check the
 highest shipped versions in both consoles, then once per platform:
 
 ```bash

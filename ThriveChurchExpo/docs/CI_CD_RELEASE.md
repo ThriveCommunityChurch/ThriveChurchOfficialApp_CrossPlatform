@@ -87,10 +87,12 @@ For local EAS commands, export it in your shell:
 export EAS_PROJECT_ID=<the-uuid-from-eas-project-info>
 ```
 
-Then seed EAS's remote build counters. With `appVersionSource: "remote"`, EAS
-initializes its counters from the local project (`version.json` is currently at
-build 200), so if the stores already contain a higher `versionCode` / build
-number, the first automated build would be rejected as a duplicate. Check the
+Then seed EAS's remote build counters — this step is mandatory, not optional.
+The pipeline sets `THRIVE_REMOTE_VERSIONS=1`, which omits `ios.buildNumber` and
+`android.versionCode` from the app config, and with no local versions present
+EAS initializes the remote counters at 1. The first automated build would
+therefore ship as version 2 and be rejected as a duplicate of what is already
+in the stores. Check the
 highest version shipped in Play Console and App Store Connect, then run once per
 platform:
 
