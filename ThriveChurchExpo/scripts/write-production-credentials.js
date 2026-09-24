@@ -29,6 +29,44 @@ const LEGACY_FILE = path.join(PROJECT_ROOT, 'credentials.json');
 
 const ENV_VAR = 'THRIVE_CREDENTIALS_PRODUCTION';
 
+// Every field consumed by app.config.js and generate-firebase-configs.js.
+// The release writes native config straight from this payload, so a missing
+// value would block the store build or ship broken Firebase config. Fields
+// nothing consumes (youtube.*, firebase.common.authDomain which has a
+// fallback) stay optional.
+const RELEASE_REQUIRED_FIELDS = [
+  'api.baseUrl',
+  'api.esvApiKey',
+  'app.name',
+  'app.bundleIdIos',
+  'app.bundleIdAndroid',
+  'app.deepLinkScheme',
+  'app.deepLinkHost',
+  'features.analytics',
+  'features.crashlytics',
+  'features.pushNotifications',
+  'firebase.common.projectId',
+  'firebase.common.storageBucket',
+  'firebase.common.messagingSenderId',
+  'firebase.ios.apiKey',
+  'firebase.ios.clientId',
+  'firebase.ios.reversedClientId',
+  'firebase.ios.gcmSenderId',
+  'firebase.ios.bundleId',
+  'firebase.ios.projectId',
+  'firebase.ios.storageBucket',
+  'firebase.ios.googleAppId',
+  'firebase.ios.databaseUrl',
+  'firebase.android.apiKey',
+  'firebase.android.clientId',
+  'firebase.android.gcmSenderId',
+  'firebase.android.bundleId',
+  'firebase.android.projectId',
+  'firebase.android.storageBucket',
+  'firebase.android.googleAppId',
+  'firebase.android.databaseUrl',
+];
+
 /**
  * Accept either raw JSON or base64-encoded JSON so the secret can be stored
  * in whichever form is convenient. Base64 is recommended: it survives copy/paste
@@ -86,6 +124,27 @@ function main() {
     process.exit(1);
   }
 
+  // Fail before writing anything rather than shipping a release wired to
+  // missing values. `false` counts as present (feature flags); only
+  // undefined, null, and empty strings are missing.
+  const missing = findMissingFields(credentials, RELEASE_REQUIRED_FIELDS);
+  if (missing.length > 0) {
+    console.error('\nERROR: Production credentials are missing fields required by the release:\n');
+    missing.forEach((field) => console.error(`   - ${field}`));
+    console.error('\nFill them in and update the secret.\n');
+    process.exit(1);
+  }
+
+  // google-services.json's package_name comes from firebase.android.bundleId
+  // while Expo uses app.bundleIdAndroid as the application ID. A mismatch
+  // ships a release whose Firebase config belongs to a different app.
+  if (credentials.firebase.android.bundleId !== credentials.app.bundleIdAndroid) {
+    console.error('\nERROR: firebase.android.bundleId does not match app.bundleIdAndroid:\n');
+    console.error(`   firebase.android.bundleId: "${credentials.firebase.android.bundleId}"`);
+    console.error(`   app.bundleIdAndroid:       "${credentials.app.bundleIdAndroid}"\n`);
+    process.exit(1);
+  }
+
   const serialized = JSON.stringify(credentials, null, 2) + '\n';
 
   fs.writeFileSync(PRODUCTION_FILE, serialized, 'utf8');
@@ -94,6 +153,24 @@ function main() {
   console.log('Production credentials written:');
   console.log(`   ${PRODUCTION_FILE}`);
   console.log(`   ${LEGACY_FILE}`);
+}
+
+/**
+ * List dotted field paths whose value is undefined, null, or an empty string.
+ * `false` counts as present so boolean feature flags pass.
+ */
+function findMissingFields(credentials, fields) {
+  return fields.filter((field) => {
+    const parts = field.split('.');
+    let value = credentials;
+    for (const part of parts) {
+      if (value === undefined || value === null) {
+        return true;
+      }
+      value = value[part];
+    }
+    return value === undefined || value === null || value === '';
+  });
 }
 
 /**
