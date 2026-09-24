@@ -146,6 +146,12 @@ Settings → Secrets and variables → Actions:
 | Secret | `THRIVE_CREDENTIALS_PRODUCTION` | `base64 -w0 credentials.production.json` |
 | Variable | `EAS_PROJECT_ID` | the project UUID |
 
+Use a **robot user** token, not a personal one: create the robot on the
+`thrive-fl` organization with the **Developer** role (covers builds, updates,
+and credentials — everything this pipeline touches) and use its token. A
+personal token works but acts as you everywhere; escalate the robot to Admin
+only if a submit step ever fails on permissions.
+
 **Rotation rule: the secret is a snapshot.** Any credential change (API key
 rotation, Firebase value, new field) requires re-running the `base64` command
 on the updated `credentials.production.json` and pasting the new output over
