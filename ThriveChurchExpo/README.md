@@ -255,8 +255,10 @@ Release builds require a keystore. Setup steps:
 
 ### CI/CD Setup
 
-Automated releases are configured. See
-**[docs/CI_CD_RELEASE.md](docs/CI_CD_RELEASE.md)** for the full setup guide.
+Automated releases are configured. New contributor? Start with
+**[docs/EAS.md](docs/EAS.md)** — the end-to-end setup walkthrough (EAS project,
+credentials, GitHub secrets, first release). Pipeline internals live in
+**[docs/CI_CD_RELEASE.md](docs/CI_CD_RELEASE.md)**.
 
 Short version — every push to `master` runs
 `.github/workflows/release-master.yml`, which prebuilds on a Linux runner, then
