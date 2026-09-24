@@ -64,6 +64,14 @@ THRIVE_RELEASE_KEY_PASSWORD=${android.releaseKeyPassword || 'REPLACE_WITH_YOUR_P
 /**
  * Modify gradle.properties to include CI/CD and signing config
  */
+/**
+ * When THRIVE_REMOTE_SIGNING=1 the keystore is managed by EAS, which injects its
+ * own signing configuration into the Gradle project at build time. Writing local
+ * signing properties in that mode points Gradle at a keystore file that does not
+ * exist on the build worker, so we skip it entirely.
+ */
+const usesRemoteSigning = () => process.env.THRIVE_REMOTE_SIGNING === '1';
+
 const withGradleProperties = (config, { credentials }) => {
   return withDangerousMod(config, [
     'android',
@@ -81,7 +89,9 @@ const withGradleProperties = (config, { credentials }) => {
         console.log('✅ Added CI/CD performance settings to gradle.properties');
       }
 
-      if (!contents.includes('# Release Signing Configuration')) {
+      if (usesRemoteSigning()) {
+        console.log('ℹ️  THRIVE_REMOTE_SIGNING=1 — leaving release signing to EAS');
+      } else if (!contents.includes('# Release Signing Configuration')) {
         contents += generateSigningConfig(credentials);
         console.log('✅ Added release signing configuration to gradle.properties');
       }
@@ -98,6 +108,11 @@ const withGradleProperties = (config, { credentials }) => {
  */
 const withReleaseSigning = (config) => {
   return withAppBuildGradle(config, (config) => {
+    if (usesRemoteSigning()) {
+      console.log('ℹ️  THRIVE_REMOTE_SIGNING=1 — not touching build.gradle signingConfigs');
+      return config;
+    }
+
     let contents = config.modResults.contents;
 
     // Check if release signing is already configured
