@@ -47,7 +47,7 @@ const expoExtra = easProjectId
 module.exports = {
   expo: {
     name: credentials.app.name,
-    slug: "ThriveChurchExpo",
+    slug: "thrivechurchexpo",
     version: versionData.version,
     jsEngine: "hermes",
     // Allow rotation on tablets while keeping portrait default on phones

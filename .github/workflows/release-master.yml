@@ -183,6 +183,6 @@ jobs:
             echo "- Submit profile: \`${{ inputs.submit_profile || 'production' }}\`"
             echo "- Build number: assigned remotely by EAS (see the build page)"
             echo ""
-            echo "Builds: https://expo.dev/accounts/thrive-fl/projects/ThriveChurchExpo/builds"
-            echo "Submissions: https://expo.dev/accounts/thrive-fl/projects/ThriveChurchExpo/submissions"
+            echo "Builds: https://expo.dev/accounts/thrive-fl/projects/thrivechurchexpo/builds"
+            echo "Submissions: https://expo.dev/accounts/thrive-fl/projects/thrivechurchexpo/submissions"
           } >> "$GITHUB_STEP_SUMMARY"

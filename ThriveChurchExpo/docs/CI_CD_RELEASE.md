@@ -206,7 +206,7 @@ now only used by local builds; store releases ignore it.
 1. Open a PR into `master`. `validate-main.yml` runs the full validation suite.
 2. Merge. `release-master.yml` builds and submits automatically.
 3. Watch progress at
-   https://expo.dev/accounts/thrive-fl/projects/ThriveChurchExpo/builds
+   https://expo.dev/accounts/thrive-fl/projects/thrivechurchexpo/builds
 4. iOS: the build appears in TestFlight after Apple finishes processing
    (typically 5–15 minutes). Promote to the App Store from App Store Connect
    when you are ready.
@@ -381,7 +381,7 @@ assuming a manual first upload is needed.
 **Build succeeds but submission fails**
 Submission credentials live on EAS, not GitHub. Re-check step 3. Submission
 status is visible at
-https://expo.dev/accounts/thrive-fl/projects/ThriveChurchExpo/submissions
+https://expo.dev/accounts/thrive-fl/projects/thrivechurchexpo/submissions
 
 **Two releases at once**
 The workflow uses `concurrency: release-master` with `cancel-in-progress: false`,
