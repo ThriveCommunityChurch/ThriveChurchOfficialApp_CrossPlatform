@@ -145,6 +145,15 @@ function main() {
     process.exit(1);
   }
 
+  // Same check for iOS: GoogleService-Info.plist's BUNDLE_ID comes from
+  // firebase.ios.bundleId, the app's bundle identifier from app.bundleIdIos.
+  if (credentials.firebase.ios.bundleId !== credentials.app.bundleIdIos) {
+    console.error('\nERROR: firebase.ios.bundleId does not match app.bundleIdIos:\n');
+    console.error(`   firebase.ios.bundleId: "${credentials.firebase.ios.bundleId}"`);
+    console.error(`   app.bundleIdIos:       "${credentials.app.bundleIdIos}"\n`);
+    process.exit(1);
+  }
+
   const serialized = JSON.stringify(credentials, null, 2) + '\n';
 
   fs.writeFileSync(PRODUCTION_FILE, serialized, 'utf8');

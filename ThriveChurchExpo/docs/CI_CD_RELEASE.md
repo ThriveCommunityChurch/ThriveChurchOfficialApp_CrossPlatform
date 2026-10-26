@@ -322,12 +322,17 @@ upload waits.
 A few decisions worth knowing about before changing things:
 
 **`.easignore` is required, and it replaces `.gitignore` for uploads.**
-`.gitignore` excludes `credentials.*.json` and the Firebase config files, but
-EAS Build must receive them: `app.config.js` resolves credentials on the build
-server. `.easignore` re-includes those while still excluding `node_modules/`,
-build outputs, and all signing material. If you add a new ignore rule to
-`.gitignore` that should also apply to EAS uploads, add it to `.easignore` too —
-the two files are not merged.
+`.gitignore` excludes `credentials.*.json`, the Firebase config files and
+`android/gradle.properties`, but EAS Build must receive them: `app.config.js`
+resolves credentials on the build server. `.easignore` re-includes those while
+still excluding `node_modules/`, build outputs, and all signing material. If you
+add a new ignore rule to `.gitignore` that should also apply to EAS uploads, add
+it to `.easignore` too — the two files are not merged.
+
+It lives at the **repository root**, not in `ThriveChurchExpo/`: eas-cli only
+reads `.easignore` from the git root, and silently falls back to `.gitignore`
+when it isn't there. Its patterns are matched case-insensitively, so avoid
+globs like `*info.plist` that would also catch `Info.plist`.
 
 **Prebuild runs on the GitHub runner, not on EAS.**
 The repo's native config depends on config plugins *and* on four post-prebuild

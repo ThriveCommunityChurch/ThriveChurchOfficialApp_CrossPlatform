@@ -9,6 +9,7 @@
       "developmentClient": true,
       "distribution": "internal",
       "credentialsSource": "remote",
+      "pnpm": "10.34.0",
       "environment": "development",
       "env": {
         "APP_ENV": "development",
@@ -27,6 +28,7 @@
     "preview": {
       "distribution": "internal",
       "credentialsSource": "remote",
+      "pnpm": "10.34.0",
       "environment": "preview",
       "autoIncrement": true,
       "env": {
@@ -46,6 +48,7 @@
     "production": {
       "distribution": "store",
       "credentialsSource": "remote",
+      "pnpm": "10.34.0",
       "environment": "production",
       "node": "26.0.0",
       "autoIncrement": true,
