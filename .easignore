@@ -62,7 +62,11 @@ google-play-service-account.json
 *.tsbuildinfo
 *.orig.*
 npm-debug.*
-.env*.local
+
+# Local env files (the build reads credentials.*.json, never these).
+# Don't widen to `*.env`: ios/.xcode.env is tracked and required.
+.env
+.env.*
 
 # Docs are not needed by the builder.
 # native-tests/ is deliberately NOT ignored: plugins/withNativeUITests.js sources
