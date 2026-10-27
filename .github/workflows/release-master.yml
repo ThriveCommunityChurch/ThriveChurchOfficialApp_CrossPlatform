@@ -14,8 +14,11 @@ name: Release (EAS Build + Store Submit)
 #
 # No local macOS machine is involved at any point. Build numbers are owned by
 # EAS (appVersionSource: "remote" + autoIncrement in eas.json), so nothing is
-# committed back to master and branch protection is never in the way. The
-# marketing version still comes from ThriveChurchExpo/version.json.
+# committed back to master and branch protection is never in the way.
+#
+# Marketing version: the `version` input if given, otherwise the next patch
+# after the highest `v*` tag / version.json (scripts/resolve-release-version.js).
+# A submitted release is tagged `v<version>`, which becomes the next baseline.
 
 on:
   push:
@@ -23,6 +26,11 @@ on:
       - master
   workflow_dispatch:
     inputs:
+      version:
+        description: 'Version to release, e.g. 2.1.0 or 3. Leave blank for the next patch.'
+        required: false
+        default: ''
+        type: string
       platform:
         description: 'Platform to build'
         required: true
@@ -53,6 +61,10 @@ concurrency:
   group: release-master
   cancel-in-progress: false
 
+# Pushes the v<version> tag after a submitted release.
+permissions:
+  contents: write
+
 jobs:
   release:
     name: Build and submit
@@ -75,6 +87,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          # Tags are the record of released versions
+          fetch-depth: 0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
@@ -112,6 +127,12 @@ jobs:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           THRIVE_CREDENTIALS_PRODUCTION: ${{ secrets.THRIVE_CREDENTIALS_PRODUCTION }}
 
+      - name: Resolve release version
+        id: version
+        run: node scripts/resolve-release-version.js
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -141,6 +162,7 @@ jobs:
       # build is queued, and a failed build or a rejected upload is invisible
       # unless someone opens the Expo dashboard.
       - name: Build and submit via EAS
+        id: build
         run: |
           # Inputs are empty on a push event, so resolve defaults in bash rather
           # than in a GitHub expression (boolean/null coercion there is a trap).
@@ -151,6 +173,7 @@ jobs:
           else
             SUBMIT=true
           fi
+          echo "submitted=${SUBMIT}" >> "$GITHUB_OUTPUT"
 
           set -- --platform "${PLATFORM}" --profile production --non-interactive
           if [ "${SUBMIT}" = "true" ]; then
@@ -171,6 +194,18 @@ jobs:
           SUBMIT_INPUT: ${{ inputs.submit }}
           SUBMIT_PROFILE_INPUT: ${{ inputs.submit_profile }}
 
+      - name: Tag release
+        if: success() && steps.build.outputs.submitted == 'true'
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null; then
+            echo "::warning::Tag ${TAG} already exists; leaving it in place."
+            exit 0
+          fi
+          git tag "${TAG}" "${GITHUB_SHA}"
+          git push origin "refs/tags/${TAG}"
+
       - name: Release summary
         if: always()
         run: |
@@ -178,7 +213,7 @@ jobs:
             echo "## Release run"
             echo ""
             echo "- Commit: \`${GITHUB_SHA}\`"
-            echo "- Marketing version: \`$(node -p "require('./version.json').version")\`"
+            echo "- Version: \`${{ steps.version.outputs.version || 'not resolved' }}\`"
             echo "- Platform: \`${{ inputs.platform || 'all' }}\`"
             echo "- Submit profile: \`${{ inputs.submit_profile || 'production' }}\`"
             echo "- Build number: assigned remotely by EAS (see the build page)"

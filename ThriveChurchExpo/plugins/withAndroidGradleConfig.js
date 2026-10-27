@@ -12,7 +12,7 @@
  * The plugin also configures build.gradle for release signing.
  */
 
-const { withDangerousMod, withAppBuildGradle } = require('@expo/config-plugins');
+const { withDangerousMod, withAppBuildGradle } = require('expo/config-plugins');
 const fs = require('fs');
 const path = require('path');
 

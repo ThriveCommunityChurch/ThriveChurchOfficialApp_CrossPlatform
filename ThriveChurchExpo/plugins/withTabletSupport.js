@@ -14,7 +14,7 @@
  * - Allows all orientations on iPad
  */
 
-const { withAndroidManifest, withInfoPlist } = require('@expo/config-plugins');
+const { withAndroidManifest, withInfoPlist } = require('expo/config-plugins');
 
 /**
  * Configure Android for tablet support

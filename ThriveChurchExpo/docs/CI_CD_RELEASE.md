@@ -27,7 +27,8 @@ day-to-day workflow.
 
 `.github/workflows/release-master.yml` runs on every push to `master`:
 
-1. Installs dependencies with pnpm.
+1. Resolves the release version (see [Versioning](#versioning)) and installs
+   dependencies with pnpm.
 2. Writes the real production credentials from a GitHub secret, then generates
    `GoogleService-Info.plist` and `google-services.json` from them.
 3. Type-checks with `tsc --noEmit`.
@@ -36,6 +37,7 @@ day-to-day workflow.
    `add-ios-splash-copyright`, `copy-android-splash`) on the Linux runner.
 5. Runs `eas build --platform all --profile production
    --auto-submit-with-profile=production`.
+6. Tags the commit `v<version>` once the build and submission succeed.
 
 EAS compiles iOS on its own macOS workers and Android on Linux workers, then
 submits the artifacts:
@@ -101,7 +103,8 @@ eas build:version:set
 ```
 
 Answer **yes** to using the remote version source and enter a number higher than
-anything already in the stores. This is a one-time step.
+anything already in the stores. This is a one-time step, and it is done: both
+platforms were seeded at **1300** on 2026-10-27 (App Store 2.0.2 was build 1266).
 
 ### 2. Upload signing credentials to EAS
 
@@ -190,8 +193,29 @@ Two numbers, two owners:
 
 | Number | Where it lives | Who changes it |
 | --- | --- | --- |
-| Marketing version (`2.0.0`) | `ThriveChurchExpo/version.json` | You, in a normal PR |
+| Marketing version (`2.0.3`) | `v*` git tags | The release workflow, automatically |
 | Build number / versionCode | EAS servers | EAS, automatically |
+
+### Marketing version
+
+You never edit it by hand. Each release picks its version like this:
+
+- **No version given** (every merge to `master`, or a manual run with the field
+  blank): the next patch after the highest released version. `2.0.3` → `2.0.4`.
+- **Version given** (manual run): exactly that. `2.1.0` ships `2.1.0`; `3`
+  ships `3.0.0`. The next release without a version continues from it, so
+  `2.1.0` is followed by `2.1.1`.
+
+"Highest released version" is the highest `v*` tag, or `version.json` if that
+is higher (it seeds the sequence at `2.0.2`, the version live in both stores
+when this was set up). After a successful submit, the workflow tags the commit
+`v<version>`, which becomes the next baseline. Build-only runs (submit
+unchecked) don't tag, so they don't use up a version.
+
+The resolver is `scripts/resolve-release-version.js`. Preview what the next
+release would be with `node scripts/resolve-release-version.js --dry-run`.
+
+### Build number
 
 `eas.json` sets `"appVersionSource": "remote"` with `"autoIncrement": true`, so
 EAS keeps a monotonic build counter per platform and writes it into the native
@@ -204,16 +228,8 @@ omits `ios.buildNumber` and `android.versionCode` so EAS is the only source of
 truth. Without that variable, local builds keep reading `version.json` exactly
 as before, including `pnpm run version:bump`.
 
-To ship a new marketing version, bump it in a PR before merging:
-
-```bash
-pnpm run version:patch    # 2.0.0 -> 2.0.1
-pnpm run version:minor    # 2.0.0 -> 2.1.0
-pnpm run version:major    # 2.0.0 -> 3.0.0
-```
-
-Note these commands also change `buildNumber` in `version.json`. That field is
-now only used by local builds; store releases ignore it.
+The `pnpm run version:*` scripts still exist for local builds; store releases
+ignore `version.json`'s `buildNumber`.
 
 ---
 
@@ -238,6 +254,8 @@ The workflow job fails if the EAS build or submission fails, so a red check on
 
 Actions → *Release (EAS Build + Store Submit)* → **Run workflow**:
 
+- **Version** — leave blank for the next patch, or enter one (`2.1.0`, `3`).
+  See [Versioning](#versioning).
 - **Platform** — `all`, `ios`, or `android`.
 - **Submit** — uncheck to build without uploading to the stores. Useful for
   producing an artifact to test before a release.
