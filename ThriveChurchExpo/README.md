@@ -260,8 +260,8 @@ Automated releases are configured. New contributor? Start with
 credentials, GitHub secrets, first release). Pipeline internals live in
 **[docs/CI_CD_RELEASE.md](docs/CI_CD_RELEASE.md)**.
 
-Short version — every push to `master` runs
-`.github/workflows/release-master.yml`, which prebuilds on a Linux runner, then
+Short version — running `.github/workflows/release-master.yml` from the
+Actions tab (on `master`; merging alone does not release) prebuilds on a Linux runner, then
 runs `eas build --profile production --auto-submit-with-profile=production` to
 ship to TestFlight and the Google Play internal track.
 

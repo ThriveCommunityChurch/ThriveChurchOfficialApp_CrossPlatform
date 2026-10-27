@@ -1,14 +1,14 @@
 # Automated Release Pipeline (EAS Build + Store Submit)
 
-Every merge to `master` builds the app in the cloud and uploads it to both stores.
-No macOS machine is involved. This document covers the one-time setup and the
+One click on **Run workflow** builds the app from `master` in the cloud and
+uploads it to both stores. Merging does not release. No macOS machine is involved. This document covers the one-time setup and the
 day-to-day workflow.
 
 ---
 
 ## Table of Contents
 
-- [What happens on a merge to master](#what-happens-on-a-merge-to-master)
+- [What a release run does](#what-a-release-run-does)
 - [One-time setup](#one-time-setup)
   - [1. Create the EAS project](#1-create-the-eas-project)
   - [2. Upload signing credentials to EAS](#2-upload-signing-credentials-to-eas)
@@ -23,9 +23,11 @@ day-to-day workflow.
 
 ---
 
-## What happens on a merge to master
+## What a release run does
 
-`.github/workflows/release-master.yml` runs on every push to `master`:
+`.github/workflows/release-master.yml` runs only when started by hand from the
+Actions tab, and only on `master`. Merging to `master` does not trigger it, so
+each commit is released under exactly one version. A run:
 
 1. Resolves the release version (see [Versioning](#versioning)) and installs
    dependencies with pnpm.
@@ -49,7 +51,7 @@ submits the artifacts:
 
 Apple requires a human to submit a TestFlight build for App Store review, so iOS
 stops at TestFlight by design. Android stops at the internal track by choice, so
-that a merge never ships to real users unattended. Moving further is a config
+that a release never reaches real users without a human promoting it. Moving further is a config
 change — see [The release ladder](#the-release-ladder).
 
 Pull requests into `master` are still gated by the existing
@@ -200,9 +202,8 @@ Two numbers, two owners:
 
 You never edit it by hand. Each release picks its version like this:
 
-- **No version given** (every merge to `master`, or a manual run with the field
-  blank): the next patch after the highest released version. `2.0.3` → `2.0.4`.
-- **Version given** (manual run): exactly that. `2.1.0` ships `2.1.0`; `3`
+- **No version given** (the field left blank): the next patch after the highest released version. `2.0.3` → `2.0.4`.
+- **Version given**: exactly that. `2.1.0` ships `2.1.0`; `3`
   ships `3.0.0`. The next release without a version continues from it, so
   `2.1.0` is followed by `2.1.1`.
 
@@ -236,17 +237,19 @@ ignore `version.json`'s `buildNumber`.
 ## Day-to-day workflow
 
 1. Open a PR into `master`. `validate-main.yml` runs the full validation suite.
-2. Merge. `release-master.yml` builds and submits automatically.
-3. Watch progress at
+2. Merge. Nothing is released yet.
+3. When you want to ship: Actions → *Release (EAS Build + Store Submit)* →
+   **Run workflow** on `master`. Leave **Version** blank for the next patch.
+4. Watch progress at
    https://expo.dev/accounts/thrive-fl/projects/thrivechurchexpo/builds
-4. iOS: the build appears in TestFlight after Apple finishes processing
+5. iOS: the build appears in TestFlight after Apple finishes processing
    (typically 5–15 minutes). Promote to the App Store from App Store Connect
    when you are ready.
-5. Android: the build lands on the internal testing track. Promote it in Play
+6. Android: the build lands on the internal testing track. Promote it in Play
    Console when you are ready.
 
-The workflow job fails if the EAS build or submission fails, so a red check on
-`master` means the release did not ship.
+The run fails if the EAS build or submission fails, so a red run means the
+release did not ship.
 
 ---
 
@@ -313,7 +316,7 @@ here, and it is what this pipeline does.
 For a one-off, use the workflow's **Run workflow** button and pick a different
 **submit_profile**. Nothing is committed, so this is the safe way to try a rung.
 
-To change the default for every merge to `master`, edit
+To change the default for every release, edit
 `.github/workflows/release-master.yml` and change the `submit_profile` input's
 `default`. To add rung 4, add a profile to `eas.json`:
 

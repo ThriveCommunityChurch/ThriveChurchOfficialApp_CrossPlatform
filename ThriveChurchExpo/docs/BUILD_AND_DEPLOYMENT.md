@@ -14,8 +14,8 @@ This guide covers building and deploying the Thrive Church app using Expo Bare W
 ---
 
 > **Shipping to the stores?** You almost certainly do not need this guide.
-> Store releases are automated: every merge to `master` builds on EAS and
-> uploads to TestFlight and Google Play with no local machine involved.
+> Store releases are one click: running the release workflow on `master` builds
+> on EAS and uploads to TestFlight and Google Play with no local machine involved.
 > See **[CI_CD_RELEASE.md](./CI_CD_RELEASE.md)**.
 >
 > The manual commands below remain valid for development builds and for

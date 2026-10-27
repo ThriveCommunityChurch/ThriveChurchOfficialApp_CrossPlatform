@@ -1,8 +1,9 @@
 name: Release (EAS Build + Store Submit)
 
-# Fully automated store release pipeline.
+# Store release pipeline.
 #
-# Trigger: every push to master (i.e. every merged PR), or manual dispatch.
+# Trigger: manual only (Actions -> Run workflow, branch master). Merging to
+# master does not release, so each commit ships under exactly one version.
 #
 # Flow:
 #   1. Install dependencies and materialize real production credentials from secrets
@@ -21,9 +22,6 @@ name: Release (EAS Build + Store Submit)
 # A submitted release is tagged `v<version>`, which becomes the next baseline.
 
 on:
-  push:
-    branches:
-      - master
   workflow_dispatch:
     inputs:
       version:
@@ -85,6 +83,13 @@ jobs:
       EAS_PROJECT_ID: ${{ vars.EAS_PROJECT_ID }}
 
     steps:
+      - name: Require master
+        if: github.ref != 'refs/heads/master'
+        run: |
+          echo "::error::Releases run from master only (this run is on ${GITHUB_REF_NAME})."
+          exit 1
+        working-directory: .
+
       - name: Checkout code
         uses: actions/checkout@v6
         with:
@@ -157,18 +162,16 @@ jobs:
         run: pnpm run prebuild:ci
 
       # We intentionally do NOT pass --no-wait, which is what the docs use for
-      # their minimal CI example. Waiting is what makes the red/green check on
-      # master mean something: without it the job goes green the instant the
+      # their minimal CI example. Waiting is what makes the run's red/green
+      # result mean something: without it the job goes green the instant the
       # build is queued, and a failed build or a rejected upload is invisible
       # unless someone opens the Expo dashboard.
       - name: Build and submit via EAS
         id: build
         run: |
-          # Inputs are empty on a push event, so resolve defaults in bash rather
-          # than in a GitHub expression (boolean/null coercion there is a trap).
           PLATFORM="${PLATFORM_INPUT:-all}"
           SUBMIT_PROFILE="${SUBMIT_PROFILE_INPUT:-production}"
-          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ] && [ "${SUBMIT_INPUT}" = "false" ]; then
+          if [ "${SUBMIT_INPUT}" = "false" ]; then
             SUBMIT=false
           else
             SUBMIT=true
