@@ -272,8 +272,14 @@ export EAS_PROJECT_ID=<uuid>
 export THRIVE_REMOTE_VERSIONS=1
 export THRIVE_REMOTE_SIGNING=1
 export APP_ENV=production
+git fetch --tags
+node scripts/resolve-release-version.js   # or RELEASE_VERSION=2.1.0 node ...
 pnpm run prebuild:ci
 pnpm run eas:release
+# After a successful submit, record the version so CI continues from it:
+TAG="v$(node -p "require('./version.json').version")"
+git tag "$TAG" && git push origin "$TAG"
+git checkout version.json
 ```
 
 ---
