@@ -13,6 +13,16 @@ This guide covers building and deploying the Thrive Church app using Expo Bare W
 
 ---
 
+> **Shipping to the stores?** You almost certainly do not need this guide.
+> Store releases are automated: every merge to `master` builds on EAS and
+> uploads to TestFlight and Google Play with no local machine involved.
+> See **[CI_CD_RELEASE.md](./CI_CD_RELEASE.md)**.
+>
+> The manual commands below remain valid for development builds and for
+> one-off local production builds.
+
+---
+
 ## Prerequisites
 
 ### General Requirements
@@ -124,46 +134,32 @@ pnpm add -g eas-cli
 # Login to your Expo account
 eas login
 
-# Initialize EAS in your project
-eas build:configure
+# Point the CLI at this project (see CI_CD_RELEASE.md for where the ID comes from)
+export EAS_PROJECT_ID=<uuid-from-eas-project-info>
 ```
 
-This creates `eas.json` with build configurations.
+`eas.json` is already committed at the project root, so `eas build:configure` is
+not needed. Because the app config lives in `app.config.js` rather than
+`app.json`, the EAS project ID is read from the `EAS_PROJECT_ID` environment
+variable instead of being written into the config file.
 
-### 2. Configure Build Profiles
+### 2. Build Profiles
 
-Edit `eas.json` to customize build settings:
+The profiles live in `eas.json` at the project root:
 
-```json
-{
-  "cli": {
-    "version": ">= 5.2.0"
-  },
-  "build": {
-    "development": {
-      "developmentClient": true,
-      "distribution": "internal",
-      "ios": {
-        "resourceClass": "m-medium"
-      }
-    },
-    "preview": {
-      "distribution": "internal",
-      "ios": {
-        "simulator": true
-      }
-    },
-    "production": {
-      "ios": {
-        "resourceClass": "m-medium"
-      }
-    }
-  },
-  "submit": {
-    "production": {}
-  }
-}
-```
+| Profile | Distribution | Notes |
+| --- | --- | --- |
+| `development` | internal | Includes the Expo dev client; Android builds an APK |
+| `preview` | internal | Production credentials, APK for side-loading and QA |
+| `production` | store | AAB for Play, signed archive for App Store; auto-increments the build number |
+
+All profiles use `"credentialsSource": "remote"`, so signing keys are held by
+EAS rather than read from disk. Note that EAS's own `credentials.json` convention
+is *not* used here — this repo already uses `credentials.json` for app
+configuration, and the two are unrelated files that would otherwise collide.
+
+Every profile sets `THRIVE_REMOTE_VERSIONS=1` and `THRIVE_REMOTE_SIGNING=1`.
+See [CI_CD_RELEASE.md](./CI_CD_RELEASE.md#versioning) for what those do.
 
 ### 3. Build for iOS
 
