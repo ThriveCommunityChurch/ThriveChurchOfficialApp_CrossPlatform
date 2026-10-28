@@ -248,15 +248,19 @@ ignore `version.json`'s `buildNumber`.
 6. Android: the build lands on the internal testing track. Promote it in Play
    Console when you are ready.
 
-A red run doesn't always mean nothing shipped. Check which step failed before
-re-running:
+A red run doesn't always mean nothing shipped. Before re-running, check
+https://expo.dev/accounts/thrive-fl/projects/thrivechurchexpo/submissions to
+see what reached each store, then check which step failed:
 
-- **Build and submit via EAS** failed: nothing reached the stores. Fix the cause
-  and run again.
-- **Tag release** failed: the upload already succeeded (confirm at
-  https://expo.dev/accounts/thrive-fl/projects/thrivechurchexpo/submissions). Do **not** re-run, or the next run ships the same
-  code as a new version. Push the tag by hand instead, using the version from
-  the run summary and the commit the run built:
+- **Build and submit via EAS** failed: one platform may still have uploaded
+  (with `all`, iOS and Android build and submit independently). No tag was
+  created, so a re-run with a blank version reuses the same version (if you
+  entered one, enter it again). Re-run
+  with **Platform** set to just the one that failed; that run creates the tag.
+  If neither uploaded, re-run with `all`.
+- **Tag release** failed: both uploads already succeeded. Do **not** re-run,
+  or the next run ships the same code as a new version. Push the tag by hand
+  instead, using the version from the run summary and the commit the run built:
 
   ```bash
   git tag v2.0.3 <commit-sha> && git push origin v2.0.3
