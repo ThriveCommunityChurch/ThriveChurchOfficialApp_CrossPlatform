@@ -22,6 +22,7 @@
         "resourceClass": "medium"
       },
       "ios": {
+        "scheme": "ThriveChurchOfficialApp",
         "resourceClass": "medium"
       }
     },
@@ -42,6 +43,7 @@
         "resourceClass": "medium"
       },
       "ios": {
+        "scheme": "ThriveChurchOfficialApp",
         "resourceClass": "medium"
       }
     },
@@ -63,6 +65,7 @@
         "resourceClass": "medium"
       },
       "ios": {
+        "scheme": "ThriveChurchOfficialApp",
         "resourceClass": "medium"
       }
     }

@@ -1,8 +1,9 @@
 name: Release (EAS Build + Store Submit)
 
-# Fully automated store release pipeline.
+# Store release pipeline.
 #
-# Trigger: every push to master (i.e. every merged PR), or manual dispatch.
+# Trigger: manual only (Actions -> Run workflow, branch master). Merging to
+# master does not release, so each commit ships under exactly one version.
 #
 # Flow:
 #   1. Install dependencies and materialize real production credentials from secrets
@@ -14,15 +15,20 @@ name: Release (EAS Build + Store Submit)
 #
 # No local macOS machine is involved at any point. Build numbers are owned by
 # EAS (appVersionSource: "remote" + autoIncrement in eas.json), so nothing is
-# committed back to master and branch protection is never in the way. The
-# marketing version still comes from ThriveChurchExpo/version.json.
+# committed back to master and branch protection is never in the way.
+#
+# Marketing version: the `version` input if given, otherwise the next patch
+# after the highest `v*` tag / version.json (scripts/resolve-release-version.js).
+# A submitted release is tagged `v<version>`, which becomes the next baseline.
 
 on:
-  push:
-    branches:
-      - master
   workflow_dispatch:
     inputs:
+      version:
+        description: 'Version to release, e.g. 2.1.0 or 3. Leave blank for the next patch.'
+        required: false
+        default: ''
+        type: string
       platform:
         description: 'Platform to build'
         required: true
@@ -53,6 +59,10 @@ concurrency:
   group: release-master
   cancel-in-progress: false
 
+# Pushes the v<version> tag after a submitted release.
+permissions:
+  contents: write
+
 jobs:
   release:
     name: Build and submit
@@ -73,8 +83,18 @@ jobs:
       EAS_PROJECT_ID: ${{ vars.EAS_PROJECT_ID }}
 
     steps:
+      - name: Require master
+        if: github.ref != 'refs/heads/master'
+        run: |
+          echo "::error::Releases run from master only (this run is on ${GITHUB_REF_NAME})."
+          exit 1
+        working-directory: .
+
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          # Tags are the record of released versions
+          fetch-depth: 0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
@@ -112,6 +132,12 @@ jobs:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           THRIVE_CREDENTIALS_PRODUCTION: ${{ secrets.THRIVE_CREDENTIALS_PRODUCTION }}
 
+      - name: Resolve release version
+        id: version
+        run: node scripts/resolve-release-version.js
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -136,21 +162,21 @@ jobs:
         run: pnpm run prebuild:ci
 
       # We intentionally do NOT pass --no-wait, which is what the docs use for
-      # their minimal CI example. Waiting is what makes the red/green check on
-      # master mean something: without it the job goes green the instant the
+      # their minimal CI example. Waiting is what makes the run's red/green
+      # result mean something: without it the job goes green the instant the
       # build is queued, and a failed build or a rejected upload is invisible
       # unless someone opens the Expo dashboard.
       - name: Build and submit via EAS
+        id: build
         run: |
-          # Inputs are empty on a push event, so resolve defaults in bash rather
-          # than in a GitHub expression (boolean/null coercion there is a trap).
           PLATFORM="${PLATFORM_INPUT:-all}"
           SUBMIT_PROFILE="${SUBMIT_PROFILE_INPUT:-production}"
-          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ] && [ "${SUBMIT_INPUT}" = "false" ]; then
+          if [ "${SUBMIT_INPUT}" = "false" ]; then
             SUBMIT=false
           else
             SUBMIT=true
           fi
+          echo "submitted=${SUBMIT}" >> "$GITHUB_OUTPUT"
 
           set -- --platform "${PLATFORM}" --profile production --non-interactive
           if [ "${SUBMIT}" = "true" ]; then
@@ -171,6 +197,18 @@ jobs:
           SUBMIT_INPUT: ${{ inputs.submit }}
           SUBMIT_PROFILE_INPUT: ${{ inputs.submit_profile }}
 
+      - name: Tag release
+        if: success() && steps.build.outputs.submitted == 'true'
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null; then
+            echo "::warning::Tag ${TAG} already exists; leaving it in place."
+            exit 0
+          fi
+          git tag "${TAG}" "${GITHUB_SHA}"
+          git push origin "refs/tags/${TAG}"
+
       - name: Release summary
         if: always()
         run: |
@@ -178,7 +216,7 @@ jobs:
             echo "## Release run"
             echo ""
             echo "- Commit: \`${GITHUB_SHA}\`"
-            echo "- Marketing version: \`$(node -p "require('./version.json').version")\`"
+            echo "- Version: \`${{ steps.version.outputs.version || 'not resolved' }}\`"
             echo "- Platform: \`${{ inputs.platform || 'all' }}\`"
             echo "- Submit profile: \`${{ inputs.submit_profile || 'production' }}\`"
             echo "- Build number: assigned remotely by EAS (see the build page)"

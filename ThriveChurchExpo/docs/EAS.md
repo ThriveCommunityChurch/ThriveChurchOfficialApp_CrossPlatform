@@ -156,7 +156,7 @@ only if a submit step ever fails on permissions.
 **Rotation rule: the secret is a snapshot.** Any credential change (API key
 rotation, Firebase value, new field) requires re-running the `base64` command
 on the updated `credentials.production.json` and pasting the new output over
-the secret. No code change, no PR — the next `master` push picks it up. The
+the secret. No code change, no PR — the next release run picks it up. The
 workflow rejects payloads that still contain template placeholders, so a
 half-filled rotation fails fast instead of shipping a broken build.
 
@@ -165,13 +165,17 @@ half-filled rotation fails fast instead of shipping a broken build.
 ## 8. Releasing
 
 1. PR into `dev` (gated by `validate-dev.yml`), then `dev` → `master`.
-2. Every `master` push runs `release-master.yml`: deps → credentials from the
-   secret → type-check → `prebuild --clean` + patch scripts on Linux → EAS
-   build + auto-submit.
+2. To ship, run *Release (EAS Build + Store Submit)* from the Actions tab on
+   `master` (merging alone does not release). Leave **Version** blank for the
+   next patch, or enter one. The run does: deps → credentials from the secret →
+   type-check → `prebuild --clean` + patch scripts on Linux → EAS build +
+   auto-submit → tag `v<version>`.
 3. Android lands on the **internal** track; iOS lands in **TestFlight**. A human
    promotes from there (see [the release ladder](CI_CD_RELEASE.md#the-release-ladder)).
 4. Watch progress: expo.dev → `thrive-fl` → `thrivechurchexpo` → builds /
-   submissions. A red check on `master` means the release did not ship.
+   submissions. If a run is red, check which step failed before re-running: a
+   failed *Tag release* step means the upload already succeeded (see
+   [Day-to-day workflow](CI_CD_RELEASE.md#day-to-day-workflow)).
 
 ---
 

@@ -1,14 +1,14 @@
 # Automated Release Pipeline (EAS Build + Store Submit)
 
-Every merge to `master` builds the app in the cloud and uploads it to both stores.
-No macOS machine is involved. This document covers the one-time setup and the
+One click on **Run workflow** builds the app from `master` in the cloud and
+uploads it to both stores. Merging does not release. No macOS machine is involved. This document covers the one-time setup and the
 day-to-day workflow.
 
 ---
 
 ## Table of Contents
 
-- [What happens on a merge to master](#what-happens-on-a-merge-to-master)
+- [What a release run does](#what-a-release-run-does)
 - [One-time setup](#one-time-setup)
   - [1. Create the EAS project](#1-create-the-eas-project)
   - [2. Upload signing credentials to EAS](#2-upload-signing-credentials-to-eas)
@@ -23,11 +23,14 @@ day-to-day workflow.
 
 ---
 
-## What happens on a merge to master
+## What a release run does
 
-`.github/workflows/release-master.yml` runs on every push to `master`:
+`.github/workflows/release-master.yml` runs only when started by hand from the
+Actions tab, and only on `master`. Merging to `master` does not trigger it, so
+each commit is released under exactly one version. A run:
 
-1. Installs dependencies with pnpm.
+1. Resolves the release version (see [Versioning](#versioning)) and installs
+   dependencies with pnpm.
 2. Writes the real production credentials from a GitHub secret, then generates
    `GoogleService-Info.plist` and `google-services.json` from them.
 3. Type-checks with `tsc --noEmit`.
@@ -36,6 +39,7 @@ day-to-day workflow.
    `add-ios-splash-copyright`, `copy-android-splash`) on the Linux runner.
 5. Runs `eas build --platform all --profile production
    --auto-submit-with-profile=production`.
+6. Tags the commit `v<version>` once the build and submission succeed.
 
 EAS compiles iOS on its own macOS workers and Android on Linux workers, then
 submits the artifacts:
@@ -47,7 +51,7 @@ submits the artifacts:
 
 Apple requires a human to submit a TestFlight build for App Store review, so iOS
 stops at TestFlight by design. Android stops at the internal track by choice, so
-that a merge never ships to real users unattended. Moving further is a config
+that a release never reaches real users without a human promoting it. Moving further is a config
 change — see [The release ladder](#the-release-ladder).
 
 Pull requests into `master` are still gated by the existing
@@ -101,7 +105,8 @@ eas build:version:set
 ```
 
 Answer **yes** to using the remote version source and enter a number higher than
-anything already in the stores. This is a one-time step.
+anything already in the stores. This is a one-time step, and it is done: both
+platforms were seeded at **1300** on 2026-10-27 (App Store 2.0.2 was build 1266).
 
 ### 2. Upload signing credentials to EAS
 
@@ -190,8 +195,28 @@ Two numbers, two owners:
 
 | Number | Where it lives | Who changes it |
 | --- | --- | --- |
-| Marketing version (`2.0.0`) | `ThriveChurchExpo/version.json` | You, in a normal PR |
+| Marketing version (`2.0.3`) | `v*` git tags | The release workflow, automatically |
 | Build number / versionCode | EAS servers | EAS, automatically |
+
+### Marketing version
+
+You never edit it by hand. Each release picks its version like this:
+
+- **No version given** (the field left blank): the next patch after the highest released version. `2.0.3` → `2.0.4`.
+- **Version given**: exactly that. `2.1.0` ships `2.1.0`; `3`
+  ships `3.0.0`. The next release without a version continues from it, so
+  `2.1.0` is followed by `2.1.1`.
+
+"Highest released version" is the highest `v*` tag, or `version.json` if that
+is higher (it seeds the sequence at `2.0.2`, the version live in both stores
+when this was set up). After a successful submit, the workflow tags the commit
+`v<version>`, which becomes the next baseline. Build-only runs (submit
+unchecked) don't tag, so they don't use up a version.
+
+The resolver is `scripts/resolve-release-version.js`. Preview what the next
+release would be with `node scripts/resolve-release-version.js --dry-run`.
+
+### Build number
 
 `eas.json` sets `"appVersionSource": "remote"` with `"autoIncrement": true`, so
 EAS keeps a monotonic build counter per platform and writes it into the native
@@ -204,33 +229,42 @@ omits `ios.buildNumber` and `android.versionCode` so EAS is the only source of
 truth. Without that variable, local builds keep reading `version.json` exactly
 as before, including `pnpm run version:bump`.
 
-To ship a new marketing version, bump it in a PR before merging:
-
-```bash
-pnpm run version:patch    # 2.0.0 -> 2.0.1
-pnpm run version:minor    # 2.0.0 -> 2.1.0
-pnpm run version:major    # 2.0.0 -> 3.0.0
-```
-
-Note these commands also change `buildNumber` in `version.json`. That field is
-now only used by local builds; store releases ignore it.
+The `pnpm run version:*` scripts still exist for local builds; store releases
+ignore `version.json`'s `buildNumber`.
 
 ---
 
 ## Day-to-day workflow
 
 1. Open a PR into `master`. `validate-main.yml` runs the full validation suite.
-2. Merge. `release-master.yml` builds and submits automatically.
-3. Watch progress at
+2. Merge. Nothing is released yet.
+3. When you want to ship: Actions → *Release (EAS Build + Store Submit)* →
+   **Run workflow** on `master`. Leave **Version** blank for the next patch.
+4. Watch progress at
    https://expo.dev/accounts/thrive-fl/projects/thrivechurchexpo/builds
-4. iOS: the build appears in TestFlight after Apple finishes processing
+5. iOS: the build appears in TestFlight after Apple finishes processing
    (typically 5–15 minutes). Promote to the App Store from App Store Connect
    when you are ready.
-5. Android: the build lands on the internal testing track. Promote it in Play
+6. Android: the build lands on the internal testing track. Promote it in Play
    Console when you are ready.
 
-The workflow job fails if the EAS build or submission fails, so a red check on
-`master` means the release did not ship.
+A red run doesn't always mean nothing shipped. Before re-running, check
+https://expo.dev/accounts/thrive-fl/projects/thrivechurchexpo/submissions to
+see what reached each store, then check which step failed:
+
+- **Build and submit via EAS** failed: one platform may still have uploaded
+  (with `all`, iOS and Android build and submit independently). No tag was
+  created, so a re-run with a blank version reuses the same version (if you
+  entered one, enter it again). Re-run
+  with **Platform** set to just the one that failed; that run creates the tag.
+  If neither uploaded, re-run with `all`.
+- **Tag release** failed: both uploads already succeeded. Do **not** re-run,
+  or the next run ships the same code as a new version. Push the tag by hand
+  instead, using the version from the run summary and the commit the run built:
+
+  ```bash
+  git tag v2.0.3 <commit-sha> && git push origin v2.0.3
+  ```
 
 ---
 
@@ -238,6 +272,8 @@ The workflow job fails if the EAS build or submission fails, so a red check on
 
 Actions → *Release (EAS Build + Store Submit)* → **Run workflow**:
 
+- **Version** — leave blank for the next patch, or enter one (`2.1.0`, `3`).
+  See [Versioning](#versioning).
 - **Platform** — `all`, `ios`, or `android`.
 - **Submit** — uncheck to build without uploading to the stores. Useful for
   producing an artifact to test before a release.
@@ -254,8 +290,14 @@ export EAS_PROJECT_ID=<uuid>
 export THRIVE_REMOTE_VERSIONS=1
 export THRIVE_REMOTE_SIGNING=1
 export APP_ENV=production
+git fetch --tags
+node scripts/resolve-release-version.js   # or RELEASE_VERSION=2.1.0 node ...
 pnpm run prebuild:ci
 pnpm run eas:release
+# After a successful submit, record the version so CI continues from it:
+TAG="v$(node -p "require('./version.json').version")"
+git tag "$TAG" && git push origin "$TAG"
+git checkout version.json
 ```
 
 ---
@@ -289,7 +331,7 @@ here, and it is what this pipeline does.
 For a one-off, use the workflow's **Run workflow** button and pick a different
 **submit_profile**. Nothing is committed, so this is the safe way to try a rung.
 
-To change the default for every merge to `master`, edit
+To change the default for every release, edit
 `.github/workflows/release-master.yml` and change the `submit_profile` input's
 `default`. To add rung 4, add a profile to `eas.json`:
 

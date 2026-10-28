@@ -19,7 +19,7 @@
  * These settings persist across `expo prebuild --clean`
  */
 
-const { withXcodeProject, withDangerousMod } = require('@expo/config-plugins');
+const { withXcodeProject, withDangerousMod } = require('expo/config-plugins');
 const fs = require('fs');
 const path = require('path');
 
