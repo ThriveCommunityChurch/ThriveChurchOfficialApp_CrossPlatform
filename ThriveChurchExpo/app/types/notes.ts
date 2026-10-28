@@ -13,6 +13,8 @@ export interface Note {
   content: string;
   createdAt: number; // epoch milliseconds
   updatedAt: number; // epoch milliseconds
+  /** Whether the note is pinned to the top of the list */
+  isPinned?: boolean;
 }
 
 /**
@@ -41,6 +43,8 @@ export interface SermonNote {
   createdAt: number;
   /** When the note was last updated (epoch milliseconds) */
   updatedAt: number;
+  /** Whether the note is pinned to the top of the list */
+  isPinned?: boolean;
 }
 
 export interface NotesState {

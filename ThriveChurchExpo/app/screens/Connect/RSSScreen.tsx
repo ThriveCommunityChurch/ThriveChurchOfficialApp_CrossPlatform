@@ -3,7 +3,7 @@
  * Displays RSS feed from MailChimp with card design
  */
 
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useMemo } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -41,7 +41,7 @@ interface RSSCardProps {
 }
 
 const RSSCard: React.FC<RSSCardProps> = ({ item, onPress, theme, t }) => {
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
@@ -108,7 +108,7 @@ const RSSCard: React.FC<RSSCardProps> = ({ item, onPress, theme, t }) => {
 export default function RSSScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const navigation = useNavigation<NavigationProp>();
   const [loading, setLoading] = React.useState(true);
   const [items, setItems] = React.useState<RSSItem[]>([]);

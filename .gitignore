@@ -143,3 +143,4 @@ ThriveChurchExpo/.expo/
 ThriveChurchExpo/.expo-shared/
 
 *.keystore
+ThriveChurchExpo/test-results/ios-ui-tests.xcresult/*

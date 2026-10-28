@@ -6,8 +6,8 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-  Image,
 } from 'react-native';
+import FastImage from 'react-native-fast-image';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../hooks/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -221,7 +221,7 @@ export default function RecentlyPlayedScreen() {
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           {/* Series Art Thumbnail */}
           {item.seriesArt ? (
-            <Image
+            <FastImage
               source={{ uri: item.seriesArt }}
               style={{
                 width: 106,
@@ -230,7 +230,7 @@ export default function RecentlyPlayedScreen() {
                 backgroundColor: theme.colors.card,
                 marginRight: 12,
               }}
-              resizeMode="cover"
+              resizeMode={FastImage.resizeMode.cover}
             />
           ) : (
             <View

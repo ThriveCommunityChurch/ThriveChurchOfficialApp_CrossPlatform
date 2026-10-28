@@ -9,7 +9,7 @@
  * - Responsive design for phones and tablets
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -61,7 +61,7 @@ const SettingRow: React.FC<SettingRowProps> = ({
   theme,
   disabled,
 }) => {
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const content = (
     <View style={[styles.settingRow, disabled && styles.settingRowDisabled]}>
@@ -101,7 +101,7 @@ const SettingRow: React.FC<SettingRowProps> = ({
 export default function DownloadSettingsScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const [settings, setSettings] = useState<DownloadSettings>(DEFAULT_DOWNLOAD_SETTINGS);
   const [currentUsage, setCurrentUsage] = useState<number>(0);

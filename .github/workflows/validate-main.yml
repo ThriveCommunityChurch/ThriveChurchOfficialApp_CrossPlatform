@@ -38,28 +38,33 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
       
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
         with:
-          node-version: '22.x'
-          cache: 'npm'
-          cache-dependency-path: ThriveChurchExpo/package-lock.json
+          version: 10.34.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '26.x'
+          cache: 'pnpm'
+          cache-dependency-path: ThriveChurchExpo/pnpm-lock.yaml
       
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: pnpm install --frozen-lockfile
       
       - name: Generate mock credentials
         run: node scripts/generate-ci-credentials.js
       
       - name: TypeScript type check
-        run: npx tsc --noEmit
+        run: pnpm exec tsc --noEmit
 
       - name: Security audit
-        run: npm audit --audit-level=moderate
+        run: pnpm audit --audit-level=moderate
         continue-on-error: true
       
       - name: Validate Expo export
-        run: npx expo export --platform all --output-dir dist
+        run: pnpm exec expo export --platform all --output-dir dist
         env:
           EXPO_NO_TELEMETRY: 1
       
@@ -84,15 +89,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
       
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
         with:
-          node-version: '22.x'
-          cache: 'npm'
-          cache-dependency-path: ThriveChurchExpo/package-lock.json
+          version: 10.34.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '26.x'
+          cache: 'pnpm'
+          cache-dependency-path: ThriveChurchExpo/pnpm-lock.yaml
       
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: pnpm install --frozen-lockfile
       
       - name: Generate mock credentials
         run: node scripts/generate-ci-credentials.js
@@ -141,7 +151,7 @@ jobs:
       
       # Run expo prebuild for iOS
       - name: Run Expo prebuild for iOS
-        run: npx expo prebuild --platform ios --no-install --clean
+        run: pnpm exec expo prebuild --platform ios --no-install --clean
         env:
           EXPO_NO_TELEMETRY: 1
 
@@ -193,13 +203,13 @@ jobs:
       # Note: We don't upload node_modules because binaries are platform-specific
       # and won't work when moving from ubuntu-latest to macos-latest
       - name: Upload iOS prebuild artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ios-prebuild-artifacts
           path: |
             ThriveChurchExpo/ios/
             ThriveChurchExpo/package.json
-            ThriveChurchExpo/package-lock.json
+            ThriveChurchExpo/pnpm-lock.yaml
           retention-days: 1
 
       - name: iOS prebuild summary
@@ -228,23 +238,28 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
         with:
-          node-version: '22.x'
-          cache: 'npm'
-          cache-dependency-path: ThriveChurchExpo/package-lock.json
+          version: 10.34.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '26.x'
+          cache: 'pnpm'
+          cache-dependency-path: ThriveChurchExpo/pnpm-lock.yaml
 
       # Download prebuild artifacts from ios-prebuild job
       - name: Download iOS prebuild artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ios-prebuild-artifacts
           path: ThriveChurchExpo
 
       # Install dependencies (can't reuse from artifact due to platform differences)
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: pnpm install --frozen-lockfile
 
       - name: Generate mock credentials
         run: node scripts/generate-ci-credentials.js
@@ -293,7 +308,7 @@ jobs:
 
       # Cache CocoaPods
       - name: Cache CocoaPods
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ThriveChurchExpo/ios/Pods
@@ -358,15 +373,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
       
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
         with:
-          node-version: '22.x'
-          cache: 'npm'
-          cache-dependency-path: ThriveChurchExpo/package-lock.json
+          version: 10.34.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '26.x'
+          cache: 'pnpm'
+          cache-dependency-path: ThriveChurchExpo/pnpm-lock.yaml
       
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: pnpm install --frozen-lockfile
       
       - name: Generate mock credentials
         run: node scripts/generate-ci-credentials.js
@@ -413,7 +433,7 @@ jobs:
       
       # Run expo prebuild for Android
       - name: Run Expo prebuild for Android
-        run: npx expo prebuild --platform android --no-install --clean
+        run: pnpm exec expo prebuild --platform android --no-install --clean
         env:
           EXPO_NO_TELEMETRY: 1
       
@@ -430,15 +450,15 @@ jobs:
 
       # Upload Android artifacts for the build job
       # Note: We don't upload node_modules to keep artifact size small
-      # npm cache will make reinstallation fast in the build job
+      # pnpm cache will make reinstallation fast in the build job
       - name: Upload Android prebuild artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: android-prebuild-artifacts
           path: |
             ThriveChurchExpo/android/
             ThriveChurchExpo/package.json
-            ThriveChurchExpo/package-lock.json
+            ThriveChurchExpo/pnpm-lock.yaml
           retention-days: 1
 
       - name: Android prebuild summary
@@ -465,16 +485,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
         with:
-          node-version: '22.x'
-          cache: 'npm'
-          cache-dependency-path: ThriveChurchExpo/package-lock.json
+          version: 10.34.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '26.x'
+          cache: 'pnpm'
+          cache-dependency-path: ThriveChurchExpo/pnpm-lock.yaml
 
       # Setup Java 17 (required for Android Gradle builds)
       - name: Setup Java 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '17'
@@ -487,14 +512,14 @@ jobs:
 
       # Download prebuild artifacts from android-prebuild job
       - name: Download Android prebuild artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: android-prebuild-artifacts
           path: ThriveChurchExpo
 
-      # Install dependencies (npm cache makes this fast)
+      # Install dependencies (pnpm cache makes this fast)
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: pnpm install --frozen-lockfile
 
       - name: Generate mock credentials
         run: node scripts/generate-ci-credentials.js

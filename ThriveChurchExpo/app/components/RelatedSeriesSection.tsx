@@ -30,13 +30,10 @@ export const RelatedSeriesSection: React.FC<RelatedSeriesSectionProps> = ({
 }) => {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const navigation = useNavigation<StackNavigationProp<any>>();
 
-  // Don't render if no tags
-  if (!currentMessageTags || currentMessageTags.length === 0) {
-    return null;
-  }
+  const hasTags = !!currentMessageTags && currentMessageTags.length > 0;
 
   // Fetch related series with React Query
   const { data: relatedSeries, isLoading, isError } = useQuery({
@@ -46,6 +43,7 @@ export const RelatedSeriesSection: React.FC<RelatedSeriesSectionProps> = ({
       return series;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: hasTags,
   });
 
   // Sort and filter series
@@ -100,8 +98,8 @@ export const RelatedSeriesSection: React.FC<RelatedSeriesSectionProps> = ({
     }
   }, [sortedSeries, currentMessageTags]);
 
-  // Don't render if loading failed or no results
-  if (isError || (!isLoading && sortedSeries.length === 0)) {
+  // Don't render if no tags, loading failed, or no results
+  if (!hasTags || isError || (!isLoading && sortedSeries.length === 0)) {
     return null;
   }
 

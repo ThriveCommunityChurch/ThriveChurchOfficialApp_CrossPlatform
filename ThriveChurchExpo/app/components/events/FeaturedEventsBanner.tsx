@@ -3,7 +3,7 @@
  * Horizontal scrollable carousel for showcasing featured events
  */
 
-import React, { useRef } from 'react';
+import React, { useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -36,7 +36,7 @@ export const FeaturedEventsBanner: React.FC<FeaturedEventsBannerProps> = ({
 }) => {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const flatListRef = useRef<FlatList>(null);
 
   if (events.length === 0) return null;

@@ -4,7 +4,7 @@
  * Responsive design for both phone and tablet devices
  */
 
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -33,7 +33,7 @@ export const ServeScreen: React.FC = () => {
   const isLandscape = windowWidth > windowHeight;
   const isTabletDevice = (Platform.OS === 'ios' && Platform.isPad) || Math.min(windowWidth, windowHeight) >= 768;
 
-  const styles = createStyles(theme, isTabletDevice, isLandscape);
+  const styles = useMemo(() => createStyles(theme, isTabletDevice, isLandscape), [theme, isTabletDevice, isLandscape]);
 
   useEffect(() => {
     setCurrentScreen('ServeScreen', 'Serve');

@@ -3,7 +3,7 @@
  * Screen for watching Thrive Church live streams on YouTube
  */
 
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo} from 'react';
 import {
   View,
   Text,
@@ -30,7 +30,7 @@ export const LiveScreen: React.FC = () => {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { data: liveStatus, isLoading, refetch, isRefetching } = useLiveStream();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   // Track screen view
   useEffect(() => {

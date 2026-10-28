@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
-import TrackPlayer, { 
-  State, 
-  Event, 
+import TrackPlayer, {
+  State,
+  Event,
   useTrackPlayerEvents,
-  useProgress as useTrackPlayerProgress,
   Track,
 } from 'react-native-track-player';
+export { useProgress as usePlayerProgress } from 'react-native-track-player';
 import {
   setupPlayer,
   playAudio,
@@ -24,11 +24,16 @@ export interface PlayerState {
   isStopped: boolean;
   isLoading: boolean;
   currentTrack: Track | null;
-  position: number;
-  duration: number;
-  buffered: number;
 }
 
+/**
+ * Player controls + playback state (no continuous progress).
+ *
+ * Progress (position/duration/buffered) is intentionally NOT part of this hook:
+ * it ticks ~1x/sec and would re-render every consumer (including screens that
+ * only need play/pause) on every tick. Screens that need the playhead should
+ * call `usePlayerProgress()` (re-exported above) directly instead.
+ */
 export const usePlayer = () => {
   const [playerState, setPlayerState] = useState<PlayerState>({
     isPlaying: false,
@@ -36,22 +41,7 @@ export const usePlayer = () => {
     isStopped: true,
     isLoading: false,
     currentTrack: null,
-    position: 0,
-    duration: 0,
-    buffered: 0,
   });
-
-  const progress = useTrackPlayerProgress();
-
-  // Update progress in state
-  useEffect(() => {
-    setPlayerState(prev => ({
-      ...prev,
-      position: progress.position,
-      duration: progress.duration,
-      buffered: progress.buffered,
-    }));
-  }, [progress]);
 
   // Listen to playback state changes
   useTrackPlayerEvents([Event.PlaybackState], async (event) => {

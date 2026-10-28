@@ -371,11 +371,32 @@ export function getMessageTagLabel(tag: MessageTag): string {
 }
 
 /**
- * Convenience function to convert a tag string name (from API) to a user-friendly display label
- * @param tagName - The enum string name from the API (e.g., "SinAndRepentance")
- * @returns User-friendly label (e.g., "Sin & Repentance")
+ * Type for translation function (compatible with i18next)
  */
-export function getTagDisplayLabel(tagName: string): string {
+export type TranslateFunction = (key: string, options?: Record<string, unknown>) => string;
+
+/**
+ * Convenience function to convert a tag string name (from API) to a user-friendly display label.
+ * When a translation function is provided, it will use i18n translations from the 'tags' namespace.
+ * Otherwise, it falls back to the hardcoded English labels.
+ *
+ * @param tagName - The enum string name from the API (e.g., "SinAndRepentance")
+ * @param t - Optional translation function from useTranslation hook
+ * @returns User-friendly label (e.g., "Sin & Repentance" or localized equivalent)
+ */
+export function getTagDisplayLabel(tagName: string, t?: TranslateFunction): string {
+  // If translation function is provided, use i18n
+  if (t) {
+    const translationKey = `tags.${tagName}`;
+    const translated = t(translationKey);
+    // If translation exists and is different from the key, return it
+    // Otherwise fall back to the hardcoded label
+    if (translated && translated !== translationKey) {
+      return translated;
+    }
+  }
+
+  // Fallback to hardcoded English labels
   const tagEnum = getMessageTagFromName(tagName);
   return getMessageTagLabel(tagEnum);
 }

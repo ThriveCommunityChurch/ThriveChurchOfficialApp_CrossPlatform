@@ -3,7 +3,7 @@
  * Main events listing with calendar/list view toggle
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { FlashList } from '@shopify/flash-list';
 import { Ionicons } from '@expo/vector-icons';
 import { useNetInfo } from '@react-native-community/netinfo';
+import { useQuery } from '@tanstack/react-query';
 import { useTheme } from '../../hooks/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
@@ -39,14 +40,10 @@ type ViewMode = 'list' | 'calendar';
 export const EventsScreen: React.FC = () => {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const navigation = useNavigation<NavigationProp>();
 
   // State
-  const [events, setEvents] = useState<EventSummary[]>([]);
-  const [featuredEvents, setFeaturedEvents] = useState<EventSummary[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedDateEvents, setSelectedDateEvents] = useState<EventSummary[]>([]);
@@ -61,68 +58,67 @@ export const EventsScreen: React.FC = () => {
     logCustomEvent('view_events', { view_mode: viewMode });
   }, []);
 
-  // Fetch events
-  const fetchEvents = useCallback(async () => {
-    try {
+  // Fetch events (cached via react-query - see AppProviders for staleTime/gcTime config)
+  const {
+    data: eventsResponse,
+    isLoading: loading,
+    isRefetching: refreshing,
+    refetch,
+  } = useQuery({
+    queryKey: ['events'],
+    queryFn: async () => {
       const response = await getAllEvents(false);
-
       if (response.HasErrors) {
-        // Treat API errors as empty data - show empty state instead of error
-        console.warn('Events API returned error:', response.ErrorMessage);
-        setEvents([]);
-        setFeaturedEvents([]);
-        return;
+        throw new Error(response.ErrorMessage || 'Failed to load events');
       }
+      return response;
+    },
+  });
 
-      const today = new Date();
-
-      // Sort events by next occurrence date (soonest first)
-      // Events with no upcoming occurrence go to the end
-      const sortedEvents = response.Events.sort((a, b) => {
-        const nextA = getNextOccurrence(a, today);
-        const nextB = getNextOccurrence(b, today);
-
-        // If neither has a next occurrence, sort by original start time
-        if (!nextA && !nextB) {
-          return new Date(a.StartTime).getTime() - new Date(b.StartTime).getTime();
-        }
-        // Events with no upcoming occurrence go to the end
-        if (!nextA) return 1;
-        if (!nextB) return -1;
-        // Sort by next occurrence date
-        return nextA.getTime() - nextB.getTime();
-      });
-
-      // Filter featured events - only show upcoming/current ones
-      const featured = sortedEvents.filter((e) => {
-        if (!e.IsFeatured || !e.IsActive) return false;
-        // Use getNextOccurrence to check if there's an upcoming occurrence
-        return getNextOccurrence(e, today) !== null;
-      });
-
-      setEvents(sortedEvents);
-      setFeaturedEvents(featured);
-    } catch (err) {
-      // Treat network/API errors as empty data - show empty state instead of error
-      console.warn('Failed to fetch events:', err);
-      setEvents([]);
-      setFeaturedEvents([]);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+  // Derive sorted events + featured events, precomputing each event's next
+  // occurrence once (instead of recomputing it repeatedly inside the sort comparator)
+  const { events, featuredEvents } = useMemo(() => {
+    if (!eventsResponse || eventsResponse.HasErrors) {
+      if (eventsResponse?.HasErrors) {
+        // Treat API errors as empty data - show empty state instead of error
+        console.warn('Events API returned error:', eventsResponse.ErrorMessage);
+      }
+      return { events: [] as EventSummary[], featuredEvents: [] as EventSummary[] };
     }
-  }, []);
 
-  // Initial fetch
-  useEffect(() => {
-    fetchEvents();
-  }, [fetchEvents]);
+    const today = new Date();
+
+    // Precompute next occurrence once per event
+    const withNextOccurrence = eventsResponse.Events.map((event) => ({
+      event,
+      nextOccurrence: getNextOccurrence(event, today),
+    }));
+
+    // Sort events by next occurrence date (soonest first)
+    // Events with no upcoming occurrence go to the end
+    withNextOccurrence.sort((a, b) => {
+      if (!a.nextOccurrence && !b.nextOccurrence) {
+        return new Date(a.event.StartTime).getTime() - new Date(b.event.StartTime).getTime();
+      }
+      if (!a.nextOccurrence) return 1;
+      if (!b.nextOccurrence) return -1;
+      return a.nextOccurrence.getTime() - b.nextOccurrence.getTime();
+    });
+
+    const sortedEvents = withNextOccurrence.map((w) => w.event);
+
+    // Filter featured events - only show upcoming/current ones
+    const featured = withNextOccurrence
+      .filter((w) => w.event.IsFeatured && w.event.IsActive && w.nextOccurrence !== null)
+      .map((w) => w.event);
+
+    return { events: sortedEvents, featuredEvents: featured };
+  }, [eventsResponse]);
 
   // Handle refresh
   const handleRefresh = useCallback(() => {
-    setRefreshing(true);
-    fetchEvents();
-  }, [fetchEvents]);
+    refetch();
+  }, [refetch]);
 
   // Handle event press
   const handleEventPress = useCallback((event: EventSummary) => {
@@ -313,7 +309,7 @@ export const EventsScreen: React.FC = () => {
         <OfflineEmptyState
           message={t('events.errorDescription')}
           showRetry={true}
-          onRetry={fetchEvents}
+          onRetry={refetch}
         />
       </View>
     );

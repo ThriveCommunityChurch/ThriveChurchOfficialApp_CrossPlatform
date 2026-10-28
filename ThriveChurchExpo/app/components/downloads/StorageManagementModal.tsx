@@ -3,7 +3,7 @@
  * Modal for managing download storage with quick actions
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -47,7 +47,7 @@ export const StorageManagementModal: React.FC<StorageManagementModalProps> = ({
   const { theme } = useTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const [totalSize, setTotalSize] = useState(0);
   const [seriesGroups, setSeriesGroups] = useState<SeriesGroup[]>([]);

@@ -3,7 +3,7 @@
  * Displays grid of chapters for a selected Bible book
  */
 
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useMemo} from 'react';
 import {
   View,
   Text,
@@ -44,7 +44,7 @@ interface ChapterItemProps {
 }
 
 const ChapterItem: React.FC<ChapterItemProps> = ({ chapter, onPress, theme }) => {
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   return (
     <TouchableOpacity
       style={styles.chapterItem}
@@ -61,7 +61,7 @@ export const ChapterListScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const { book } = route.params;
   const { theme } = useTheme();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   // Generate array of chapter numbers
   const chapters = Array.from({ length: book.chapters }, (_, i) => i + 1);

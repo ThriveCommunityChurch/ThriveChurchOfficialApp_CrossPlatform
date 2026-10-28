@@ -10,7 +10,7 @@
  * These settings persist across `expo prebuild --clean`
  */
 
-const { withEntitlementsPlist, withXcodeProject, withInfoPlist, withAppDelegate } = require('@expo/config-plugins');
+const { withEntitlementsPlist, withXcodeProject, withInfoPlist, withAppDelegate } = require('expo/config-plugins');
 const fs = require('fs');
 
 /**

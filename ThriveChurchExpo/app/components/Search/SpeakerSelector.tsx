@@ -37,7 +37,7 @@ export const SpeakerSelector: React.FC<SpeakerSelectorProps> = ({
 }) => {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const [modalVisible, setModalVisible] = useState(false);
   const [searchText, setSearchText] = useState('');
   // Track when list container has been laid out (FlashList needs explicit dimensions)

@@ -23,7 +23,7 @@ const AudioWaveformComponent: React.FC<AudioWaveformProps> = ({
   isSeeking = false,
 }) => {
   const { theme } = useTheme();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   // Animated value for pulsing effect
   const pulseAnim = useRef(new Animated.Value(0.4)).current;
 

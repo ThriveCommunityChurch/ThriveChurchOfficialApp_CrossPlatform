@@ -10,7 +10,7 @@
  * - Player screen can override speed per-session
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -47,7 +47,7 @@ interface OptionPillProps {
 }
 
 const OptionPill: React.FC<OptionPillProps> = ({ label, isSelected, onPress, theme }) => {
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   return (
     <TouchableOpacity
       style={[styles.optionPill, isSelected && styles.optionPillSelected]}
@@ -64,7 +64,7 @@ const OptionPill: React.FC<OptionPillProps> = ({ label, isSelected, onPress, the
 export default function PlaybackSettingsScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const [settings, setSettings] = useState<PlaybackSettings>(DEFAULT_PLAYBACK_SETTINGS);
   const [loading, setLoading] = useState(true);

@@ -4,7 +4,8 @@
 
 ## 📋 Prerequisites
 
-- Node.js 18+ installed
+- Node.js 26+ installed
+- pnpm 10.34.0 (`npm install -g pnpm@10.34.0`)
 - Xcode (for iOS development)
 - Android Studio (for Android development)
 - Git
@@ -17,7 +18,7 @@
 
 ```bash
 cd ThriveChurchExpo
-npm install
+pnpm install
 ```
 
 ### 2. Setup Credentials
@@ -153,13 +154,13 @@ npx expo run:android --variant release
 
 ```bash
 # Run TypeScript check
-npx tsc --noEmit
+pnpm exec tsc --noEmit
 
 # Run tests (if configured)
-npm test
+pnpm test
 
 # Lint code (if configured)
-npm run lint
+pnpm run lint
 ```
 
 ### Credentials
@@ -190,7 +191,7 @@ cd android && ./gradlew clean && cd ..
 # Full nuclear reset (when nothing else works)
 watchman watch-del-all
 rm -rf node_modules
-npm install --legacy-peer-deps
+pnpm install
 cd ios && rm -rf Pods Podfile.lock && pod install && cd ..
 
 # Kill process on port 8081 (if Metro won't start)
@@ -206,6 +207,11 @@ npx expo run:android
 ```
 
 ### Production Builds
+
+> Store releases are automated. Merging to `master` builds on EAS and uploads to
+> TestFlight and Google Play with no local machine involved — see
+> [docs/CI_CD_RELEASE.md](docs/CI_CD_RELEASE.md). The commands below are for
+> one-off local builds.
 
 ```bash
 # iOS - Using Xcode (Archive with Distribution profile)
@@ -249,25 +255,37 @@ Release builds require a keystore. Setup steps:
 
 ### CI/CD Setup
 
-For automated builds, inject credentials at build time:
+Automated releases are configured. New contributor? Start with
+**[docs/EAS.md](docs/EAS.md)** — the end-to-end setup walkthrough (EAS project,
+credentials, GitHub secrets, first release). Pipeline internals live in
+**[docs/CI_CD_RELEASE.md](docs/CI_CD_RELEASE.md)**.
 
-```bash
-# 1. Create credentials file from CI secrets
-echo "$CREDENTIALS_JSON" > credentials.production.json
+Short version — running `.github/workflows/release-master.yml` from the
+Actions tab (on `master`; merging alone does not release) prebuilds on a Linux runner, then
+runs `eas build --profile production --auto-submit-with-profile=production` to
+ship to TestFlight and the Google Play internal track.
 
-# 2. Set Android keystore password (if building Android)
-export THRIVE_RELEASE_STORE_PASSWORD="$KEYSTORE_PASSWORD"
-export THRIVE_RELEASE_KEY_PASSWORD="$KEY_PASSWORD"
+Store *deployment* stays manual on purpose: bundles upload automatically, and a
+human promotes them in each console. On Android the build lands on the internal
+track (live to internal testers as soon as the upload processes) and a person
+promotes it toward production in Play Console; on iOS the build lands in
+TestFlight and a person submits it for App Store review. `eas.json` carries three
+submit profiles (`production`, `production-beta`, `production-store`) so moving
+toward unattended production releases is a config change rather than a rewrite.
+See [the release ladder](docs/CI_CD_RELEASE.md#the-release-ladder).
 
-# 3. Build with production environment
-APP_ENV=production npx expo prebuild --clean
-```
+Required GitHub configuration:
 
-Required CI secrets:
-- `CREDENTIALS_JSON` - Contents of `credentials.production.json`
-- `KEYSTORE_PASSWORD` - Android keystore password (Android builds only)
-- `KEY_PASSWORD` - Android key password (Android builds only)
-- Keystore file should be stored as a base64-encoded secret or secure file
+| Kind | Name | Purpose |
+| --- | --- | --- |
+| Secret | `EXPO_TOKEN` | Expo robot access token |
+| Secret | `THRIVE_CREDENTIALS_PRODUCTION` | Base64 of `credentials.production.json` |
+| Variable | `EAS_PROJECT_ID` | EAS project UUID from `eas project:info` |
+
+Signing keys and store submission keys live on EAS (`eas credentials`), not in
+GitHub. The workflow sets `THRIVE_REMOTE_SIGNING=1`, which tells
+`plugins/withAndroidGradleConfig.js` to leave release signing to EAS; local
+builds are unaffected and still use the keystore setup described above.
 
 ---
 
@@ -346,9 +364,9 @@ npx expo prebuild --platform ios --clean
 npx expo prebuild --platform android --clean
 ```
 
-**Always use `--legacy-peer-deps`** when installing npm packages:
+**Peer dependency warnings are expected** for a couple of packages (e.g. `react-native-fast-image`) — pnpm surfaces them as warnings rather than install failures, so no extra flags are needed:
 ```bash
-npm install --legacy-peer-deps <package-name>
+pnpm add <package-name>
 ```
 
 **Gesture Handler Import**: `react-native-gesture-handler` must be imported first in `index.js` (already configured)
@@ -375,7 +393,7 @@ cp credentials.template.json credentials.production.json
 Check that all required fields in your credentials file are filled in. Compare with `credentials.template.json`.
 
 Required fields:
-- `api.baseUrl`, `api.thriveApiKey`, `api.esvApiKey`
+- `api.baseUrl`, `api.esvApiKey`
 - `firebase.ios.apiKey`, `firebase.ios.projectId`
 - `firebase.android.apiKey`, `firebase.android.projectId`
 
@@ -404,8 +422,8 @@ npx expo start --clear
 rm -rf node_modules
 rm -rf ios/Pods
 rm -rf android/.gradle
-npm install
-npx expo prebuild --clean
+pnpm install
+pnpm exec expo prebuild --clean
 ```
 
 ### TypeScript errors
