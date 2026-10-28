@@ -173,7 +173,9 @@ half-filled rotation fails fast instead of shipping a broken build.
 3. Android lands on the **internal** track; iOS lands in **TestFlight**. A human
    promotes from there (see [the release ladder](CI_CD_RELEASE.md#the-release-ladder)).
 4. Watch progress: expo.dev → `thrive-fl` → `thrivechurchexpo` → builds /
-   submissions. A red run means the release did not ship.
+   submissions. If a run is red, check which step failed before re-running: a
+   failed *Tag release* step means the upload already succeeded (see
+   [Day-to-day workflow](CI_CD_RELEASE.md#day-to-day-workflow)).
 
 ---
 
