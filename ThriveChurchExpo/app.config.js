@@ -160,6 +160,7 @@ module.exports = {
       "./plugins/withXcodeSettings.js",
       // Custom plugin to enable tablet support and rotation on Android/iOS tablets
       "./plugins/withTabletSupport.js",
+      "./plugins/withPodsDeploymentTarget.js",
       // Custom plugin to configure Android gradle.properties (CI/CD settings + release signing)
       ["./plugins/withAndroidGradleConfig.js", { credentials }],
       // Note: @react-native-firebase/analytics and @react-native-firebase/messaging
