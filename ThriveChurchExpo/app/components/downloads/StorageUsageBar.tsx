@@ -3,7 +3,7 @@
  * Displays current download storage usage with optional progress bar
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -28,7 +28,7 @@ export const StorageUsageBar: React.FC<StorageUsageBarProps> = ({
 }) => {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme, compact);
+  const styles = useMemo(() => createStyles(theme, compact), [theme, compact]);
 
   const [currentUsage, setCurrentUsage] = useState(0);
   const [settings, setSettings] = useState<DownloadSettings | null>(null);

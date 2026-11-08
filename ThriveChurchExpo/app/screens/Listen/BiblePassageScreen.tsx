@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useMemo} from 'react';
 import {
   View,
   StyleSheet,
@@ -40,7 +40,7 @@ const BiblePassageScreen: React.FC = () => {
   const route = useRoute<BiblePassageScreenRouteProp>();
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const { message, seriesTitle } = route.params;
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);

@@ -3,7 +3,7 @@
  * A pulsing "LIVE" badge that indicates active streaming status
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { useTheme } from '../hooks/useTheme';
 import type { Theme } from '../theme/types';
@@ -51,7 +51,7 @@ export const LiveBadge: React.FC<LiveBadgeProps> = ({
   animated = true,
 }) => {
   const { theme } = useTheme();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const config = sizeConfig[size];
   
   // Animated value for pulsing effect

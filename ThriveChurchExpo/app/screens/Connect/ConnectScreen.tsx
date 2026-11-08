@@ -3,7 +3,7 @@
  * Main Connect screen with dynamic config-driven menu
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo} from 'react';
 import {
   View,
   Text,
@@ -49,7 +49,7 @@ interface ConnectCardProps {
 }
 
 const ConnectCard: React.FC<ConnectCardProps> = ({ item, onPress, theme }) => {
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
@@ -74,6 +74,10 @@ const ConnectCard: React.FC<ConnectCardProps> = ({ item, onPress, theme }) => {
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       onPress={() => onPress(item)}
+      accessible={true}
+      accessibilityLabel={item.title}
+      accessibilityHint={item.subtitle}
+      accessibilityRole="button"
     >
       <Animated.View
         style={[
@@ -102,7 +106,7 @@ const ConnectCard: React.FC<ConnectCardProps> = ({ item, onPress, theme }) => {
 export const ConnectScreen: React.FC = () => {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const navigation = useNavigation<NavigationProp>();
   const [menuItems, setMenuItems] = useState<ConnectMenuItem[]>([]);
   const [refreshing, setRefreshing] = useState(false);

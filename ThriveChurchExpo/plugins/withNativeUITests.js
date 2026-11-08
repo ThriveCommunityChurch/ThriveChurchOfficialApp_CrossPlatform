@@ -10,7 +10,7 @@
  * This allows tests to survive `expo prebuild --clean`
  */
 
-const { withDangerousMod } = require('@expo/config-plugins');
+const { withDangerousMod } = require('expo/config-plugins');
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
@@ -258,7 +258,7 @@ const withAndroidEspressoTests = (config) => {
       }
     }
 
-    // Add Espresso dependencies if not present
+    // Add Espresso and UiAutomator dependencies if not present
     // Insert after the react-android implementation line
     if (!buildGradle.includes('espresso-core')) {
       const reactAndroidPattern = /(implementation\("com\.facebook\.react:react-android"\))/;
@@ -266,13 +266,14 @@ const withAndroidEspressoTests = (config) => {
       if (match) {
         const espressoDeps = `
 
-    // AndroidX Test - UI Testing with Espresso
+    // AndroidX Test - UI Testing with Espresso and UiAutomator
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test:runner:1.5.2")
     androidTestImplementation("androidx.test:rules:1.5.0")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")`;
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    androidTestImplementation("androidx.test.uiautomator:uiautomator:2.2.0")`;
         buildGradle = buildGradle.replace(match[0], match[0] + espressoDeps);
-        console.log('✅ Added Espresso dependencies');
+        console.log('✅ Added Espresso and UiAutomator dependencies');
       }
     }
 

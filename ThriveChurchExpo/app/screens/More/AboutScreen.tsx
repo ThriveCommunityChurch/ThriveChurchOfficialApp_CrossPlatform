@@ -4,7 +4,7 @@
  * Responsive design for both phone and tablet devices
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo} from 'react';
 import {
   View,
   Text,
@@ -40,7 +40,7 @@ export const AboutScreen: React.FC = () => {
 
   const isLandscape = windowWidth > windowHeight;
   const isTabletDevice = (Platform.OS === 'ios' && Platform.isPad) || Math.min(windowWidth, windowHeight) >= 768;
-  const styles = createStyles(theme, isTabletDevice, isLandscape);
+  const styles = useMemo(() => createStyles(theme, isTabletDevice, isLandscape), [theme, isTabletDevice, isLandscape]);
 
   const [deviceInfo, setDeviceInfo] = useState<DeviceInfoState>({
     appVersion: '1.0.0',

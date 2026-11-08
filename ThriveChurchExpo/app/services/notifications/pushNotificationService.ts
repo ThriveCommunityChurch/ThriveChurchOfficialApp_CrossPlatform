@@ -46,7 +46,9 @@ const isPushNotificationsEnabled = (): boolean => {
  */
 export const requestNotificationPermission = async (): Promise<boolean> => {
   if (!isPushNotificationsEnabled()) {
-    console.log('Push: Notification permission (disabled by feature flag)');
+    if (__DEV__) {
+      console.log('Push: Notification permission (disabled by feature flag)');
+    }
     return false;
   }
 
@@ -57,10 +59,14 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
       authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
     if (enabled) {
-      console.log('Push: Notification permission granted');
+      if (__DEV__) {
+        console.log('Push: Notification permission granted');
+      }
       await logInfo('Push notification permission granted');
     } else {
-      console.log('Push: Notification permission denied');
+      if (__DEV__) {
+        console.log('Push: Notification permission denied');
+      }
       await logWarning('Push notification permission denied');
     }
 
@@ -80,33 +86,44 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
  */
 export const getFCMToken = async (): Promise<string | null> => {
   if (!isPushNotificationsEnabled()) {
-    console.log('Push: FCM Token (disabled by feature flag)');
+    if (__DEV__) {
+      console.log('Push: FCM Token (disabled by feature flag)');
+    }
     return null;
   }
 
   try {
     const token = await messaging().getToken();
     if (token) {
-      console.log('Push: ✅ FCM Token obtained:', token.substring(0, 20) + '...');
-      console.log('Push: Full FCM Token:', token);
+      if (__DEV__) {
+        console.log('Push: FCM token obtained');
+      }
       await logInfo('FCM token obtained successfully');
     } else {
-      console.log('Push: No FCM token available yet (waiting for APNS token)');
+      if (__DEV__) {
+        console.log('Push: No FCM token available yet (waiting for APNS token)');
+      }
       await logWarning('No FCM token available');
     }
     return token;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
-    console.log('Push: getToken() threw error:', errorMessage);
+    if (__DEV__) {
+      console.log('Push: getToken() threw error:', errorMessage);
+    }
 
     // Check if this is an APNS token not ready error
     if (errorMessage.includes('No APNS token') || errorMessage.includes('APNS device token not set')) {
-      console.log('Push: ⚠️ Waiting for APNS token registration. FCM token will be available via onTokenRefresh listener.');
+      if (__DEV__) {
+        console.log('Push: ⚠️ Waiting for APNS token registration. FCM token will be available via onTokenRefresh listener.');
+      }
       await logWarning('Waiting for APNS token registration');
     } else if (errorMessage.includes('unregistered') || errorMessage.includes('simulator')) {
-      console.log('Push: ⚠️ FCM token not available in development build - this is expected.');
-      console.log('Push: To get FCM token, build a release version or check Firebase Console for registered devices.');
+      if (__DEV__) {
+        console.log('Push: ⚠️ FCM token not available in development build - this is expected.');
+        console.log('Push: To get FCM token, build a release version or check Firebase Console for registered devices.');
+      }
       await logWarning('FCM token not available in development build');
     } else {
       console.error('Push: Error getting FCM token:', error);
@@ -122,7 +139,9 @@ export const getFCMToken = async (): Promise<string | null> => {
  */
 export const registerForRemoteNotifications = async (): Promise<void> => {
   if (!isPushNotificationsEnabled()) {
-    console.log('Push: Register for remote notifications (disabled by feature flag)');
+    if (__DEV__) {
+      console.log('Push: Register for remote notifications (disabled by feature flag)');
+    }
     return;
   }
 
@@ -135,14 +154,18 @@ export const registerForRemoteNotifications = async (): Promise<void> => {
       const token = await getFCMToken();
 
       if (token) {
-        console.log('Push: Successfully registered for remote notifications');
+        if (__DEV__) {
+          console.log('Push: Successfully registered for remote notifications');
+        }
         await logInfo('Successfully registered for remote notifications');
 
         // TODO: Send token to your backend server
         // await sendTokenToServer(token);
       }
     } else {
-      console.log('Push: Cannot register - permission not granted');
+      if (__DEV__) {
+        console.log('Push: Cannot register - permission not granted');
+      }
       await logWarning('Cannot register for remote notifications - permission not granted');
     }
   } catch (error) {
@@ -184,7 +207,9 @@ export const displayNotification = async (
       },
     });
 
-    console.log('Push: Notification displayed');
+    if (__DEV__) {
+      console.log('Push: Notification displayed');
+    }
   } catch (error) {
     console.error('Push: Error displaying notification:', error);
   }
@@ -196,14 +221,18 @@ export const displayNotification = async (
  */
 export const setupForegroundMessageHandler = (): (() => void) | undefined => {
   if (!isPushNotificationsEnabled()) {
-    console.log('Push: Foreground message handler (disabled by feature flag)');
+    if (__DEV__) {
+      console.log('Push: Foreground message handler (disabled by feature flag)');
+    }
     return undefined;
   }
 
   try {
     // Handle messages when app is in foreground
     const unsubscribe = messaging().onMessage(async (remoteMessage) => {
-      console.log('Push: Foreground message received:', remoteMessage);
+      if (__DEV__) {
+        console.log('Push: Foreground message received');
+      }
 
       // Display notification using Notifee for better UX
       await displayNotification(remoteMessage);
@@ -212,7 +241,9 @@ export const setupForegroundMessageHandler = (): (() => void) | undefined => {
       await logInfo(`Foreground notification received: ${remoteMessage.notification?.title || 'No title'}`);
     });
 
-    console.log('Push: Foreground message handler registered');
+    if (__DEV__) {
+      console.log('Push: Foreground message handler registered');
+    }
     return unsubscribe;
   } catch (error) {
     console.error('Push: Error setting up foreground message handler:', error);
@@ -228,13 +259,17 @@ export const setupForegroundMessageHandler = (): (() => void) | undefined => {
  */
 export const setupBackgroundMessageHandler = (): void => {
   if (!isPushNotificationsEnabled()) {
-    console.log('Push: Background message handler (disabled by feature flag)');
+    if (__DEV__) {
+      console.log('Push: Background message handler (disabled by feature flag)');
+    }
     return;
   }
 
   try {
     messaging().setBackgroundMessageHandler(async (remoteMessage) => {
-      console.log('Push: Background message received:', remoteMessage);
+      if (__DEV__) {
+        console.log('Push: Background message received');
+      }
 
       // Display notification using Notifee
       await displayNotification(remoteMessage);
@@ -243,7 +278,9 @@ export const setupBackgroundMessageHandler = (): void => {
       await logInfo(`Background notification received: ${remoteMessage.notification?.title || 'No title'}`);
     });
 
-    console.log('Push: Background message handler registered');
+    if (__DEV__) {
+      console.log('Push: Background message handler registered');
+    }
   } catch (error) {
     console.error('Push: Error setting up background message handler:', error);
     logError(`Failed to setup background message handler: ${error instanceof Error ? error.message : 'Unknown error'}`).catch(() => {});
@@ -257,14 +294,18 @@ export const setupNotificationOpenedHandler = (
   onNotificationOpened: (remoteMessage: RemoteMessage) => void
 ): void => {
   if (!isPushNotificationsEnabled()) {
-    console.log('Push: Notification opened handler (disabled by feature flag)');
+    if (__DEV__) {
+      console.log('Push: Notification opened handler (disabled by feature flag)');
+    }
     return;
   }
 
   try {
     // Handle notification opened when app was in background or quit
     messaging().onNotificationOpenedApp((remoteMessage) => {
-      console.log('Push: Notification opened app from background:', remoteMessage);
+      if (__DEV__) {
+        console.log('Push: Notification opened app from background');
+      }
       onNotificationOpened(remoteMessage);
     });
 
@@ -273,7 +314,9 @@ export const setupNotificationOpenedHandler = (
       .getInitialNotification()
       .then((remoteMessage) => {
         if (remoteMessage) {
-          console.log('Push: Notification opened app from quit state:', remoteMessage);
+          if (__DEV__) {
+            console.log('Push: Notification opened app from quit state');
+          }
           onNotificationOpened(remoteMessage);
         }
       });
@@ -281,7 +324,9 @@ export const setupNotificationOpenedHandler = (
     // Handle Notifee notification press (for foreground notifications)
     notifee.onForegroundEvent(({ type, detail }) => {
       if (type === EventType.PRESS) {
-        console.log('Push: Notifee notification pressed:', detail);
+        if (__DEV__) {
+          console.log('Push: Notifee notification pressed');
+        }
         // Handle notification press
         if (detail.notification?.data) {
           onNotificationOpened(detail.notification.data as any);
@@ -289,7 +334,9 @@ export const setupNotificationOpenedHandler = (
       }
     });
 
-    console.log('Push: Notification opened handler registered');
+    if (__DEV__) {
+      console.log('Push: Notification opened handler registered');
+    }
   } catch (error) {
     console.error('Push: Error setting up notification opened handler:', error);
     logError(`Failed to setup notification opened handler: ${error instanceof Error ? error.message : 'Unknown error'}`).catch(() => {});
@@ -304,7 +351,9 @@ export const setBadgeCount = async (count: number): Promise<void> => {
   try {
     if (Platform.OS === 'ios') {
       await notifee.setBadgeCount(count);
-      console.log('Push: Badge count set to:', count);
+      if (__DEV__) {
+        console.log('Push: Badge count set to:', count);
+      }
     }
   } catch (error) {
     console.error('Push: Error setting badge count:', error);
@@ -318,7 +367,9 @@ export const clearAllNotifications = async (): Promise<void> => {
   try {
     await notifee.cancelAllNotifications();
     await setBadgeCount(0);
-    console.log('Push: All notifications cleared');
+    if (__DEV__) {
+      console.log('Push: All notifications cleared');
+    }
   } catch (error) {
     console.error('Push: Error clearing notifications:', error);
   }
@@ -334,18 +385,24 @@ export const initializePushNotifications = async (
 ): Promise<void> => {
   // Check if running on simulator/emulator
   if (isRunningOnSimulator()) {
-    console.log('Push: Skipping push notification initialization (running on simulator/emulator)');
-    console.log('Push: Push notifications require a physical device with valid APNS/FCM configuration');
+    if (__DEV__) {
+      console.log('Push: Skipping push notification initialization (running on simulator/emulator)');
+      console.log('Push: Push notifications require a physical device with valid APNS/FCM configuration');
+    }
     return;
   }
 
   if (!isPushNotificationsEnabled()) {
-    console.log('Push: Push notifications disabled by feature flag');
+    if (__DEV__) {
+      console.log('Push: Push notifications disabled by feature flag');
+    }
     return;
   }
 
   try {
-    console.log('Push: Initializing push notifications...');
+    if (__DEV__) {
+      console.log('Push: Initializing push notifications...');
+    }
 
     // Register for remote notifications
     await registerForRemoteNotifications();
@@ -359,10 +416,10 @@ export const initializePushNotifications = async (
     }
 
     // Listen for token refresh (this will fire when APNS token is registered)
-    messaging().onTokenRefresh(async (token) => {
-      console.log('Push: ✅ FCM Token received via onTokenRefresh!');
-      console.log('Push: FCM Token (first 20 chars):', token.substring(0, 20) + '...');
-      console.log('Push: Full FCM Token:', token);
+    messaging().onTokenRefresh(async () => {
+      if (__DEV__) {
+        console.log('Push: FCM token refreshed');
+      }
       await logInfo('FCM token refreshed');
       // TODO: Send new token to your backend server
       // await sendTokenToServer(token);
@@ -371,7 +428,9 @@ export const initializePushNotifications = async (
     // Clear badge on app open (matches iOS behavior)
     await setBadgeCount(0);
 
-    console.log('Push: Push notifications initialized successfully');
+    if (__DEV__) {
+      console.log('Push: Push notifications initialized successfully');
+    }
     await logInfo('Push notifications initialized successfully');
   } catch (error) {
     console.error('Push: Error initializing push notifications:', error);
@@ -384,7 +443,9 @@ export const initializePushNotifications = async (
  */
 export const checkNotificationPermission = async (): Promise<boolean> => {
   if (!isPushNotificationsEnabled()) {
-    console.log('Push: Check notification permission (disabled by feature flag)');
+    if (__DEV__) {
+      console.log('Push: Check notification permission (disabled by feature flag)');
+    }
     return false;
   }
 
@@ -394,7 +455,9 @@ export const checkNotificationPermission = async (): Promise<boolean> => {
       authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
       authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
-    console.log('Push: Notification permission status:', enabled ? 'Enabled' : 'Disabled');
+    if (__DEV__) {
+      console.log('Push: Notification permission status:', enabled ? 'Enabled' : 'Disabled');
+    }
     return enabled;
   } catch (error) {
     console.error('Push: Error checking notification permission:', error);
@@ -408,7 +471,9 @@ export const checkNotificationPermission = async (): Promise<boolean> => {
  */
 export const promptForNotificationPermission = async (): Promise<void> => {
   if (!isPushNotificationsEnabled()) {
-    console.log('Push: Prompt for notification permission (disabled by feature flag)');
+    if (__DEV__) {
+      console.log('Push: Prompt for notification permission (disabled by feature flag)');
+    }
     return;
   }
 

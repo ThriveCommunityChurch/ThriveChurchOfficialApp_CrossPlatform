@@ -8,7 +8,7 @@
  * These settings persist across `expo prebuild --clean`
  */
 
-const { withInfoPlist, withMainActivity } = require('@expo/config-plugins');
+const { withInfoPlist, withMainActivity } = require('expo/config-plugins');
 
 /**
  * Ensure UIUserInterfaceStyle is set to Automatic in iOS Info.plist

@@ -7,7 +7,7 @@
  *
  * Copies both light mode (drawable-*) and dark mode (drawable-night-*) icons.
  *
- * Usage: Automatically called after "npm run prebuild:android"
+ * Usage: Automatically called after "pnpm run prebuild:android"
  * Manual: node scripts/copy-android-splash.js
  */
 
@@ -30,7 +30,7 @@ function copySplashIcons() {
   // Check if source directory exists
   if (!fs.existsSync(SOURCE_DIR)) {
     console.error(`❌ Source directory not found: ${SOURCE_DIR}`);
-    console.error('   Run "npm run generate:splash" first to generate icons');
+    console.error('   Run "pnpm run generate:splash" first to generate icons');
     process.exit(1);
   }
 

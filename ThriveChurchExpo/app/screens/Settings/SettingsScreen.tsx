@@ -10,7 +10,7 @@
  * - Persistent settings storage
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -45,7 +45,7 @@ interface AnimatedCardProps {
 
 const AnimatedCard: React.FC<AnimatedCardProps> = ({ onPress, children, theme }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const handlePressIn = () => {
     Animated.timing(scaleAnim, {
@@ -105,7 +105,7 @@ const ThemeModeOption: React.FC<ThemeModeOptionProps> = ({
   theme,
 }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const handlePressIn = () => {
     Animated.timing(scaleAnim, {
@@ -161,7 +161,7 @@ export const SettingsScreen: React.FC = () => {
   const { t } = useTranslation();
   const navigation = useNavigation<any>();
   const { settings, isLoading, updateBibleTranslation, updateThemeMode, updateLanguage } = useSettings();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   // State for Bible translation dropdown
   const [isTranslationExpanded, setIsTranslationExpanded] = useState(false);

@@ -65,6 +65,10 @@ const SeriesRow = React.memo<SeriesRowProps>(({ row, cardWidth, cardHeight, onSe
               overflow: 'hidden',
               backgroundColor: placeholderColor, // ← ONLY COLOR CHANGED
             }}
+            accessible={true}
+            accessibilityLabel={series.Title}
+            accessibilityHint="Tap to view sermon series"
+            accessibilityRole="button"
           >
             <FastImage
               source={{ uri: series.ArtUrl, priority: FastImage.priority.normal }}
@@ -126,7 +130,7 @@ export default function ListenScreen({ onSeriesPress }: ListenScreenProps) {
     },
   });
 
-  const allSeries = data?.pages.flatMap(page => page.Summaries) ?? [];
+  const allSeries = useMemo(() => data?.pages.flatMap(page => page.Summaries) ?? [], [data]);
 
   // Group series into rows based on column count with stable references
   const rows = useMemo(() => {

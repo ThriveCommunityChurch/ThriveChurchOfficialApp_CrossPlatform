@@ -99,7 +99,7 @@ async function generateSplashIcons() {
   console.log('\n✨ Done! Generated splash icons are in:');
   console.log(`   ${OUTPUT_DIR}\n`);
   console.log('📋 Next steps:');
-  console.log('   1. Run "npm run prebuild:android" to regenerate Android project');
+  console.log('   1. Run "pnpm run prebuild:android" to regenerate Android project');
   console.log('   2. The copy script will place these icons in res/drawable-*');
 }
 

@@ -3,7 +3,7 @@
  * Displays RSS announcement content in WebView
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { View, StyleSheet, ActivityIndicator, Linking, Alert } from 'react-native';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { WebView } from 'react-native-webview';
@@ -22,7 +22,7 @@ type RSSDetailRouteProp = RouteProp<ConnectStackParamList, 'RSSDetail'>;
 export const RSSDetailScreen: React.FC = () => {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const route = useRoute<RSSDetailRouteProp>();
   const { content, title } = route.params;
   const [loading, setLoading] = React.useState(true);

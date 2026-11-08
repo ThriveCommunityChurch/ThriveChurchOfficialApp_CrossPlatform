@@ -14,7 +14,8 @@ import {
   getTotalDownloadsSize,
   formatBytes,
 } from './downloadManager';
-import { saveDownloadedMessage } from '../storage/storage';
+import { saveDownloadedMessage, saveDownloadedWaveform } from '../storage/storage';
+import { fetchWaveformData } from '../api/waveformService';
 import type { SermonMessage } from '../../types/api';
 import {
   logDownloadQueueAdd,
@@ -28,6 +29,8 @@ const MAX_RETRIES = 5;
 const RETRY_DELAY_MS = 3000;
 const SSL_RETRY_DELAY_MS = 5000;
 const PROCESS_INTERVAL_MS = 1000;
+// Minimum interval between persisted progress updates for a single download.
+const PROGRESS_THROTTLE_MS = 500;
 
 // Network/SSL errors that should trigger retry with file deletion
 const RETRYABLE_ERRORS = [
@@ -220,15 +223,33 @@ const downloadItem = async (item: QueueItem): Promise<void> => {
 
     const downloadPath = getDownloadPath(item.messageId);
 
+    // Throttle progress updates. The native callback fires many times per
+    // second; each store update maps a new items array and (via persist)
+    // re-serializes the whole queue to AsyncStorage. Only push an update when
+    // the whole-percent value changes or at most every PROGRESS_THROTTLE_MS.
+    let lastReportedPercent = -1;
+    let lastReportAt = 0;
+
     // Create download resumable
     currentDownload = FileSystem.createDownloadResumable(
       item.audioUrl,
       downloadPath,
       {},
       (progress) => {
-        const percent = Math.round(
-          (progress.totalBytesWritten / progress.totalBytesExpectedToWrite) * 100
-        );
+        const hasKnownTotal = progress.totalBytesExpectedToWrite > 0;
+        const percent = hasKnownTotal
+          ? Math.round(
+              (progress.totalBytesWritten / progress.totalBytesExpectedToWrite) * 100
+            )
+          : 0;
+        const now = Date.now();
+        const percentChanged = hasKnownTotal && percent !== lastReportedPercent;
+        const timeElapsed = now - lastReportAt >= PROGRESS_THROTTLE_MS;
+        if (!percentChanged && !timeElapsed) {
+          return;
+        }
+        lastReportedPercent = percent;
+        lastReportAt = now;
         store.updateProgress(
           item.id,
           percent,
@@ -260,6 +281,22 @@ const downloadItem = async (item: QueueItem): Promise<void> => {
 
       // Save to storage
       await saveDownloadedMessage(downloadedMessage);
+
+      // Best-effort: also persist the pre-computed waveform so offline playback
+      // can render the real waveform without a network fetch or CPU-heavy
+      // on-device extraction. Fire-and-forget so download completion isn't
+      // delayed by the waveform network fetch, and never fail the download.
+      fetchWaveformData(item.messageId)
+        .then((waveform) => {
+          if (waveform && waveform.length > 0) {
+            return saveDownloadedWaveform(item.messageId, waveform);
+          }
+        })
+        .catch(() => {
+          if (__DEV__) {
+            console.log('Could not persist waveform for download:', item.messageId);
+          }
+        });
 
       // Update queue item status
       store.setItemStatus(item.id, 'completed');

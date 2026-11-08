@@ -13,12 +13,23 @@ This guide covers building and deploying the Thrive Church app using Expo Bare W
 
 ---
 
+> **Shipping to the stores?** You almost certainly do not need this guide.
+> Store releases are one click: running the release workflow on `master` builds
+> on EAS and uploads to TestFlight and Google Play with no local machine involved.
+> See **[CI_CD_RELEASE.md](./CI_CD_RELEASE.md)**.
+>
+> The manual commands below remain valid for development builds and for
+> one-off local production builds.
+
+---
+
 ## Prerequisites
 
 ### General Requirements
-- Node.js (v16 or higher)
-- Expo CLI: `npm install -g @expo/cli`
-- EAS CLI: `npm install -g @expo/eas-cli` (for production builds)
+- Node.js (v26 or higher)
+- pnpm 10.34.0 (`npm install -g pnpm@10.34.0`)
+- Expo CLI: `pnpm add -g @expo/cli`
+- EAS CLI: `pnpm add -g eas-cli` (for production builds)
 
 ### Android Requirements
 - Android Studio with Android SDK
@@ -118,51 +129,37 @@ EAS (Expo Application Services) provides cloud-based builds that are perfect for
 
 ```bash
 # Install EAS CLI globally
-npm install -g @expo/eas-cli
+pnpm add -g eas-cli
 
 # Login to your Expo account
 eas login
 
-# Initialize EAS in your project
-eas build:configure
+# Point the CLI at this project (see CI_CD_RELEASE.md for where the ID comes from)
+export EAS_PROJECT_ID=<uuid-from-eas-project-info>
 ```
 
-This creates `eas.json` with build configurations.
+`eas.json` is already committed at the project root, so `eas build:configure` is
+not needed. Because the app config lives in `app.config.js` rather than
+`app.json`, the EAS project ID is read from the `EAS_PROJECT_ID` environment
+variable instead of being written into the config file.
 
-### 2. Configure Build Profiles
+### 2. Build Profiles
 
-Edit `eas.json` to customize build settings:
+The profiles live in `eas.json` at the project root:
 
-```json
-{
-  "cli": {
-    "version": ">= 5.2.0"
-  },
-  "build": {
-    "development": {
-      "developmentClient": true,
-      "distribution": "internal",
-      "ios": {
-        "resourceClass": "m-medium"
-      }
-    },
-    "preview": {
-      "distribution": "internal",
-      "ios": {
-        "simulator": true
-      }
-    },
-    "production": {
-      "ios": {
-        "resourceClass": "m-medium"
-      }
-    }
-  },
-  "submit": {
-    "production": {}
-  }
-}
-```
+| Profile | Distribution | Notes |
+| --- | --- | --- |
+| `development` | internal | Includes the Expo dev client; Android builds an APK |
+| `preview` | internal | Production credentials, APK for side-loading and QA |
+| `production` | store | AAB for Play, signed archive for App Store; auto-increments the build number |
+
+All profiles use `"credentialsSource": "remote"`, so signing keys are held by
+EAS rather than read from disk. Note that EAS's own `credentials.json` convention
+is *not* used here — this repo already uses `credentials.json` for app
+configuration, and the two are unrelated files that would otherwise collide.
+
+Every profile sets `THRIVE_REMOTE_VERSIONS=1` and `THRIVE_REMOTE_SIGNING=1`.
+See [CI_CD_RELEASE.md](./CI_CD_RELEASE.md#versioning) for what those do.
 
 ### 3. Build for iOS
 
@@ -320,12 +317,12 @@ npx expo start --dev-client --clear
 #### Issue: Build fails with dependency errors
 **Solution:**
 ```bash
-# Clear npm cache
-npm cache clean --force
+# Clear pnpm store cache
+pnpm store prune
 
 # Reinstall dependencies
-rm -rf node_modules package-lock.json
-npm install
+rm -rf node_modules
+pnpm install --frozen-lockfile
 
 # Try build again
 eas build --platform ios --profile production
@@ -409,7 +406,7 @@ npx expo run:android --variant release
 **Commands Changed:**
 - `npx react-native run-ios` → `npx expo run:ios`
 - `npx react-native run-android` → `npx expo run:android`
-- `npm start` → `npx expo start --dev-client`
+- `pnpm start` → `pnpm exec expo start --dev-client`
 
 ### Firebase Configuration
 

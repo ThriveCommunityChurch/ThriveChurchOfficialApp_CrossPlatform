@@ -1,0 +1,75 @@
+# .easignore controls which files are uploaded to EAS Build.
+#
+# It must live at the git root: eas-cli reads it from `git rev-parse
+# --show-toplevel`, not from the Expo project directory. Patterns are relative
+# to this directory and matched case-insensitively.
+#
+# When this file exists, EAS ignores every .gitignore. That is the point:
+# .gitignore excludes credentials.*.json, the Firebase config files and
+# android/gradle.properties, but EAS Build must receive them.
+#
+# Keep native directories (android/, ios/) uploadable: CI runs `expo prebuild`
+# on the GitHub runner so the config plugins and post-prebuild patch scripts are
+# the source of truth.
+
+# Not part of the app
+.github/
+
+# Dependencies
+node_modules/
+
+# Expo / Metro
+.expo/
+dist/
+web-build/
+.metro-health-check*
+expo-env.d.ts
+
+# Build outputs (regenerated on the EAS worker)
+ThriveChurchExpo/android/build/
+ThriveChurchExpo/android/.gradle/
+ThriveChurchExpo/android/app/build/
+ThriveChurchExpo/android/local.properties
+ThriveChurchExpo/android/.cxx/
+ThriveChurchExpo/android/*.aab
+ThriveChurchExpo/android/*.apk
+ThriveChurchExpo/ios/build/
+ThriveChurchExpo/ios/Pods/
+ThriveChurchExpo/ios/DerivedData/
+ThriveChurchExpo/ios/*.ipa
+ThriveChurchExpo/ios/*.dSYM
+ThriveChurchExpo/ios/*.dSYM.zip
+ThriveChurchExpo/ios/*.xcworkspace/xcuserdata/
+ThriveChurchExpo/ios/*.xcodeproj/xcuserdata/
+ThriveChurchExpo/test-results/
+
+# Signing material — EAS holds these remotely, never upload them.
+# No `*info.plist` here (unlike .gitignore): matching is case-insensitive, so
+# it would drop Info.plist and GoogleService-Info.plist from the iOS project.
+*.key
+*Config.plist
+*.keystore
+*.jks
+*.p8
+*.p12
+*.mobileprovision
+*.pem
+google-play-service-account.json
+*service-account*.json
+
+# Local noise
+.DS_Store
+*.tsbuildinfo
+*.orig.*
+npm-debug.*
+
+# Local env files (the build reads credentials.*.json, never these).
+# Don't widen to `*.env`: ios/.xcode.env is tracked and required.
+.env
+.env.*
+
+# Docs are not needed by the builder.
+# native-tests/ is deliberately NOT ignored: plugins/withNativeUITests.js sources
+# it, so it must be present if EAS ever re-runs prebuild.
+docs/
+*.md

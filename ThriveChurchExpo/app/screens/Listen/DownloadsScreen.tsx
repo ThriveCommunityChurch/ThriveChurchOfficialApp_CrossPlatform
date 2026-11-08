@@ -6,11 +6,11 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-  Image,
   StyleSheet,
   Platform,
   useWindowDimensions,
 } from 'react-native';
+import FastImage from 'react-native-fast-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../hooks/useTheme';
@@ -62,7 +62,7 @@ const DownloadItem: React.FC<DownloadItemProps> = ({ item, onPress, theme }) => 
     >
       {/* Series Art Thumbnail - 16:9 aspect ratio */}
       {item.seriesArt ? (
-        <Image
+        <FastImage
           source={{ uri: item.seriesArt }}
           style={{
             width: 106,
@@ -71,7 +71,7 @@ const DownloadItem: React.FC<DownloadItemProps> = ({ item, onPress, theme }) => 
             backgroundColor: theme.colors.card,
             marginRight: 12,
           }}
-          resizeMode="cover"
+          resizeMode={FastImage.resizeMode.cover}
         />
       ) : (
         <View

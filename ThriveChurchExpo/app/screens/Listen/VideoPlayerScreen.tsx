@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo} from 'react';
 import {
   View,
   StyleSheet,
@@ -33,7 +33,7 @@ const VideoPlayerScreen: React.FC = () => {
   const route = useRoute<VideoPlayerScreenRouteProp>();
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const { message, seriesTitle } = route.params;
 

@@ -24,7 +24,7 @@ try {
   // Check if node_modules path exists
   if (!fs.existsSync(nodeModulesPath)) {
     console.error('Error: react-native-track-player not found in node_modules!');
-    console.error('   Make sure you run `npm install` first.');
+    console.error('   Make sure you run `pnpm install` first.');
     process.exit(1);
   }
 

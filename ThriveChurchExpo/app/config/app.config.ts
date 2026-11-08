@@ -16,7 +16,6 @@ const extra = expoConfig?.extra || {};
 export const apiConfig = {
   baseURL: extra.API_BASE_URL || 'http://localhost:8080',
   timeout: 30000, // 30 seconds
-  thriveApiKey: extra.THRIVE_API_KEY || '',
   esvApiKey: extra.ESV_API_KEY || '',
 };
 

@@ -6,7 +6,7 @@
  * Team data is fetched from API config (Team_Members key)
  */
 
-import React, { useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useCallback, useState, useMemo} from 'react';
 import {
   View,
   Text,
@@ -74,7 +74,7 @@ export const MeetTheTeamScreen: React.FC = () => {
   const isLandscape = windowWidth > windowHeight;
   const isTabletDevice = (Platform.OS === 'ios' && Platform.isPad) || Math.min(windowWidth, windowHeight) >= 768;
 
-  const styles = createStyles(theme, isTabletDevice, isLandscape);
+  const styles = useMemo(() => createStyles(theme, isTabletDevice, isLandscape), [theme, isTabletDevice, isLandscape]);
 
   // Fetch team members from config
   useEffect(() => {

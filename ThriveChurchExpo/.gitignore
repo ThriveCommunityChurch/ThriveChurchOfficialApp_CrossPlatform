@@ -39,6 +39,7 @@ yarn-error.*
 # Credentials - DO NOT COMMIT
 credentials.json
 credentials.*.json
+*service-account*.json
 *GoogleService-Info.plist
 *google-services.json
 *Config.plist

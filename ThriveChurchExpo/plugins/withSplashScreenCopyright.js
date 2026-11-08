@@ -9,7 +9,7 @@
  * expo-splash-screen's base mod overwrites any changes made during the plugin chain.
  */
 
-const { withDangerousMod } = require('@expo/config-plugins');
+const { withDangerousMod } = require('expo/config-plugins');
 const fs = require('fs');
 const path = require('path');
 

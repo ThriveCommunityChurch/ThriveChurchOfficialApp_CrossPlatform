@@ -42,7 +42,7 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
 }) => {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   // Track if FlashList has completed its first render cycle
   const [flashListLoaded, setFlashListLoaded] = useState(false);

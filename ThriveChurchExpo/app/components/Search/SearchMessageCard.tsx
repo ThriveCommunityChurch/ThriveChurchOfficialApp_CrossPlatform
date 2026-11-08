@@ -4,7 +4,7 @@
  * Optimized for search results display (no week badge, shows summary)
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../hooks/useTheme';
@@ -17,17 +17,19 @@ interface SearchMessageCardProps {
   onPress: () => void;
 }
 
-export const SearchMessageCard: React.FC<SearchMessageCardProps> = ({
+const SearchMessageCardComponent: React.FC<SearchMessageCardProps> = ({
   message,
   onPress,
 }) => {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const formatDate = (dateString: string): string => {
     try {
-      const date = new Date(dateString);
+      // Strip timezone info - API returns dates already in Eastern time with Z suffix
+      const dateOnly = dateString.replace(/[TZ].*$/, '').replace(/T.*$/, '');
+      const date = new Date(dateOnly + 'T00:00:00');
       return date.toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
@@ -136,6 +138,8 @@ export const SearchMessageCard: React.FC<SearchMessageCardProps> = ({
     </TouchableOpacity>
   );
 };
+
+export const SearchMessageCard = React.memo(SearchMessageCardComponent);
 
 const createStyles = (theme: Theme) => StyleSheet.create({
   container: {

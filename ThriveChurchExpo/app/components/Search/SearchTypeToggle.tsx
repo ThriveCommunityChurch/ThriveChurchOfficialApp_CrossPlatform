@@ -4,7 +4,7 @@
  * Features smooth animated transition between states
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -29,7 +29,7 @@ export const SearchTypeToggle: React.FC<SearchTypeToggleProps> = ({
 }) => {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   // Helper function to get animation value for current search target
   const getAnimationValue = (target: SearchTarget): number => {

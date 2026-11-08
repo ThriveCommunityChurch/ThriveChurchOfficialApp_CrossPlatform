@@ -3,7 +3,7 @@
  * Main Bible screen with Traditional and Alphabetical order selection cards
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo} from 'react';
 import {
   View,
   Text,
@@ -36,7 +36,7 @@ interface SelectionCardProps {
 
 const SelectionCard: React.FC<SelectionCardProps> = ({ title, description, onPress, theme }) => {
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const handlePressIn = () => {
     Animated.timing(scaleAnim, {
@@ -85,7 +85,7 @@ export const BibleSelectionScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   // Track screen view
   useEffect(() => {

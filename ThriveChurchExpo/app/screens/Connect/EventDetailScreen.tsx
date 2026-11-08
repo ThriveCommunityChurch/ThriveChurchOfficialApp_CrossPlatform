@@ -3,7 +3,7 @@
  * Displays full event details with action buttons
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo} from 'react';
 import {
   View,
   Text,
@@ -43,7 +43,7 @@ type EventDetailRouteProp = RouteProp<ConnectStackParamList, 'EventDetail'>;
 export const EventDetailScreen: React.FC = () => {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme);
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const route = useRoute<EventDetailRouteProp>();
   const { eventId, eventTitle } = route.params;
 
