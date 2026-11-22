@@ -4,8 +4,8 @@ import TrackPlayer, {
   Event,
   useTrackPlayerEvents,
   Track,
-} from 'react-native-track-player';
-export { useProgress as usePlayerProgress } from 'react-native-track-player';
+} from '../services/audio/trackPlayerStub';
+export { useProgress as usePlayerProgress } from '../services/audio/trackPlayerStub';
 import {
   setupPlayer,
   playAudio,

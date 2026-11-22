@@ -8,7 +8,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import FastImage from 'react-native-fast-image';
+import { Image as ExpoImage } from 'expo-image';
 import { useTheme } from '../hooks/useTheme';
 import { useTranslation } from '../hooks/useTranslation';
 import type { Theme } from '../theme/types';
@@ -67,10 +67,11 @@ const RelatedSeriesCardComponent: React.FC<RelatedSeriesCardProps> = ({
       {/* Artwork and Metadata Container */}
       <View style={styles.artworkContainer}>
         {/* Series Artwork */}
-        <FastImage
+        <ExpoImage
           source={{ uri: series.ArtUrl }}
           style={styles.artwork}
-          resizeMode={FastImage.resizeMode.cover}
+          contentFit="cover"
+          cachePolicy="memory-disk"
         />
 
         {/* Metadata Row */}

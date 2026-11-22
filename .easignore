@@ -8,9 +8,10 @@
 # .gitignore excludes credentials.*.json, the Firebase config files and
 # android/gradle.properties, but EAS Build must receive them.
 #
-# Keep native directories (android/, ios/) uploadable: CI runs `expo prebuild`
-# on the GitHub runner so the config plugins and post-prebuild patch scripts are
-# the source of truth.
+# Keep native directories (android/, ios/) uploadable. They are generated, not
+# tracked: CI runs `expo prebuild` on the GitHub runner, so the config plugins
+# and post-prebuild scripts are the source of truth, and this file uploads the
+# working tree, generated folders included.
 
 # Not part of the app
 .github/
@@ -64,7 +65,7 @@ google-play-service-account.json
 npm-debug.*
 
 # Local env files (the build reads credentials.*.json, never these).
-# Don't widen to `*.env`: ios/.xcode.env is tracked and required.
+# Don't widen to `*.env`: prebuild generates ios/.xcode.env and the build needs it.
 .env
 .env.*
 

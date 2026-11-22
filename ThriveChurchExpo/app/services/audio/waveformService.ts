@@ -1,4 +1,4 @@
-import { computeAmplitude, load } from 'react-native-audio-analyzer';
+import { analyzeAudio, load, normalize, resample } from 'react-native-audio-analyzer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const WAVEFORM_CACHE_PREFIX = 'waveform_cache_';
@@ -57,7 +57,8 @@ class WaveformService {
       if (__DEV__) {
         console.log('[WaveformService] Computing amplitude data...');
       }
-      const rawAmplitudes = computeAmplitude(filePath, sampleCount);
+      const peaks = await analyzeAudio(filePath, { maxBuckets: 1000 });
+      const rawAmplitudes = Array.from(normalize(resample(peaks, sampleCount)));
       if (__DEV__) {
         console.log('[WaveformService] Extracted', rawAmplitudes.length, 'amplitude values');
       }

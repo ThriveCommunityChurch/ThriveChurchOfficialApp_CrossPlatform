@@ -20,7 +20,7 @@ This guide covers debugging, building, and deploying the Thrive Church app built
 
 - **Node.js**: v26.x or later
 - **pnpm**: 10.34.0 (`npm install -g pnpm@10.34.0`)
-- **Xcode**: 15.x or later (for iOS development)
+- **Xcode**: 27.2 or later (for iOS development; Expo SDK 58, React Native 0.88, iOS 16.4 minimum)
 - **Android Studio**: Latest version (for Android development)
 - **CocoaPods**: 1.14.x or later (for iOS dependencies)
 - **Expo CLI**: No global install needed — use the project-local CLI via `pnpm exec expo` (the legacy global `expo-cli` package is deprecated)
@@ -42,7 +42,7 @@ cd ThriveChurchExpo
 pnpm install
 ```
 
-**Note**: A couple of packages report peer dependency warnings (e.g. `react-native-fast-image`); pnpm surfaces these as warnings rather than install failures, so no extra flags are needed.
+**Note**: pnpm surfaces peer dependency mismatches as warnings rather than install failures, so no extra flags are needed.
 
 ### 2. Set Up Credentials
 
@@ -394,26 +394,6 @@ watchman watch-del-all
 ---
 
 ## Known Issues
-
-### Firebase Modules Temporarily Disabled
-
-**Issue**: Firebase Analytics, Crashlytics, and Messaging are temporarily disabled due to compatibility issues with Expo SDK 54 + React Native Firebase 23.x + static frameworks.
-
-**Current Status**:
-- ✅ `@react-native-firebase/app` (core module) - Working
-- ❌ `@react-native-firebase/analytics` - Disabled
-- ❌ `@react-native-firebase/crashlytics` - Disabled  
-- ❌ `@react-native-firebase/messaging` - Disabled
-
-**Workarounds**:
-- Analytics: Stubbed with console.log statements
-- Push Notifications: Can use `@notifee/react-native` (already installed)
-- Crashlytics: Consider using Sentry or Bugsnag
-
-**Future Solutions**:
-1. Wait for Expo SDK 55 (may have better compatibility)
-2. Downgrade React Native Firebase to v20 or v21
-3. Use Firebase JS SDK for some services (loses native features)
 
 ### Gesture Handler Import
 

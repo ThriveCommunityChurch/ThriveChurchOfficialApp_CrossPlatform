@@ -15,7 +15,6 @@ function AppContent() {
     <>
       <StatusBar
         barStyle={theme.isDark ? 'light-content' : 'dark-content'}
-        backgroundColor={theme.colors.surface}
       />
       <RootNavigator />
     </>

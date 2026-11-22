@@ -205,7 +205,6 @@ export const SpeakerSelector: React.FC<SpeakerSelectorProps> = ({
                 data={sortedSpeakers}
                 renderItem={renderSpeakerItem}
                 keyExtractor={(item) => item}
-                estimatedItemSize={56}
                 showsVerticalScrollIndicator={true}
                 contentContainerStyle={styles.modalListContent}
                 ListEmptyComponent={

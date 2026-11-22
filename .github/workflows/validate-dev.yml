@@ -16,7 +16,7 @@ on:
 
 jobs:
   quick-validation:
-    name: Quick Validation (TypeScript, Lint, Export)
+    name: Quick Validation (TypeScript, Expo Doctor, Export)
     runs-on: ubuntu-latest
     
     # Set working directory to the Expo project subdirectory
@@ -57,6 +57,10 @@ jobs:
       - name: TypeScript type check
         run: pnpm exec tsc --noEmit
 
+      # Expo dependency/config health (SDK version alignment, duplicate natives)
+      - name: Expo doctor
+        run: pnpm exec expo-doctor
+
       # Step 7: Dependency security audit
       # Checks for known security vulnerabilities in dependencies
       - name: Security audit
@@ -78,7 +82,7 @@ jobs:
         run: |
           echo "✅ All quick validation checks passed!"
           echo "   - TypeScript compilation: ✅"
-          echo "   - ESLint: ✅"
+          echo "   - Expo doctor: ✅"
           echo "   - Security audit: ✅"
           echo "   - Expo export: ✅"
 

@@ -13,7 +13,7 @@ import {
   Share,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import FastImage from 'react-native-fast-image';
+import { Image as ExpoImage } from 'expo-image';
 import { useQuery } from '@tanstack/react-query';
 import { useNetInfo } from '@react-native-community/netinfo';
 import { Ionicons } from '@expo/vector-icons';
@@ -333,10 +333,11 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
               <View style={styles.tabletHeroContentContainer}>
                 {/* Left Side - Sharp Series Artwork */}
                 <View style={[styles.tabletHeroArtworkContainer, { width: artworkWidth }]}>
-                  <FastImage
+                  <ExpoImage
                     source={{ uri: displaySeriesArtUrl }}
                     style={styles.tabletHeroArtwork}
-                    resizeMode={FastImage.resizeMode.cover}
+                    contentFit="cover"
+                    cachePolicy="memory-disk"
                   />
                 </View>
 
@@ -527,10 +528,11 @@ export default function SeriesDetailScreen({ seriesId, seriesArtUrl }: SeriesDet
         {/* Series Art Container */}
         <View style={styles.phoneArtContainer}>
           <View style={styles.phoneArtImageWrapper}>
-            <FastImage
+            <ExpoImage
               source={{ uri: displaySeriesArtUrl }}
               style={styles.phoneArtwork}
-              resizeMode={FastImage.resizeMode.cover}
+              contentFit="cover"
+              cachePolicy="memory-disk"
             />
           </View>
         </View>

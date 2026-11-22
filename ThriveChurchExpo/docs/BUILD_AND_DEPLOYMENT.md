@@ -38,7 +38,7 @@ This guide covers building and deploying the Thrive Church app using Expo Bare W
 - Java Development Kit (JDK 17 or higher)
 
 ### iOS Requirements
-- macOS with Xcode installed
+- macOS with Xcode 27.2+ installed (Expo SDK 58, iOS 16.4 minimum)
 - CocoaPods installed: `sudo gem install cocoapods`
 - iOS device or simulator
 

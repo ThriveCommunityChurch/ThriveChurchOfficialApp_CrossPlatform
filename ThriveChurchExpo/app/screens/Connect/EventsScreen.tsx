@@ -333,7 +333,6 @@ export const EventsScreen: React.FC = () => {
         data={displayEvents}
         renderItem={renderItem}
         keyExtractor={(item) => item.Id}
-        estimatedItemSize={140}
         ListHeaderComponent={renderListHeader}
         ListEmptyComponent={renderEmptyState}
         contentContainerStyle={styles.listContent}

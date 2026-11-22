@@ -11,8 +11,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import TrackPlayer from 'react-native-track-player';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import TrackPlayer from '../../services/audio/trackPlayerStub';
 import { useTheme } from '../../hooks/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
@@ -75,7 +75,7 @@ export default function NowPlayingScreen() {
   const progress = usePlayerProgress();
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const navigation = useNavigation<StackNavigationProp<any>>();
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const { skipForward, skipBackward, defaultSpeed } = usePlaybackSettings();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const [isSeeking, setIsSeeking] = useState(false);

@@ -6,8 +6,8 @@
  *
  * Settings applied:
  * - BuildIndependentTargetsInParallel = YES
- * - LastUpgradeCheck = 2620 (Xcode 26.2) in project.pbxproj
- * - LastUpgradeVersion = 2620 (Xcode 26.2) in scheme files
+ * - LastUpgradeCheck = 2720 (Xcode 27.2) in project.pbxproj
+ * - LastUpgradeVersion = 2720 (Xcode 27.2) in scheme files
  * - CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES
  * - SWIFT_COMPILATION_MODE = wholemodule (Release only)
  * - INFOPLIST_KEY_CFBundleDisplayName
@@ -26,7 +26,7 @@ const path = require('path');
 const DEVELOPMENT_TEAM = '87ME42WJYA';
 const APP_DISPLAY_NAME = 'Thrive Church Official App';
 const APP_CATEGORY = 'public.app-category.productivity';
-const LAST_UPGRADE_CHECK = '2620'; // Xcode 26.2
+const LAST_UPGRADE_CHECK = '2720'; // Xcode 27.2
 
 /**
  * Apply Xcode recommended project-level settings

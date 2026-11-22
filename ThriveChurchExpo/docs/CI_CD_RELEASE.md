@@ -35,8 +35,7 @@ each commit is released under exactly one version. A run:
    `GoogleService-Info.plist` and `google-services.json` from them.
 3. Type-checks with `tsc --noEmit`.
 4. Runs `expo prebuild --clean` plus the repo's post-prebuild patch scripts
-   (`patch-podfile-properties`, `copy-track-player-headers`,
-   `add-ios-splash-copyright`, `copy-android-splash`) on the Linux runner.
+   (`add-ios-splash-copyright`, `copy-android-splash`) on the Linux runner.
 5. Runs `eas build --platform all --profile production
    --auto-submit-with-profile=production`.
 6. Tags the commit `v<version>` once the build and submission succeed.

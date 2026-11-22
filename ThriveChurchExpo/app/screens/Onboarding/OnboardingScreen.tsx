@@ -6,10 +6,10 @@ import {
   Dimensions,
   TouchableOpacity,
   FlatList,
-  ViewToken,
   Animated,
   Platform,
 } from 'react-native';
+import type { ListViewToken as ViewToken, ScaledSize } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../hooks/useTheme';
@@ -174,7 +174,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
     console.log('[Onboarding] Is XL tablet?', isXLTablet);
     console.log('[Onboarding] Breakpoints:', { small: SMALL_SCREEN_BREAKPOINT, xl: XL_TABLET_BREAKPOINT });
 
-    const subscription = Dimensions.addEventListener('change', ({ window }) => {
+    const subscription = Dimensions.addEventListener('change', ({ window }: { window: ScaledSize }) => {
       console.log('[Onboarding] Dimensions changed:', window);
       // Store the pending scroll info before state update
       // Use ref to avoid stale closure issues with currentIndex
@@ -238,7 +238,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
   }, [onComplete]);
 
   const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
-    if (viewableItems.length > 0 && viewableItems[0].index !== null) {
+    if (viewableItems.length > 0 && viewableItems[0].index != null) {
       setCurrentIndex(viewableItems[0].index);
     }
   }).current;

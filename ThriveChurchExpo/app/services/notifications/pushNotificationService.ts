@@ -4,15 +4,33 @@
  * Matches iOS implementation in AppDelegate.swift
  */
 
-import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
-import notifee, { AndroidImportance, EventType, AuthorizationStatus } from '@notifee/react-native';
+import {
+  AuthorizationStatus,
+  getInitialNotification,
+  getMessaging,
+  getToken,
+  hasPermission,
+  onMessage,
+  onNotificationOpenedApp,
+  onTokenRefresh,
+  requestPermission,
+} from '@react-native-firebase/messaging';
+import * as Notifications from 'expo-notifications';
 import { Platform, Alert } from 'react-native';
 import Constants from 'expo-constants';
 import { logError, logWarning, logInfo } from '../logging/logger';
 import { featureFlags } from '../../config/firebase.config';
 
-// Type alias for convenience
-type RemoteMessage = FirebaseMessagingTypes.RemoteMessage;
+type RemoteMessage = Parameters<Parameters<typeof onMessage>[1]>[0];
+
+/** What a tap hands the router: only `data` is read. */
+export type OpenedNotification = Pick<RemoteMessage, 'data'>;
+
+const ANDROID_CHANNEL_ID = 'default';
+
+// FCM pushes are shown by the OS or by displayNotification(); only local ones are presented in foreground.
+const isRemotePush = (notification: Notifications.Notification): boolean =>
+  (notification.request.trigger as { type?: string } | null)?.type === 'push';
 
 /**
  * Check if running on a simulator/emulator
@@ -53,10 +71,10 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
   }
 
   try {
-    const authStatus = await messaging().requestPermission();
+    const authStatus = await requestPermission(getMessaging());
     const enabled =
-      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+      authStatus === AuthorizationStatus.AUTHORIZED ||
+      authStatus === AuthorizationStatus.PROVISIONAL;
 
     if (enabled) {
       if (__DEV__) {
@@ -93,7 +111,7 @@ export const getFCMToken = async (): Promise<string | null> => {
   }
 
   try {
-    const token = await messaging().getToken();
+    const token = await getToken(getMessaging());
     if (token) {
       if (__DEV__) {
         console.log('Push: FCM token obtained');
@@ -175,36 +193,29 @@ export const registerForRemoteNotifications = async (): Promise<void> => {
 };
 
 /**
- * Display notification using Notifee
- * Provides better UX than default Firebase notifications
+ * Display an FCM message as a local notification (expo-notifications)
  */
 export const displayNotification = async (
   remoteMessage: RemoteMessage
 ): Promise<void> => {
   try {
-    const channelId = await notifee.createChannel({
-      id: 'default',
-      name: 'Default Channel',
-      importance: AndroidImportance.HIGH,
-      sound: 'default',
-    });
+    if (Platform.OS === 'android') {
+      await Notifications.setNotificationChannelAsync(ANDROID_CHANNEL_ID, {
+        name: 'Default Channel',
+        importance: Notifications.AndroidImportance.HIGH,
+        sound: 'default',
+      });
+    }
 
-    await notifee.displayNotification({
-      title: remoteMessage.notification?.title || 'Thrive Church',
-      body: remoteMessage.notification?.body || '',
-      data: remoteMessage.data,
-      android: {
-        channelId,
-        importance: AndroidImportance.HIGH,
-        pressAction: {
-          id: 'default',
-        },
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: remoteMessage.notification?.title || 'Thrive Church',
+        body: remoteMessage.notification?.body || '',
+        data: remoteMessage.data ?? {},
         sound: 'default',
+        badge: 1,
       },
-      ios: {
-        sound: 'default',
-        badgeCount: 1,
-      },
+      trigger: Platform.OS === 'android' ? { channelId: ANDROID_CHANNEL_ID } : null,
     });
 
     if (__DEV__) {
@@ -228,13 +239,19 @@ export const setupForegroundMessageHandler = (): (() => void) | undefined => {
   }
 
   try {
+    Notifications.setNotificationHandler({
+      handleNotification: async (notification) => {
+        const show = !isRemotePush(notification);
+        return { shouldShowBanner: show, shouldShowList: show, shouldPlaySound: show, shouldSetBadge: false };
+      },
+    });
+
     // Handle messages when app is in foreground
-    const unsubscribe = messaging().onMessage(async (remoteMessage) => {
+    const unsubscribe = onMessage(getMessaging(), async (remoteMessage) => {
       if (__DEV__) {
         console.log('Push: Foreground message received');
       }
 
-      // Display notification using Notifee for better UX
       await displayNotification(remoteMessage);
 
       // Log to Firebase Analytics (matches iOS behavior)
@@ -253,45 +270,10 @@ export const setupForegroundMessageHandler = (): (() => void) | undefined => {
 };
 
 /**
- * Handle background messages
- * Matches iOS: userNotificationCenter(_:didReceive:withCompletionHandler:)
- * NOTE: This must be called at the top level (in index.js) for background messages to work
- */
-export const setupBackgroundMessageHandler = (): void => {
-  if (!isPushNotificationsEnabled()) {
-    if (__DEV__) {
-      console.log('Push: Background message handler (disabled by feature flag)');
-    }
-    return;
-  }
-
-  try {
-    messaging().setBackgroundMessageHandler(async (remoteMessage) => {
-      if (__DEV__) {
-        console.log('Push: Background message received');
-      }
-
-      // Display notification using Notifee
-      await displayNotification(remoteMessage);
-
-      // Log to Firebase Analytics (matches iOS behavior)
-      await logInfo(`Background notification received: ${remoteMessage.notification?.title || 'No title'}`);
-    });
-
-    if (__DEV__) {
-      console.log('Push: Background message handler registered');
-    }
-  } catch (error) {
-    console.error('Push: Error setting up background message handler:', error);
-    logError(`Failed to setup background message handler: ${error instanceof Error ? error.message : 'Unknown error'}`).catch(() => {});
-  }
-};
-
-/**
  * Handle notification opened (user tapped notification)
  */
 export const setupNotificationOpenedHandler = (
-  onNotificationOpened: (remoteMessage: RemoteMessage) => void
+  onNotificationOpened: (notification: OpenedNotification) => void
 ): void => {
   if (!isPushNotificationsEnabled()) {
     if (__DEV__) {
@@ -302,7 +284,8 @@ export const setupNotificationOpenedHandler = (
 
   try {
     // Handle notification opened when app was in background or quit
-    messaging().onNotificationOpenedApp((remoteMessage) => {
+    const messaging = getMessaging();
+    onNotificationOpenedApp(messaging, (remoteMessage) => {
       if (__DEV__) {
         console.log('Push: Notification opened app from background');
       }
@@ -310,8 +293,7 @@ export const setupNotificationOpenedHandler = (
     });
 
     // Handle notification opened when app was quit
-    messaging()
-      .getInitialNotification()
+    getInitialNotification(messaging)
       .then((remoteMessage) => {
         if (remoteMessage) {
           if (__DEV__) {
@@ -319,20 +301,26 @@ export const setupNotificationOpenedHandler = (
           }
           onNotificationOpened(remoteMessage);
         }
+      })
+      .catch((error) => {
+        logError(`Failed to read initial notification: ${error instanceof Error ? error.message : 'Unknown error'}`).catch(() => {});
       });
 
-    // Handle Notifee notification press (for foreground notifications)
-    notifee.onForegroundEvent(({ type, detail }) => {
-      if (type === EventType.PRESS) {
-        if (__DEV__) {
-          console.log('Push: Notifee notification pressed');
-        }
-        // Handle notification press
-        if (detail.notification?.data) {
-          onNotificationOpened(detail.notification.data as any);
-        }
+    // Taps on local notifications from displayNotification(); FCM taps arrive through RNFB above.
+    const openLocal = (response: Notifications.NotificationResponse | null) => {
+      if (!response || isRemotePush(response.notification)) return;
+      if (__DEV__) {
+        console.log('Push: Local notification pressed');
       }
-    });
+      onNotificationOpened({ data: response.notification.request.content.data as RemoteMessage['data'] });
+    };
+    Notifications.addNotificationResponseReceivedListener(openLocal);
+    Notifications.getLastNotificationResponseAsync()
+      .then((response) => {
+        openLocal(response);
+        return Notifications.clearLastNotificationResponseAsync();
+      })
+      .catch(() => {});
 
     if (__DEV__) {
       console.log('Push: Notification opened handler registered');
@@ -350,7 +338,7 @@ export const setupNotificationOpenedHandler = (
 export const setBadgeCount = async (count: number): Promise<void> => {
   try {
     if (Platform.OS === 'ios') {
-      await notifee.setBadgeCount(count);
+      await Notifications.setBadgeCountAsync(count);
       if (__DEV__) {
         console.log('Push: Badge count set to:', count);
       }
@@ -365,7 +353,7 @@ export const setBadgeCount = async (count: number): Promise<void> => {
  */
 export const clearAllNotifications = async (): Promise<void> => {
   try {
-    await notifee.cancelAllNotifications();
+    await Notifications.dismissAllNotificationsAsync();
     await setBadgeCount(0);
     if (__DEV__) {
       console.log('Push: All notifications cleared');
@@ -381,7 +369,7 @@ export const clearAllNotifications = async (): Promise<void> => {
  * NOTE: Skips initialization on simulators/emulators (push notifications don't work there)
  */
 export const initializePushNotifications = async (
-  onNotificationOpened?: (remoteMessage: RemoteMessage) => void
+  onNotificationOpened?: (notification: OpenedNotification) => void
 ): Promise<void> => {
   // Check if running on simulator/emulator
   if (isRunningOnSimulator()) {
@@ -416,7 +404,7 @@ export const initializePushNotifications = async (
     }
 
     // Listen for token refresh (this will fire when APNS token is registered)
-    messaging().onTokenRefresh(async () => {
+    onTokenRefresh(getMessaging(), async () => {
       if (__DEV__) {
         console.log('Push: FCM token refreshed');
       }
@@ -450,10 +438,10 @@ export const checkNotificationPermission = async (): Promise<boolean> => {
   }
 
   try {
-    const authStatus = await messaging().hasPermission();
+    const authStatus = await hasPermission(getMessaging());
     const enabled =
-      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+      authStatus === AuthorizationStatus.AUTHORIZED ||
+      authStatus === AuthorizationStatus.PROVISIONAL;
 
     if (__DEV__) {
       console.log('Push: Notification permission status:', enabled ? 'Enabled' : 'Disabled');
@@ -514,7 +502,6 @@ export default {
   registerForRemoteNotifications,
   displayNotification,
   setupForegroundMessageHandler,
-  setupBackgroundMessageHandler,
   setupNotificationOpenedHandler,
   setBadgeCount,
   clearAllNotifications,

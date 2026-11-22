@@ -2,7 +2,7 @@
  * Expo Config Plugin: withPodsDeploymentTarget
  *
  * Raises any CocoaPods target whose IPHONEOS_DEPLOYMENT_TARGET is below the app's minimum.
- * Xcode 27 refuses to build targets below iOS 15.0; some Pods (Stripe, Sentry, SDWebImage,
+ * Xcode 27 refuses to build targets below iOS 15.0; the SDK 58 floor is 16.4; some Pods (Stripe, Sentry, SDWebImage,
  * nanopb, ...) still declare 9.0-13.4. Persists across `expo prebuild --clean`.
  */
 
@@ -23,7 +23,7 @@ const snippet = (minimum) => `    ${MARKER}
     end
 `;
 
-const withPodsDeploymentTarget = (config, { minimum = '15.1' } = {}) =>
+const withPodsDeploymentTarget = (config, { minimum = '16.4' } = {}) =>
   withDangerousMod(config, [
     'ios',
     async (config) => {

@@ -18,7 +18,7 @@ import {
 } from 'react-native';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import FastImage from 'react-native-fast-image';
+import { Image as ExpoImage } from 'expo-image';
 import * as Calendar from 'expo-calendar';
 import { useTheme } from '../../hooks/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -305,10 +305,11 @@ export const EventDetailScreen: React.FC = () => {
     <ScrollView style={styles.container} showsVerticalScrollIndicator={true}>
       {/* Hero Image */}
       {event.ImageUrl && (
-        <FastImage
+        <ExpoImage
           source={{ uri: event.ImageUrl }}
           style={styles.heroImage}
-          resizeMode={FastImage.resizeMode.cover}
+          contentFit="cover"
+          cachePolicy="memory-disk"
         />
       )}
 

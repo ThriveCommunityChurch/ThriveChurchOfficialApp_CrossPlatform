@@ -688,10 +688,10 @@ export function RootNavigator() {
   // Handle app state changes for analytics
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
-      if (appState.current.match(/active/) && nextAppState === 'background') {
+      if (appState.current?.match(/active/) && nextAppState === 'background') {
         // App went to background
         logAppInBackground();
-      } else if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
+      } else if (appState.current?.match(/inactive|background/) && nextAppState === 'active') {
         // App came to foreground
         clearAllNotifications();
       }

@@ -14,7 +14,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import FastImage from 'react-native-fast-image';
+import { Image as ExpoImage } from 'expo-image';
 import { useTheme } from '../../hooks/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { Theme } from '../../theme/types';
@@ -59,10 +59,11 @@ export const FeaturedEventsBanner: React.FC<FeaturedEventsBannerProps> = ({
       >
         {/* Background Image or Gradient */}
         {item.ThumbnailUrl ? (
-          <FastImage
+          <ExpoImage
             source={{ uri: item.ThumbnailUrl }}
             style={styles.backgroundImage}
-            resizeMode={FastImage.resizeMode.cover}
+            contentFit="cover"
+            cachePolicy="memory-disk"
           />
         ) : (
           <View style={styles.gradientBackground}>
@@ -187,16 +188,16 @@ const createStyles = (theme: Theme) =>
       marginRight: 16,
     },
     backgroundImage: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
     },
     gradientBackground: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       backgroundColor: theme.colors.primary,
       alignItems: 'center',
       justifyContent: 'center',
     },
     overlay: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       backgroundColor: 'rgba(0, 0, 0, 0.4)',
     },
     content: {
