@@ -1,7 +1,7 @@
 # Expo SDK 58 Upgrade Plan
 
 **Status:** Draft, 2026-11-18. Founder decisions on 2026-11-18:
-- **Audio:** replace RNTP with expo-video.
+- **Audio:** replace RNTP with expo-video. **Proposed change 2026-11-22 (agent; needs founder confirmation): expo-audio instead.** On iOS 27, Confide's audio-only expo-video player flipped playing/not-playing every ~0.3s, so Confide moved sermon audio to expo-audio in Confide_App PR #185. The premise for expo-video, that expo-audio had no lock-screen controls, is out of date: expo-audio 58 has `setActiveForLockScreen` with seek buttons.
 - **Sequencing:** do the full SDK 58 upgrade after Confide's player stall is fixed. Plan B (SDK 57) is rejected.
 - **Notifications:** replace Notifee with **expo-notifications**, not notify-kit.
 - **iOS minimum:** accept 16.4.
@@ -21,8 +21,8 @@ tarball.
 **What this forces:**
 
 1. **RNTP removed.** `react-native-track-player@5.0.0-alpha0` doesn't work on RN 0.87+
-   ([RNTP #2687](https://github.com/doublesymmetry/react-native-track-player/issues/2687)). Audio moves to expo-video,
-   ported from Confide's `audioStore.ts` (Phase 2). Phase 2 is gated on Confide's iOS 27 stall fix.
+   ([RNTP #2687](https://github.com/doublesymmetry/react-native-track-player/issues/2687)). Audio moves to expo-audio,
+   ported from Confide's `audioStore.ts` (Phase 2, Confide_App PR #185). Phase 2 is gated on that fix passing a device check.
 2. **iOS goes from static to dynamic frameworks.** This corrects the assumption carried over from Confide. Stripe is
    not the only reason: **RNFB 27 is SPM-only and requires `use_frameworks! :linkage => :dynamic`**
    ([migrating-to-v27](https://github.com/invertase/react-native-firebase/blob/main/docs/migrating-to-v27.mdx)), and
@@ -49,7 +49,7 @@ tarball.
 | [RNGH 3 upgrade](https://docs.swmansion.com/react-native-gesture-handler/docs/guides/upgrading-to-3/) + 3.3.0 tarball | Legacy `Swipeable` is gone. `react-native-gesture-handler/ReanimatedSwipeable` imports `react-native-reanimated` and `react-native-worklets`. |
 | [react-native-share](https://github.com/react-native-share/react-native-share) 12.3.1 | Ships a `codegenConfig` (TurboModule), so it stays. |
 | [TypeScript 6.0](https://devblogs.microsoft.com/typescript/announcing-typescript-6-0/) | `types` defaults to `[]`; `baseUrl` is deprecated. |
-| [expo-video docs](https://docs.expo.dev/versions/latest/sdk/video/) | `showNowPlayingNotification`, `staysActiveInBackground`, the `supportsBackgroundPlayback` plugin flag. |
+| [expo-audio docs](https://docs.expo.dev/versions/latest/sdk/audio/) | `setActiveForLockScreen`, `setAudioModeAsync` (`shouldPlayInBackground`, `interruptionMode: 'doNotMix'`), the plugin's `enableBackgroundPlayback`/`microphonePermission`. |
 
 **App facts:**
 - `ios/` (27 files) and `android/` (51 files) are tracked. Every build path runs `prebuild --clean`: `prebuild:ci`, CI,
@@ -73,7 +73,7 @@ tarball.
 | expo | ~54.0.36 | ~58.0.26 | Managed |
 | react / react-native | 19.1.0 / 0.81.4 | 19.3.0 / 0.88.1 | Managed |
 | expo-application, -build-properties, -calendar, -constants, -dev-client, -device, -file-system, -linear-gradient, -localization, -splash-screen, -status-bar, -system-ui | various | ~58.0.x (application ~58.1.2) | Managed |
-| **expo-video** (new) | — | ~58.0.14 | Managed. Phase 2 only |
+| **expo-audio** (new) | — | ~58.0.12 | Managed. Phase 2 only. Plugin `{ microphonePermission: false, recordAudioAndroid: false }` |
 | **expo-image** (new) | — | ~58.0.18 | Managed. Replaces fast-image |
 | expo-sharing | ^14.0.8 | **remove** | No imports in `app/` |
 | @expo/vector-icons | ^15.1.1 | keep | The SDK lists ^15.0.2. `expo` dropped it as a dependency in SDK 56, so keep it explicit |
@@ -89,7 +89,7 @@ tarball.
 | @notifee/react-native | ^9.1.8 | **→ expo-notifications ~58.x** (founder decision) | Expo-managed. See C3 |
 | react-native-fast-image | ^8.6.3 | **→ expo-image** | See C4 |
 | react-native-audio-analyzer / react-native-nitro-modules | ^3.1.0 / ^0.29.8 | ^4.0.1 / ^0.37.2 | Manual. See C6. Keep nitro in `pnpm-workspace.yaml` `allowBuilds` |
-| react-native-track-player | ^5.0.0-alpha0 | **→ expo-video** | Phase 2 |
+| react-native-track-player | ^5.0.0-alpha0 | **→ expo-audio** | Phase 2 |
 | @react-navigation/native, native-stack, bottom-tabs | 7.3/7.18/7.18 | ^7.5.2 / ^7.21.1 / ^7.22.0 | Manual |
 | @react-navigation/stack | ^7.10.17 | **remove** | Only used for the `StackNavigationProp` type; no `createStackNavigator` anywhere |
 | react-native-share | ^12.3.1 | 12.3.1 | Keep (TurboModule) |
@@ -116,7 +116,7 @@ Work in a worktree under `.worktrees/` on branch `chore/expo-sdk-58`, with Node 
   `android.ndkVersion: "26.1.10909125"` pin (RN 0.88 uses NDK 27.1). Add the comment
   `// dynamic: RNFB >=27 resolves Firebase via SPM, which needs it`.
 - Add the plugin entries `"expo-image"` (only if expo-doctor asks for it) and `expo-notifications` (C3). The
-  `expo-video` entry comes in Phase 2.
+  `expo-audio` entry comes in Phase 2.
 - Delete `scripts/patch-podfile-properties.js` and the stray root `Podfile.properties.json` (only that script refers to
   it). Delete `scripts/copy-track-player-headers.js`. Then update `package.json` `prebuild:ios` and `prebuild:ci` to drop
   those steps.
@@ -238,25 +238,24 @@ None of the custom plugins touches `SceneDelegate.swift` or `UIApplicationSceneM
 Then point `app/hooks/usePlayer.ts` and the two Bible screens at a temporary no-op module, so Phase 1 can build and
 pass the device run with everything but audio. Phase 2 replaces it. **The PR merges only after Phase 2.**
 
-## Phase 2: audio port to expo-video (starts after Confide's iOS 27 stall fix merges)
+## Phase 2: audio port to expo-audio (starts after Confide_App #185 passes its device check)
 
-**Gate:** Confide_App's fix for the ~2 s stall on iOS 27 has merged to `dev` and passed a device check. Copy
-`app/stores/audioStore.ts` from Confide **at that commit**, so the fix comes with it. The suspects are audio-session
-activation or interruption, a competing second player, or a stream stall. If the fix lands outside the store (for
-example an audio-mode call or a plugin flag), carry that too and cite the Confide commit in the PR.
+**Gate:** Confide_App #185 (sermon audio on expo-audio) has merged to `dev` and passed its iPhone check. Copy
+`app/stores/audioStore.ts` from Confide **at that merge commit**, plus its `setAudioModeAsync` call and the
+`expo-audio` plugin entry, and cite the commit in the PR.
 
-Add `["expo-video", { supportsBackgroundPlayback: true, supportsPictureInPicture: false }]` to the plugins.
+Add `["expo-audio", { microphonePermission: false, recordAudioAndroid: false }]` to the plugins.
 `UIBackgroundModes: audio` already exists.
 
 | Thrive today (RNTP) | Becomes |
 |---|---|
-| `index.js:18` `registerPlaybackService(() => require('./service'))`, plus `service.js` remote events | Deleted. `showNowPlayingNotification` + `staysActiveInBackground` provide lock screen and Control Center play, pause and seek natively. |
-| `app/services/audio/trackPlayerService.ts` (446 lines): `setupPlayer`, `playAudio`, pause, resume, stop, `seekTo`, `skipForward`/`Backward`, state, progress, the progress-save interval, recently-played, `markMessageAsPlayed`, series completion | **New `app/stores/audioStore.ts`**: a Zustand store around one lazily created `VideoPlayer` (`createVideoPlayer`, `replaceAsync` per track, `audioMixingMode: 'doNotMix'`), following Confide. Keep Thrive's side effects inside `playMessage`/listeners: `addToRecentlyPlayed`, resume from `getPlaybackProgressForMessage` through `pendingStartPosition` on `readyToPlay`, `savePlaybackProgress` throttled on `timeUpdate` (`PROGRESS_SAVE_INTERVAL_MS`, `MIN_POSITION_TO_SAVE`, `END_THRESHOLD`), and `markMessageAsPlayed` plus `checkAndMarkCompletion` on `playToEnd`, with `setCompletionContext`/`clearCompletionContext`. Delete `trackPlayerService.ts` and update `app/services/audio/index.ts`. |
-| `playbackService()` in `trackPlayerService.ts:175` (progress saved on remote pause and stop) | **Dead code today**: `index.js` registers `service.js`, so remote pause never saves progress. The store's `timeUpdate` throttle plus a save on `playingChange → false` fixes that. |
-| `updatePlayerSkipIntervals`/`getCurrentSkipIntervals` (lock-screen jump intervals from `PlaybackSettingsScreen`, `usePlaybackSettings.ts`) | In-app skip buttons use the configured interval through store `skip(seconds)`. Lock-screen jump buttons depend on what expo-video exposes (Unknown 4). Accept play, pause and scrub if there's no jump. |
+| `index.js:18` `registerPlaybackService(() => require('./service'))`, plus `service.js` remote events | Deleted. `player.setActiveForLockScreen(true, metadata, { showSeekForward, showSeekBackward })` plus `setAudioModeAsync({ shouldPlayInBackground: true, interruptionMode: 'doNotMix' })` provide lock screen and Control Center play, pause and seek natively. |
+| `app/services/audio/trackPlayerService.ts` (446 lines): `setupPlayer`, `playAudio`, pause, resume, stop, `seekTo`, `skipForward`/`Backward`, state, progress, the progress-save interval, recently-played, `markMessageAsPlayed`, series completion | **New `app/stores/audioStore.ts`**: a Zustand store around one lazily created `AudioPlayer` (`createAudioPlayer`, `replace` per track, one `playbackStatusUpdate` listener), following Confide. Keep Thrive's side effects inside `playMessage`/listeners: `addToRecentlyPlayed`, resume from `getPlaybackProgressForMessage` through `pendingStartPosition` on `isLoaded`, `savePlaybackProgress` throttled on status updates while playing (`PROGRESS_SAVE_INTERVAL_MS`, `MIN_POSITION_TO_SAVE`, `END_THRESHOLD`), and `markMessageAsPlayed` plus `checkAndMarkCompletion` on `didJustFinish`, with `setCompletionContext`/`clearCompletionContext`. Delete `trackPlayerService.ts` and update `app/services/audio/index.ts`. |
+| `playbackService()` in `trackPlayerService.ts:175` (progress saved on remote pause and stop) | **Dead code today**: `index.js` registers `service.js`, so remote pause never saves progress. The store's status-update throttle plus a save in `pause()` fixes that. |
+| `updatePlayerSkipIntervals`/`getCurrentSkipIntervals` (lock-screen jump intervals from `PlaybackSettingsScreen`, `usePlaybackSettings.ts`) | In-app skip buttons use the configured interval through store `skip(seconds)`. Lock-screen jump buttons come from `showSeekForward`/`showSeekBackward`; their interval is the platform default (Unknown 4). |
 | `setRepeatMode`, `addToQueue`, `clearQueue`, `getQueue` | Delete them; there are no callers outside the service. |
 | `app/hooks/usePlayer.ts` (`usePlayer`, `usePlayerProgress` = RNTP `useProgress`, `useTrackPlayerEvents`) | Keep the hook's public shape (`isPlaying`/`isPaused`/`isLoading`/`isStopped`, current track, `play`/`pause`/`resume`/`seekTo`/`togglePlayPause`) as selectors over the store. `usePlayerProgress` returns `{ position, duration }` from the store. Callers stay unchanged: `RecentlyPlayedScreen`, `SermonDetailScreen`, `DownloadsScreen`, `NowPlayingScreen`. |
-| `NowPlayingScreen.tsx:15,99,276` `TrackPlayer.setRate` | Store `setRate(rate)` → `player.playbackRate` (`preservesPitch` defaults to true). |
+| `NowPlayingScreen.tsx:15,99,276` `TrackPlayer.setRate` | Store `setRate(rate)` → `player.setPlaybackRate(rate)` (pitch correction on by default). |
 | `BiblePassageScreen.tsx:15,61,113–148` and `ChapterReaderScreen.tsx:24,198–278` (reset, add, play, pause, `getPlaybackState`, `getActiveTrack`) | Store `playTrack({ kind: 'bible', uri, title, artist })` on the same singleton. `kind: 'bible'` skips progress, recently-played and completion. State comes from store selectors. |
 | Downloads (`app/services/downloads/*`, expo-file-system/legacy) and `isLocal` playback | Unchanged. The store takes the local `file://` URI. Confide's `audioDownloads.ts` isn't needed (Thrive has its own manager), but reuse its pattern of preferring the local file over the stream. |
 | Waveform (`NowPlayingScreen` + C6) | Independent of the player; it reads the current track URI from the store. |
@@ -311,11 +310,11 @@ Also remove `react-native-track-player` from `package.json`.
 
 | Risk | Likelihood | Mitigation |
 |---|---|---|
-| expo-video audio stalls on iOS 27, as it does on Confide | High until the fix lands | Phase 2 gate; device item 2 |
+| expo-audio still stutters on iOS 27 (Confide's fix is unverified on device until #185's check) | High until the fix lands | Phase 2 gate; device item 2 |
 | Static → dynamic frameworks: link or dyld failures; `import FirebaseMessaging` not visible to the app target | Medium | Gate 3, then the iOS build; the C1 fallback (let Firebase swizzle) |
 | Push regressions: the expo-notifications swap (two iOS notification delegates), the modular messaging API, cold start under UIScene | Medium–High | C3 spike first; device items 7–8 |
 | iOS minimum 15.1 → 16.4 drops live users on iOS 15.x and 16.0–16.3 (Thrive is in the stores, unlike Confide) | Certain | The founder accepts it; App Store Connect keeps serving the last compatible build to them |
-| Lost lock-screen jump buttons or the Android "stop on app kill" behavior with expo-video | Medium | Device item 3; accepted parity gap if expo-video lacks them |
+| Lock-screen jump interval or the Android "stop on app kill" behavior differs with expo-audio | Medium | Device item 3; accepted parity gap if expo-audio lacks them |
 | RNFB 27 on Android (Kotlin ≥ 2.4 metadata) | Medium | The Kotlin fallback in gate 4 |
 | nitro 0.37 / audio-analyzer 4 on RN 0.88 | Low–Medium | Android and iOS builds; device item 6. If it fails, ship without on-device waveforms (the API waveform still works) |
 | FlashList 2 or RNGH 3 layout and gesture regressions | Low | Device items 13–14 |
@@ -340,12 +339,12 @@ Also remove `react-native-track-player` from `package.json`.
 - Confide's sleep timer.
 
 ## Unknowns
-1. **Confide stall fix:** not merged as of 2026-11-18 (`Confide_App` has no commit since 11-16 touching the audio
-   store). Phase 2's start date depends on it.
+1. **Confide stall fix:** Confide_App #185 (opened 2026-11-22) moves sermon audio to expo-audio; its iPhone check is
+   due 2026-11-24. Phase 2's start date depends on it.
 2. **iMac deploy script:** whether it reads tracked `ios/` (C8).
 3. **Xcode 27 availability** on GitHub `macos-latest` and on EAS images; check `xcodebuild -version` and set the eas
    image.
-4. **expo-video lock-screen jump buttons** and the Android kill behavior: not documented. Check them on the device.
+4. **expo-audio lock-screen jump interval** (the API has show/hide but no interval) and the Android kill behavior: check them on the device.
 5. **Resolved:** expo-notifications (founder, 2026-11-18). The remaining unknown is the delegate interaction with
    RNFB messaging; see the C3 spike.
 6. **Build box toolchain** for compileSdk 37, NDK 27.1 and Kotlin 2.4. Confide's run on the box answers this.
