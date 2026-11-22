@@ -15,7 +15,7 @@ import {
   Image,
   Share,
 } from 'react-native';
-import { Swipeable } from 'react-native-gesture-handler';
+import ReanimatedSwipeable, { type SwipeableMethods } from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Note, SermonNote } from '../../types/notes';
@@ -67,7 +67,7 @@ interface GeneralNoteCardProps {
 
 const SermonNoteCard: React.FC<SermonNoteCardProps> = ({ note, onPress, onDelete, onPin, onShare, isEditMode, theme, t }) => {
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
-  const swipeableRef = useRef<Swipeable>(null);
+  const swipeableRef = useRef<SwipeableMethods>(null);
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   const handlePressIn = () => {
@@ -149,7 +149,7 @@ const SermonNoteCard: React.FC<SermonNoteCardProps> = ({ note, onPress, onDelete
   );
 
   return (
-    <Swipeable
+    <ReanimatedSwipeable
       ref={swipeableRef}
       renderRightActions={renderRightActions}
       renderLeftActions={renderLeftActions}
@@ -221,14 +221,14 @@ const SermonNoteCard: React.FC<SermonNoteCardProps> = ({ note, onPress, onDelete
           </View>
         </Animated.View>
       </TouchableOpacity>
-    </Swipeable>
+    </ReanimatedSwipeable>
   );
 };
 
 // General note card (no sermon context)
 const GeneralNoteCard: React.FC<GeneralNoteCardProps> = ({ note, onPress, onDelete, onPin, onShare, isEditMode, theme, t }) => {
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
-  const swipeableRef = useRef<Swipeable>(null);
+  const swipeableRef = useRef<SwipeableMethods>(null);
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   const handlePressIn = () => {
@@ -310,7 +310,7 @@ const GeneralNoteCard: React.FC<GeneralNoteCardProps> = ({ note, onPress, onDele
   );
 
   return (
-    <Swipeable
+    <ReanimatedSwipeable
       ref={swipeableRef}
       renderRightActions={renderRightActions}
       renderLeftActions={renderLeftActions}
@@ -377,7 +377,7 @@ const GeneralNoteCard: React.FC<GeneralNoteCardProps> = ({ note, onPress, onDele
           </View>
         </Animated.View>
       </TouchableOpacity>
-    </Swipeable>
+    </ReanimatedSwipeable>
   );
 };
 

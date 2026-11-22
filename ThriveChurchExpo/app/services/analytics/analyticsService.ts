@@ -3,7 +3,12 @@
  * Wrapper for Firebase Analytics to match iOS implementation
  */
 
-import analytics from '@react-native-firebase/analytics';
+import {
+  getAnalytics,
+  logScreenView as firebaseLogScreenView,
+  setUserId as firebaseSetUserId,
+  setUserProperty as firebaseSetUserProperty,
+} from '@react-native-firebase/analytics';
 import { featureFlags } from '../../config/firebase.config';
 
 /**
@@ -46,6 +51,7 @@ export const AnalyticsEvents = {
 /**
  * Check if analytics is enabled
  */
+// logEvent uses the instance method: modular logEvent() returns void and would detach rejections.
 const isAnalyticsEnabled = (): boolean => {
   return featureFlags.analytics;
 };
@@ -61,7 +67,7 @@ export const logAppOpen = async (): Promise<void> => {
   }
 
   try {
-    await analytics().logEvent(AnalyticsEvents.APP_OPEN);
+    await getAnalytics().logEvent(AnalyticsEvents.APP_OPEN);
     console.log('Analytics: App Open');
   } catch (error) {
     console.error('Analytics error (logAppOpen):', error);
@@ -79,7 +85,7 @@ export const logAppInBackground = async (): Promise<void> => {
   }
 
   try {
-    await analytics().logEvent(AnalyticsEvents.APP_IN_BACKGROUND);
+    await getAnalytics().logEvent(AnalyticsEvents.APP_IN_BACKGROUND);
     console.log('Analytics: App In Background');
   } catch (error) {
     console.error('Analytics error (logAppInBackground):', error);
@@ -97,7 +103,7 @@ export const logTutorialBegin = async (): Promise<void> => {
   }
 
   try {
-    await analytics().logEvent(AnalyticsEvents.TUTORIAL_BEGIN);
+    await getAnalytics().logEvent(AnalyticsEvents.TUTORIAL_BEGIN);
     console.log('Analytics: Tutorial Begin');
   } catch (error) {
     console.error('Analytics error (logTutorialBegin):', error);
@@ -114,7 +120,7 @@ export const logTutorialComplete = async (): Promise<void> => {
   }
 
   try {
-    await analytics().logEvent(AnalyticsEvents.TUTORIAL_COMPLETE);
+    await getAnalytics().logEvent(AnalyticsEvents.TUTORIAL_COMPLETE);
     console.log('Analytics: Tutorial Complete');
   } catch (error) {
     console.error('Analytics error (logTutorialComplete):', error);
@@ -131,7 +137,7 @@ export const logPlaySermon = async (sermonId: string, sermonTitle: string): Prom
   }
 
   try {
-    await analytics().logEvent(AnalyticsEvents.PLAY_SERMON, {
+    await getAnalytics().logEvent(AnalyticsEvents.PLAY_SERMON, {
       sermon_id: sermonId,
       sermon_title: sermonTitle,
       content_type: 'sermon',
@@ -152,7 +158,7 @@ export const logDownloadSermon = async (sermonId: string, sermonTitle: string): 
   }
 
   try {
-    await analytics().logEvent(AnalyticsEvents.DOWNLOAD_SERMON, {
+    await getAnalytics().logEvent(AnalyticsEvents.DOWNLOAD_SERMON, {
       sermon_id: sermonId,
       sermon_title: sermonTitle,
       content_type: 'sermon',
@@ -185,7 +191,7 @@ export const logDownloadQueueAdd = async (params: DownloadEventParams): Promise<
   }
 
   try {
-    await analytics().logEvent(AnalyticsEvents.DOWNLOAD_QUEUE_ADD, {
+    await getAnalytics().logEvent(AnalyticsEvents.DOWNLOAD_QUEUE_ADD, {
       message_id: params.messageId,
       series_id: params.seriesId || '',
       network_type: params.networkType,
@@ -209,7 +215,7 @@ export const logDownloadComplete = async (params: DownloadEventParams): Promise<
   }
 
   try {
-    await analytics().logEvent(AnalyticsEvents.DOWNLOAD_COMPLETE, {
+    await getAnalytics().logEvent(AnalyticsEvents.DOWNLOAD_COMPLETE, {
       message_id: params.messageId,
       series_id: params.seriesId || '',
       network_type: params.networkType,
@@ -237,7 +243,7 @@ export const logDownloadFailed = async (
   }
 
   try {
-    await analytics().logEvent(AnalyticsEvents.DOWNLOAD_FAILED, {
+    await getAnalytics().logEvent(AnalyticsEvents.DOWNLOAD_FAILED, {
       message_id: params.messageId,
       series_id: params.seriesId || '',
       network_type: params.networkType,
@@ -261,7 +267,7 @@ export const logCreateNote = async (noteId: string): Promise<void> => {
   }
 
   try {
-    await analytics().logEvent(AnalyticsEvents.CREATE_NOTE, {
+    await getAnalytics().logEvent(AnalyticsEvents.CREATE_NOTE, {
       note_id: noteId,
       content_type: 'note',
     });
@@ -281,7 +287,7 @@ export const logShareNote = async (noteId: string): Promise<void> => {
   }
 
   try {
-    await analytics().logEvent(AnalyticsEvents.SHARE_NOTE, {
+    await getAnalytics().logEvent(AnalyticsEvents.SHARE_NOTE, {
       note_id: noteId,
       content_type: 'note',
     });
@@ -301,7 +307,7 @@ export const logViewBible = async (book: string): Promise<void> => {
   }
 
   try {
-    await analytics().logEvent(AnalyticsEvents.VIEW_BIBLE, {
+    await getAnalytics().logEvent(AnalyticsEvents.VIEW_BIBLE, {
       book: book,
       content_type: 'bible',
     });
@@ -321,7 +327,7 @@ export const logPlayBibleAudio = async (passage: string): Promise<void> => {
   }
 
   try {
-    await analytics().logEvent(AnalyticsEvents.PLAY_BIBLE_AUDIO, {
+    await getAnalytics().logEvent(AnalyticsEvents.PLAY_BIBLE_AUDIO, {
       passage: passage,
       content_type: 'bible_audio',
     });
@@ -346,7 +352,7 @@ export const logBibleChapterRead = async (
   }
 
   try {
-    await analytics().logEvent(AnalyticsEvents.BIBLE_CHAPTER_READ, {
+    await getAnalytics().logEvent(AnalyticsEvents.BIBLE_CHAPTER_READ, {
       book: book,
       chapter: chapter || 0,
       reference: reference || `${book}${chapter ? ' ' + chapter : ''}`,
@@ -368,7 +374,7 @@ export const logContactChurch = async (method: string): Promise<void> => {
   }
 
   try {
-    await analytics().logEvent(AnalyticsEvents.CONTACT_CHURCH, {
+    await getAnalytics().logEvent(AnalyticsEvents.CONTACT_CHURCH, {
       method: method,
     });
     console.log('Analytics: Contact Church:', method);
@@ -387,7 +393,7 @@ export const logViewAnnouncements = async (): Promise<void> => {
   }
 
   try {
-    await analytics().logEvent(AnalyticsEvents.VIEW_ANNOUNCEMENTS);
+    await getAnalytics().logEvent(AnalyticsEvents.VIEW_ANNOUNCEMENTS);
     console.log('Analytics: View Announcements');
   } catch (error) {
     console.error('Analytics error (logViewAnnouncements):', error);
@@ -404,7 +410,7 @@ export const logOpenSocial = async (platform: string): Promise<void> => {
   }
 
   try {
-    await analytics().logEvent(AnalyticsEvents.OPEN_SOCIAL, {
+    await getAnalytics().logEvent(AnalyticsEvents.OPEN_SOCIAL, {
       platform: platform,
     });
     console.log('Analytics: Open Social:', platform);
@@ -426,7 +432,7 @@ export const logCustomEvent = async (
   }
 
   try {
-    await analytics().logEvent(eventName, params);
+    await getAnalytics().logEvent(eventName, params);
     console.log('Analytics: Custom event:', eventName, params);
   } catch (error) {
     console.error('Analytics error (logCustomEvent):', error);
@@ -443,7 +449,7 @@ export const setUserId = async (userId: string): Promise<void> => {
   }
 
   try {
-    await analytics().setUserId(userId);
+    await firebaseSetUserId(getAnalytics(), userId);
     console.log('Analytics: User ID set:', userId);
   } catch (error) {
     console.error('Analytics error (setUserId):', error);
@@ -460,7 +466,7 @@ export const setUserProperty = async (name: string, value: string): Promise<void
   }
 
   try {
-    await analytics().setUserProperty(name, value);
+    await firebaseSetUserProperty(getAnalytics(), name, value);
     console.log('Analytics: User property set:', name, value);
   } catch (error) {
     console.error('Analytics error (setUserProperty):', error);
@@ -477,7 +483,7 @@ export const setCurrentScreen = async (screenName: string, screenClass?: string)
   }
 
   try {
-    await analytics().logScreenView({
+    await firebaseLogScreenView(getAnalytics(), {
       screen_name: screenName,
       screen_class: screenClass || screenName,
     });

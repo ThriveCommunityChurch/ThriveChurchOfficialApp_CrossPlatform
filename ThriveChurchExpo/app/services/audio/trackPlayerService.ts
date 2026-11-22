@@ -5,7 +5,7 @@ import TrackPlayer, {
   Event,
   RepeatMode,
   State,
-} from 'react-native-track-player';
+} from './trackPlayerStub';
 import { SermonMessage } from '../../types/api';
 import { addToRecentlyPlayed, savePlaybackProgress, getPlaybackProgressForMessage, clearPlaybackProgress } from '../storage/storage';
 import { markMessageAsPlayed } from '../api/messagePlayedService';

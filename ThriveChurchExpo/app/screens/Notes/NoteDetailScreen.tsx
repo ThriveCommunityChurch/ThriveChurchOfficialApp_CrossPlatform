@@ -86,8 +86,8 @@ export const NoteDetailScreen: React.FC = () => {
   const [isViewMode, setIsViewMode] = useState(!!noteId);
   const [isNewNote, setIsNewNote] = useState(!noteId);
   const [showMarkdownHelp, setShowMarkdownHelp] = useState(false);
-  const textInputRef = useRef<TextInput>(null);
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const textInputRef = useRef<React.ComponentRef<typeof TextInput>>(null);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Refs for cleanup effect to avoid stale closures
   const contentRef = useRef(content);

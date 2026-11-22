@@ -50,7 +50,7 @@ Search for **"Thrive Church Official App"** in the Apple App Store or Google Pla
 
 ### 📖 Bible
 - **Full ESV Bible Reader** - Native WebView-based chapter reading with beautiful typography
-- **Audio Playback** - Listen to any chapter with TrackPlayer integration
+- **Audio Playback** - Listen to any chapter with background audio
 - **Cross-References** - Tap superscript letters to view related passages in a modal
 - **Chapter Navigation** - Prev/Next buttons and book/chapter picker
 - **Note-Taking** - Take notes on any chapter with auto-linked references
@@ -69,13 +69,13 @@ Search for **"Thrive Church Official App"** in the Apple App Store or Google Pla
 - **Platform**: iOS and Android (Universal app)
 - **iOS Version**: iOS 15.0 or later
 - **Android Version**: Android 5.0 (API 21) or later
-- **Framework**: React Native 0.81.4 via Expo Bare
+- **Framework**: React Native 0.88.1 via Expo Bare (SDK 58)
 - **Language**: TypeScript with React Hooks
 - **Architecture**: Component-based architecture with custom hooks and context providers
 - **State Management**: Zustand for global state, React Query for server state
 - **Navigation**: React Navigation (Stack & Bottom Tabs) with custom header and footer components
 - **Storage**: AsyncStorage for local data persistence
-- **Audio**: react-native-track-player for professional audio playback
+- **Audio**: expo-audio (lock screen and background playback)
 - **Design**: Modern card-based UI with responsive layouts for phones and tablets
 
 ## 🚀 Quick Start
@@ -229,7 +229,6 @@ ThriveChurchExpo/
 ├── App.tsx                   # Main app component
 ├── app.config.js             # Expo configuration (dynamic)
 ├── package.json              # Dependencies and scripts
-├── service.js                # TrackPlayer background service
 ├── index.js                  # App entry point
 ├── credentials.json          # App credentials (not in git)
 ├── load-credentials.js       # Credential loading utility
@@ -258,23 +257,23 @@ The app is dynamically configured from `credentials.json`:
 - **Bundle identifiers**: Configurable per platform
 - **Display name**: "Thrive Church Official App"
 - **Orientation**: Portrait (with landscape support for media)
-- **iOS frameworks**: Static linking for compatibility
+- **iOS frameworks**: Dynamic linking (RNFB 27 resolves Firebase via SPM)
 - **Background modes**: Audio playback, fetch, remote notifications
 - **Deep linking**: Custom URL scheme support
 
 ### Key Dependencies
-- **react-native-track-player**: Professional audio playback with background support
+- **expo-audio**: Audio playback with background and lock-screen support
 - **@react-navigation/native**: Navigation framework (Stack & Bottom Tabs)
 - **@react-native-async-storage/async-storage**: Local data persistence
 - **@tanstack/react-query**: Server state management and caching
 - **zustand**: Global state management
 - **axios**: HTTP client for API requests
-- **react-native-fast-image**: Optimized image loading and caching
+- **expo-image**: Optimized image loading and caching
 - **@shopify/flash-list**: High-performance list rendering
 - **react-native-webview**: In-app browser functionality
 - **react-native-share**: Native share functionality
 - **expo-file-system**: File system access for downloads
-- **@notifee/react-native**: Local notifications
+- **expo-notifications**: Local notifications, badge and Android channel
 
 ## 🧪 Testing
 
@@ -441,7 +440,6 @@ adb reverse tcp:8081 tcp:8081
 **Audio not playing in background:**
 - iOS: Check that Background Modes are enabled in Xcode (Audio, AirPlay, and Picture in Picture)
 - Android: Verify foreground service permissions in AndroidManifest.xml
-- Both: Ensure TrackPlayer service is properly registered
 
 **Credentials not loading:**
 ```bash
@@ -454,7 +452,7 @@ node generate-firebase-configs.js
 
 ---
 
-**Version**: 1.0.0 | **React Native**: 0.81.4 | **Expo SDK**: ~54.0 | **Last Updated**: January 2026
+**Version**: 1.0.0 | **React Native**: 0.88.1 | **Expo SDK**: ~58.0 | **Last Updated**: January 2026
 
 ### Acknowledgements
 Thank you to everyone who uses this application, we made it for you - to help make taking notes and hearing the gospel message that much easier for you. Made with ❤️

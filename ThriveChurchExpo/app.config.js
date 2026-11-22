@@ -123,16 +123,9 @@ module.exports = {
       [
         "expo-build-properties",
         {
-          ios: {
-            useFrameworks: "static",
-            // Workaround for React Native Firebase + Expo SDK 54 build errors
-            // See: https://github.com/invertase/react-native-firebase/issues/8657#issuecomment-3236409106
-            // Force static linking for Firebase pods to avoid modular header issues
-            forceStaticLinking: ["RNFBApp", "RNFBAnalytics", "RNFBMessaging"]
-          },
-          android: {
-            ndkVersion: "26.1.10909125"
-          }
+          // dynamic: RNFB >=27 resolves Firebase via SPM, which needs it
+          ios: { useFrameworks: "dynamic" },
+          android: {}
         }
       ],
       [
@@ -146,6 +139,9 @@ module.exports = {
         }
       ],
       "expo-system-ui",
+      "expo-image",
+      "expo-localization",
+      "expo-notifications",
       "@react-native-firebase/app",
       // Custom plugin to configure push notifications (entitlements + Xcode capabilities)
       "./plugins/withPushNotifications.js",
@@ -163,9 +159,6 @@ module.exports = {
       "./plugins/withPodsDeploymentTarget.js",
       // Custom plugin to configure Android gradle.properties (CI/CD settings + release signing)
       ["./plugins/withAndroidGradleConfig.js", { credentials }],
-      // Note: @react-native-firebase/analytics and @react-native-firebase/messaging
-      // do not have Expo config plugins. They are configured via native files
-      // (GoogleService-Info.plist and google-services.json) and work at runtime.
       "@react-native-firebase/crashlytics",
     ],
     extra: expoExtra,

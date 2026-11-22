@@ -21,7 +21,7 @@ import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import TrackPlayer, { State } from 'react-native-track-player';
+import TrackPlayer, { State } from '../../services/audio/trackPlayerStub';
 import { BibleBook } from '../../types/bible';
 import { esvApiService } from '../../services/bible/esvApiService';
 import { setupPlayer } from '../../services/audio/trackPlayerService';
@@ -254,7 +254,7 @@ export const ChapterReaderScreen: React.FC = () => {
         url: audioUrl,
         title: chapterReference,
         artist: 'ESV Bible',
-        artwork: ESV_REFERENCE_IMAGE.uri,
+        artwork: ESV_REFERENCE_IMAGE?.uri,
         headers: authHeaders,
       });
 
@@ -297,7 +297,7 @@ export const ChapterReaderScreen: React.FC = () => {
         messageId: `bible-${chapterReference}`,
         messageTitle: chapterReference,
         seriesTitle: 'ESV Bible',
-        seriesArt: ESV_REFERENCE_IMAGE.uri,
+        seriesArt: ESV_REFERENCE_IMAGE?.uri,
         speaker: 'ESV Bible',
         messageDate: new Date().toISOString(),
         seriesId: `bible-${book.slug}`,

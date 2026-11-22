@@ -6,7 +6,7 @@
 
 - Node.js 26+ installed
 - pnpm 10.34.0 (`npm install -g pnpm@10.34.0`)
-- Xcode (for iOS development)
+- Xcode 27.2+ (for iOS development; Expo SDK 58 / React Native 0.88, iOS 16.4 minimum)
 - Android Studio (for Android development)
 - Git
 
@@ -346,7 +346,7 @@ Firebase services are controlled by feature flags in `credentials.*.json`:
 |---------|---------|--------|
 | **Analytics** | `@react-native-firebase/analytics` | ✅ Working (feature-flagged) |
 | **Crashlytics** | `@react-native-firebase/crashlytics` | ✅ Working (feature-flagged) |
-| **Push Notifications** | `@react-native-firebase/messaging` + `@notifee/react-native` | ✅ Working (feature-flagged) |
+| **Push Notifications** | `@react-native-firebase/messaging` + `expo-notifications` | ✅ Working (feature-flagged) |
 
 ### How Feature Flags Work
 
@@ -364,7 +364,7 @@ npx expo prebuild --platform ios --clean
 npx expo prebuild --platform android --clean
 ```
 
-**Peer dependency warnings are expected** for a couple of packages (e.g. `react-native-fast-image`) — pnpm surfaces them as warnings rather than install failures, so no extra flags are needed:
+**Peer dependency warnings** — pnpm surfaces them as warnings rather than install failures, so no extra flags are needed:
 ```bash
 pnpm add <package-name>
 ```

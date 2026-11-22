@@ -46,7 +46,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const systemColorScheme = useColorScheme();
 
   // Use state to ensure re-renders when appearance changes
-  const [colorScheme, setColorScheme] = useState<ColorSchemeName>(systemColorScheme);
+  const [colorScheme, setColorScheme] = useState<ColorSchemeName | null>(systemColorScheme);
 
   // User's theme mode preference (auto, light, or dark)
   const [userThemeMode, setUserThemeMode] = useState<ThemeMode>('auto');

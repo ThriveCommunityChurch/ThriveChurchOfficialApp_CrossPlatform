@@ -221,7 +221,6 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
                 renderItem={renderTagItem}
                 keyExtractor={(item) => item}
                 extraData={selectedTags}
-                estimatedItemSize={56}
                 showsVerticalScrollIndicator={true}
                 contentContainerStyle={styles.modalListContent}
                 ListEmptyComponent={

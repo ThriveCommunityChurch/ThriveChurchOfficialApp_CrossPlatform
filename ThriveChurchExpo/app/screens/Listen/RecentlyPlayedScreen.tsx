@@ -7,7 +7,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import FastImage from 'react-native-fast-image';
+import { Image as ExpoImage } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../hooks/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -221,7 +221,7 @@ export default function RecentlyPlayedScreen() {
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           {/* Series Art Thumbnail */}
           {item.seriesArt ? (
-            <FastImage
+            <ExpoImage
               source={{ uri: item.seriesArt }}
               style={{
                 width: 106,
@@ -230,7 +230,8 @@ export default function RecentlyPlayedScreen() {
                 backgroundColor: theme.colors.card,
                 marginRight: 12,
               }}
-              resizeMode={FastImage.resizeMode.cover}
+              contentFit="cover"
+              cachePolicy="memory-disk"
             />
           ) : (
             <View

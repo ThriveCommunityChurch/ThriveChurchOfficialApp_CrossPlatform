@@ -10,9 +10,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import TrackPlayer, { State } from 'react-native-track-player';
+import TrackPlayer, { State } from '../../services/audio/trackPlayerStub';
 import BiblePassageReader from '../../components/BiblePassageReader';
 import { useTheme } from '../../hooks/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -33,7 +33,7 @@ type BiblePassageScreenParams = {
 };
 
 type BiblePassageScreenRouteProp = RouteProp<BiblePassageScreenParams, 'BiblePassageScreen'>;
-type BiblePassageScreenNavigationProp = StackNavigationProp<BiblePassageScreenParams, 'BiblePassageScreen'>;
+type BiblePassageScreenNavigationProp = NativeStackNavigationProp<BiblePassageScreenParams, 'BiblePassageScreen'>;
 
 const BiblePassageScreen: React.FC = () => {
   const navigation = useNavigation<BiblePassageScreenNavigationProp>();
@@ -121,7 +121,7 @@ const BiblePassageScreen: React.FC = () => {
         url: audioUrl,
         title: message.PassageRef,
         artist: 'ESV Bible',
-        artwork: ESV_REFERENCE_IMAGE.uri,
+        artwork: ESV_REFERENCE_IMAGE?.uri,
         headers: authHeaders,
       });
 
@@ -155,7 +155,7 @@ const BiblePassageScreen: React.FC = () => {
   if (!message.PassageRef) {
     return (
       <SafeAreaView style={styles.container}>
-        <StatusBar barStyle={theme.isDark ? "light-content" : "dark-content"} backgroundColor={theme.colors.background} />
+        <StatusBar barStyle={theme.isDark ? "light-content" : "dark-content"} />
         <View style={styles.header}>
           <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
             <Text style={styles.closeButtonText}>✕</Text>
@@ -171,7 +171,7 @@ const BiblePassageScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle={theme.isDark ? "light-content" : "dark-content"} backgroundColor={theme.colors.background} />
+      <StatusBar barStyle={theme.isDark ? "light-content" : "dark-content"} />
 
       <View style={styles.header}>
         <View style={styles.headerContent}>

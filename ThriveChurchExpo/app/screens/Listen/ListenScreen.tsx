@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useEffect, useRef } from 'react';
 import { View, ActivityIndicator, TouchableOpacity, Text, useWindowDimensions } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import FastImage from 'react-native-fast-image';
+import { Image as ExpoImage } from 'expo-image';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useNetInfo } from '@react-native-community/netinfo';
 import { api } from '../../services/api/client';
@@ -70,10 +70,12 @@ const SeriesRow = React.memo<SeriesRowProps>(({ row, cardWidth, cardHeight, onSe
             accessibilityHint="Tap to view sermon series"
             accessibilityRole="button"
           >
-            <FastImage
-              source={{ uri: series.ArtUrl, priority: FastImage.priority.normal }}
+            <ExpoImage
+              source={{ uri: series.ArtUrl }}
+              priority="normal"
               style={{ width: '100%', height: '100%' }}
-              resizeMode={FastImage.resizeMode.cover}
+              contentFit="cover"
+              cachePolicy="memory-disk"
             />
           </TouchableOpacity>
         </View>
@@ -248,7 +250,6 @@ export default function ListenScreen({ onSeriesPress }: ListenScreenProps) {
         key={`flashlist-${columns}`}
         data={rows}
         renderItem={renderRow}
-        estimatedItemSize={cardHeight + CARD_GAP}
         drawDistance={800}
         contentContainerStyle={{ paddingHorizontal: HORIZONTAL_PADDING, paddingTop: 8, paddingBottom: 8 }}
         onEndReached={onEndReached}
@@ -256,9 +257,6 @@ export default function ListenScreen({ onSeriesPress }: ListenScreenProps) {
         ListFooterComponent={renderFooter}
         keyExtractor={(item) => item.map(series => series.Id).join('-')}
         getItemType={(item) => `row-${item.length}`}
-        overrideItemLayout={(layout) => {
-          layout.size = cardHeight + CARD_GAP;
-        }}
         removeClippedSubviews={false}
       />
     </View>

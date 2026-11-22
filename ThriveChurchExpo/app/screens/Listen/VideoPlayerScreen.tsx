@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import VideoPlayer from '../../components/VideoPlayer';
 import { useTheme } from '../../hooks/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -26,7 +26,7 @@ type VideoPlayerScreenParams = {
 };
 
 type VideoPlayerScreenRouteProp = RouteProp<VideoPlayerScreenParams, 'VideoPlayerScreen'>;
-type VideoPlayerScreenNavigationProp = StackNavigationProp<VideoPlayerScreenParams, 'VideoPlayerScreen'>;
+type VideoPlayerScreenNavigationProp = NativeStackNavigationProp<VideoPlayerScreenParams, 'VideoPlayerScreen'>;
 
 const VideoPlayerScreen: React.FC = () => {
   const navigation = useNavigation<VideoPlayerScreenNavigationProp>();

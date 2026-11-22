@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useQuery } from '@tanstack/react-query';
 import { useTheme } from '../../hooks/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -37,7 +37,7 @@ type SermonNotesScreenRouteProp = RouteProp<{
 
 export const SermonNotesScreen: React.FC = () => {
   const route = useRoute<SermonNotesScreenRouteProp>();
-  const navigation = useNavigation<StackNavigationProp<any>>();
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const { message, seriesTitle, seriesArtUrl, seriesId } = route.params;
   const { theme } = useTheme();
   const { t } = useTranslation();

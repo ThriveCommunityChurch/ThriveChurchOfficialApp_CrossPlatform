@@ -53,9 +53,6 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
   // Determine if results are series or messages
   const isSeries = searchTarget === SearchTarget.Series;
 
-  // Estimated item size for FlashList
-  const estimatedItemSize = isSeries ? 280 : 200;
-
   // Reset FlashList loaded state when results change
   useEffect(() => {
     setFlashListLoaded(false);
@@ -266,7 +263,6 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
           data={results}
           renderItem={renderItem}
           keyExtractor={keyExtractor}
-          estimatedItemSize={estimatedItemSize}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={true}
           removeClippedSubviews={true}
